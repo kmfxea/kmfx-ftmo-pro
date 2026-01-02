@@ -144,7 +144,7 @@ else:
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#777777"
 
-# ====================== FINAL PREMIUM THEME - FULLY FIXED SIDEBAR (ARROW ALWAYS VISIBLE & CLICKABLE) ======================
+# ====================== FINAL PREMIUM THEME - FULLY FIXED (DESKTOP + MOBILE + SWIPE SIDEBAR) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -221,15 +221,14 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== SUPER FIXED MOBILE SIDEBAR: ONLY GREEN ARROW WHEN COLLAPSED ==================== */
-    /* Custom green arrow - always visible on mobile */
+    /* ==================== SIDEBAR COLLAPSE ARROW - ALWAYS VISIBLE ==================== */
     button[data-testid="collapsedControl"] {{
         background: transparent !important;
         color: {accent_primary} !important;
         border: none !important;
-        left: 12px !important;
-        top: 80px !important; /* Positioned lower to avoid overlapping header */
-        transform: none !important;
+        left: 15px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
         z-index: 9999 !important;
         opacity: 0.9 !important;
         width: 50px !important;
@@ -243,7 +242,7 @@ st.markdown(f"""
     button[data-testid="collapsedControl"]:hover {{
         opacity: 1 !important;
         background: rgba(0, 255, 170, 0.2) !important;
-        transform: scale(1.15) !important;
+        transform: translateY(-50%) scale(1.15) !important;
     }}
     button[data-testid="collapsedControl"] svg {{
         stroke: {accent_primary} !important;
@@ -252,30 +251,21 @@ st.markdown(f"""
         height: 32px !important;
     }}
 
-    /* Hide Streamlit's default back/hamburger arrow on mobile */
+    /* Desktop collapse - space for arrow */
+    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+        margin-left: 80px !important;
+        width: calc(100% - 80px) !important;
+    }}
+
+    /* ==================== MOBILE: FULL COLLAPSE + SWIPE GESTURE ==================== */
     @media (max-width: 768px) {{
-        /* Hide native Streamlit collapse button (the < or hamburger) */
+        /* Hide default Streamlit hamburger/back button */
         button[kind="headerNoPadding"], 
         button[title="View sidebar"] {{
             display: none !important;
         }}
         
-        /* When collapsed: hide sidebar completely, show only our custom green arrow */
-        section[data-testid="stSidebar"].collapsed {{
-            width: 0 !important;
-            min-width: 0 !important;
-            overflow: hidden !important;
-            padding: 0 !important;
-        }}
-        
-        /* Content full width, small space for arrow */
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-            margin-left: 0 !important;
-            padding-left: 1rem !important;
-            width: 100% !important;
-        }}
-        
-        /* When expanded: full screen overlay */
+        /* Expanded: full screen overlay */
         section[data-testid="stSidebar"] {{
             width: 100% !important;
             min-width: 100% !important;
@@ -286,7 +276,21 @@ st.markdown(f"""
             z-index: 9998 !important;
         }}
         
-        /* Arrow position on mobile */
+        /* Collapsed: completely hidden */
+        section[data-testid="stSidebar"].collapsed {{
+            width: 0 !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }}
+        
+        /* Content full width when collapsed */
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+            margin-left: 0 !important;
+            padding-left: 1rem !important;
+            width: 100% !important;
+        }}
+        
+        /* Arrow on mobile - lower position */
         button[data-testid="collapsedControl"] {{
             left: 12px !important;
             top: 80px !important;
@@ -297,12 +301,6 @@ st.markdown(f"""
             width: 30px !important;
             height: 30px !important;
         }}
-    }}
-
-    /* Desktop/Laptop: Normal fixed sidebar with space for arrow when collapsed */
-    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 80px !important;
-        width: calc(100% - 80px) !important;
     }}
 
     /* Other mobile optimizations */
@@ -321,7 +319,6 @@ st.markdown(f"""
         .flip-card-front h1 {{ font-size: 1.8rem !important; }}
         .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
         .flip-card-back h2 {{ font-size: 1.5rem !important; }}
-        .flip-card-back div:nth-child(3) {{ font-size: 1rem !important; line-height: 1.6 !important; }}
     }}
 
     @media (max-width: 480px) {{
@@ -332,6 +329,51 @@ st.markdown(f"""
         .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
+
+<script>
+    // Mobile Swipe Gesture for Sidebar (Swipe Right to Open, Swipe Left to Close)
+    document.addEventListener('DOMContentLoaded', function() {{
+        let touchstartX = 0;
+        let touchendX = 0;
+        let touchstartY = 0;
+        let touchendY = 0;
+        const threshold = 80;  // Minimum swipe distance
+        const restraint = 120; // Max vertical movement allowed
+        
+        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
+        if (!sidebarButton) return;
+        
+        document.body.addEventListener('touchstart', e => {{
+            touchstartX = e.changedTouches[0].screenX;
+            touchstartY = e.changedTouches[0].screenY;
+        }});
+        
+        document.body.addEventListener('touchend', e => {{
+            touchendX = e.changedTouches[0].screenX;
+            touchendY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }});
+        
+        function handleSwipe() {{
+            const deltaX = touchendX - touchstartX;
+            const deltaY = Math.abs(touchendY - touchstartY);
+            
+            if (deltaY > restraint) return; // Ignore vertical scrolls
+            
+            if (deltaX > threshold) {{
+                // Swipe RIGHT - open sidebar if collapsed
+                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                    sidebarButton.click();
+                }}
+            }} else if (deltaX < -threshold) {{
+                // Swipe LEFT - close sidebar if expanded
+                if (!document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                    sidebarButton.click();
+                }}
+            }}
+        }}
+    }});
+</script>
 """, unsafe_allow_html=True)
 
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
