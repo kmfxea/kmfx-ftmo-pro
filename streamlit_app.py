@@ -217,21 +217,12 @@ st.markdown(f"""
     }}
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
   
-    /* SIDEBAR BASE - FIXED 320px on Desktop/Laptop */
-    section[data-testid="stSidebar"] {{ 
-        background: {sidebar_bg}; 
-        backdrop-filter: blur(20px); 
-        width: 320px !important; 
-        min-width: 320px !important;
-        border-right: {glass_border}; 
-        transition: width 0.3s ease !important;
-    }}
-    
+    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== SUPER FIXED: COLLAPSE ARROW ALWAYS VISIBLE & CLICKABLE ==================== */
-    /* Arrow button - always visible, green, large touch target, hover effect */
+    /* ==================== FIXED: SIDEBAR FULL COLLAPSE ON MOBILE (ONLY ARROW REMAINS) ==================== */
+    /* Arrow button - always visible, green, large touch target */
     button[data-testid="collapsedControl"] {{
         background: transparent !important;
         color: {accent_primary} !important;
@@ -261,22 +252,45 @@ st.markdown(f"""
         height: 32px !important;
     }}
 
-    /* When collapsed - leave space for arrow (visible & clickable) */
+    /* Desktop/Laptop: Normal collapse with space for arrow */
     section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 80px !important; /* Space for arrow */
+        margin-left: 80px !important;
         width: calc(100% - 80px) !important;
         transition: all 0.3s ease !important;
     }}
 
-    /* ==================== MOBILE/TABLET OPTIMIZATIONS ==================== */
-    @media (max-width: 992px) {{
-        .block-container {{ padding-left: 1.5rem !important; padding-right: 1.5rem !important; }}
-        h1 {{ font-size: 2.2rem !important; }}
-        h2 {{ font-size: 1.8rem !important; }}
-        .glass-card {{ padding: 1.8rem !important; margin: 1.2rem 0 !important; }}
-        .stButton > button {{ padding: 1rem 1.8rem !important; }}
+    /* Mobile: FULL COLLAPSE - sidebar width 0, only arrow remains, content full screen */
+    @media (max-width: 768px) {{
+        /* When expanded: full width */
+        section[data-testid="stSidebar"] {{ width: 100% !important; min-width: 100% !important; }}
+        
+        /* When collapsed: hide sidebar completely (width 0), only arrow visible */
+        section[data-testid="stSidebar"].collapsed {{
+            width: 0 !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+        }}
+        
+        /* Content full width with minimal space for arrow */
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+            margin-left: 70px !important; /* Just enough for arrow */
+            width: calc(100% - 70px) !important;
+            transition: all 0.3s ease !important;
+        }}
+        
+        /* Arrow adjustment for mobile */
+        button[data-testid="collapsedControl"] {{
+            left: 10px !important;
+            width: 45px !important;
+            height: 45px !important;
+        }}
+        button[data-testid="collapsedControl"] svg {{
+            width: 28px !important;
+            height: 28px !important;
+        }}
     }}
 
+    /* Other mobile optimizations (unchanged) */
     @media (max-width: 768px) {{
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
@@ -286,22 +300,13 @@ st.markdown(f"""
         .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
         div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
         .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
-        
-        /* Sidebar full width on mobile when expanded */
-        section[data-testid="stSidebar"] {{ width: 100% !important; min-width: 100% !important; }}
-        
-        /* Arrow adjustment on mobile */
-        button[data-testid="collapsedControl"] {{ left: 10px !important; width: 45px !important; height: 45px !important; }}
-        button[data-testid="collapsedControl"] svg {{ width: 28px !important; height: 28px !important; }}
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{ margin-left: 70px !important; width: calc(100% - 70px) !important; }}
-        
-        /* Flip Card */
         .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
         .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
         .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
         .flip-card-front h1 {{ font-size: 1.8rem !important; }}
         .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
         .flip-card-back h2 {{ font-size: 1.5rem !important; }}
+        .flip-card-back div:nth-child(3) {{ font-size: 1rem !important; line-height: 1.6 !important; }}
     }}
 
     @media (max-width: 480px) {{
@@ -518,59 +523,50 @@ except:
 st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
 
 # ====================== PART 3: DASHBOARD PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME OPTIMIZED) ======================
-# ====================== PART 3: DASHBOARD PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & PHP UNITS ONLY) ======================
+# ====================== DASHBOARD PAGE - FULLY FIXED (PHP PER UNIT KEY + SAFE GET + CONSISTENT) ======================
 if selected == "🏠 Dashboard":
     st.header("Elite Empire Command Center 🚀")
     st.markdown("**Realtime, fully automatic empire overview: Accounts, participant trees, contributor funding (PHP units), profit distributions, client balances, growth fund • Everything synced instantly • Professional, clean, fast performance.**")
-    
-    # SAFE ROLE FOR ENTIRE PAGE
+   
     current_role = st.session_state.get("role", "guest")
-    
-    # FULL AUTO CACHE - Realtime sync every 30s (fast & optimized)
+   
     @st.cache_data(ttl=30)
     def fetch_all_empire_data():
-        # Accounts
         accounts = supabase.table("ftmo_accounts").select("*").execute().data or []
-        
-        # Profits
         profits = supabase.table("profits").select("gross_profit, trader_share, growth_fund_add").execute().data or []
-        
-        # Distributions
         distributions = supabase.table("profit_distributions").select("share_amount, participant_name, is_growth_fund").execute().data or []
-        
-        # Users & clients
         users = supabase.table("users").select("full_name, balance, role").execute().data or []
         clients = [u for u in users if u["role"] == "client"]
-        
-        # Growth Fund
+       
         gf_resp = supabase.table("growth_fund_transactions").select("type, amount").execute()
         gf_balance = sum(row["amount"] if row["type"] == "In" else -row["amount"] for row in gf_resp.data) if gf_resp.data else 0.0
-        
-        # Participant shares (empire-wide auto)
+       
         participant_shares = {}
         for d in distributions:
             if not d.get("is_growth_fund", False):
                 name = d["participant_name"]
                 participant_shares[name] = participant_shares.get(name, 0) + d["share_amount"]
-        
-        # Contributor funding (empire-wide PHP only)
+       
+        # FIXED: Use "php_per_unit" + safe .get() to prevent KeyError
         total_funded_php = 0
         for acc in accounts:
             for c in acc.get("contributors", []):
-                total_funded_php += c["units"] * c["unit_value_php"]
-        
+                units = c.get("units", 0)
+                php_per_unit = c.get("php_per_unit", 0)
+                total_funded_php += units * php_per_unit
+       
         return accounts, profits, distributions, clients, gf_balance, participant_shares, total_funded_php
-    
+   
     accounts, profits, distributions, clients, gf_balance, participant_shares, total_funded_php = fetch_all_empire_data()
-    
-    # ====================== PROFESSIONAL METRICS GRID (CLEAN & PHP FOCUSED) ======================
+   
+    # ====================== PROFESSIONAL METRICS GRID ======================
     total_accounts = len(accounts)
     total_equity = sum(acc.get("current_equity", 0) for acc in accounts)
     total_withdrawable = sum(acc.get("withdrawable_balance", 0) for acc in accounts)
     total_gross = sum(p.get("gross_profit", 0) for p in profits)
     total_distributed = sum(d.get("share_amount", 0) for d in distributions if not d.get("is_growth_fund", False))
     total_client_balances = sum(u.get("balance", 0) for u in clients)
-    
+   
     st.markdown(f"""
     <div style="display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -610,8 +606,8 @@ if selected == "🏠 Dashboard":
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    # ====================== PROFESSIONAL QUICK ACTIONS (ROLE-BASED & CLEAN) ======================
+   
+    # ====================== QUICK ACTIONS ======================
     col1, col2 = st.columns([1, 1])
     with col1:
         st.markdown("<div class='glass-card' style='padding:2rem; text-align:center; height:100%;'>", unsafe_allow_html=True)
@@ -642,11 +638,11 @@ if selected == "🏠 Dashboard":
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
-    # ====================== EMPIRE-WIDE REALTIME TREE FLOWS (CLEAN & PHP FOCUSED) ======================
+   
+    # ====================== EMPIRE FLOW TREES ======================
     st.subheader("🌳 Empire Flow Trees (Realtime Auto-Sync)")
     tab_emp1, tab_emp2 = st.tabs(["Participant Shares Distribution", "Contributor Funding Flow (PHP)"])
-    
+   
     with tab_emp1:
         if participant_shares:
             labels = ["Empire Shares"] + list(participant_shares.keys())
@@ -659,18 +655,19 @@ if selected == "🏠 Dashboard":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No distributions yet • Activates with first profit")
-    
+   
     with tab_emp2:
-        # Empire-wide funded PHP
-        total_funded_php = 0
         funded_by_contributor = {}
+        total_funded_php = 0  # Recalculate for accuracy
         for acc in accounts:
             for c in acc.get("contributors", []):
-                php = c["units"] * c["unit_value_php"]
+                units = c.get("units", 0)
+                php_per_unit = c.get("php_per_unit", 0)  # FIXED KEY
+                php = units * php_per_unit
                 total_funded_php += php
                 name = c["name"]
                 funded_by_contributor[name] = funded_by_contributor.get(name, 0) + php
-        
+       
         if funded_by_contributor:
             labels = ["Empire Funded (PHP)"] + list(funded_by_contributor.keys())
             values = list(funded_by_contributor.values())
@@ -682,15 +679,16 @@ if selected == "🏠 Dashboard":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No contributors yet")
-    
-    # ====================== LIVE ACCOUNTS WITH MINI-TREES (CLEAN GRID & PHP FUNDED) ======================
+   
+    # ====================== LIVE ACCOUNTS WITH MINI-TREES ======================
     st.subheader("📊 Live Accounts (Realtime Metrics & Trees)")
     if accounts:
         st.markdown("<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;'>", unsafe_allow_html=True)
         for acc in accounts:
-            total_funded_php = sum(c["units"] * c["unit_value_php"] for c in acc.get("contributors", []))
+            # FIXED: Safe calculation with php_per_unit
+            total_funded_php_acc = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in acc.get("contributors", []))
             phase_emoji = {"Challenge P1": "🔴", "Challenge P2": "🟡", "Verification": "🟠", "Funded": "🟢", "Scaled": "💎"}.get(acc["current_phase"], "⚪")
-            
+           
             st.markdown(f"""
             <div class='glass-card' style='padding:2rem;'>
                 <h3>{phase_emoji} {acc['name']}</h3>
@@ -698,11 +696,11 @@ if selected == "🏠 Dashboard":
                     <div><strong>Phase:</strong> {acc['current_phase']}</div>
                     <div><strong>Equity:</strong> ${acc.get('current_equity', 0):,.0f}</div>
                     <div><strong>Withdrawable:</strong> ${acc.get('withdrawable_balance', 0):,.0f}</div>
-                    <div><strong>Funded:</strong> ₱{total_funded_php:,.0f}</div>
+                    <div><strong>Funded:</strong> ₱{total_funded_php_acc:,.0f}</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
+           
             tab1, tab2 = st.tabs(["Participants Tree", "Contributors Tree (PHP)"])
             with tab1:
                 participants = acc.get("participants", [])
@@ -718,8 +716,9 @@ if selected == "🏠 Dashboard":
             with tab2:
                 contributors = acc.get("contributors", [])
                 if contributors:
-                    labels = ["Funded (PHP)"] + [f"{c['name']} ({c['units']} units @ ₱{c['unit_value_php']:,.0f}/unit)" for c in contributors]
-                    values = [c["units"] * c["unit_value_php"] for c in contributors]
+                    # FIXED: Use php_per_unit in label & value
+                    labels = ["Funded (PHP)"] + [f"{c['name']} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)" for c in contributors]
+                    values = [c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors]
                     fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                     link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                     fig.update_layout(height=350)
@@ -729,14 +728,14 @@ if selected == "🏠 Dashboard":
         st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("No accounts yet • Launch first to activate full realtime flow")
-    
-    # ====================== TEAM CLIENT BALANCES (OWNER/ADMIN ONLY - CLEAN TABLE) ======================
+   
+    # ====================== CLIENT BALANCES (OWNER/ADMIN) ======================
     if current_role in ["owner", "admin"] and clients:
         st.subheader("👥 Team Client Balances (Realtime Auto)")
         client_df = pd.DataFrame([{"Client": u["full_name"], "Balance": f"${u['balance'] or 0:,.2f}"} for u in clients])
         st.dataframe(client_df, use_container_width=True, hide_index=True)
-    
-    # ====================== PROFESSIONAL MOTIVATIONAL CLOSE ======================
+   
+    # ====================== MOTIVATIONAL CLOSE ======================
     st.markdown(f"""
     <div class='glass-card' style='padding:4rem; text-align:center; margin:4rem 0; border: 2px solid {accent_color};'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
@@ -748,7 +747,6 @@ if selected == "🏠 Dashboard":
         <h2 style="color:#ffd700;">👑 KMFX Pro • Cloud Edition 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL DASHBOARD (PHP UNITS ONLY) ======================
 # ====================== PART 4: FTMO ACCOUNTS PAGE (FINAL SUPER ADVANCED - FIXED SUBMIT & COLUMN VALUE ERROR) ======================
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
