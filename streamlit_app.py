@@ -221,15 +221,15 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== FIXED: SIDEBAR FULL COLLAPSE ON MOBILE (ONLY ARROW REMAINS) ==================== */
-    /* Arrow button - always visible, green, large touch target */
+    /* ==================== SUPER FIXED MOBILE SIDEBAR: ONLY GREEN ARROW WHEN COLLAPSED ==================== */
+    /* Custom green arrow - always visible on mobile */
     button[data-testid="collapsedControl"] {{
         background: transparent !important;
         color: {accent_primary} !important;
         border: none !important;
-        left: 15px !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
+        left: 12px !important;
+        top: 80px !important; /* Positioned lower to avoid overlapping header */
+        transform: none !important;
         z-index: 9999 !important;
         opacity: 0.9 !important;
         width: 50px !important;
@@ -243,7 +243,7 @@ st.markdown(f"""
     button[data-testid="collapsedControl"]:hover {{
         opacity: 1 !important;
         background: rgba(0, 255, 170, 0.2) !important;
-        transform: translateY(-50%) scale(1.15) !important;
+        transform: scale(1.15) !important;
     }}
     button[data-testid="collapsedControl"] svg {{
         stroke: {accent_primary} !important;
@@ -252,45 +252,60 @@ st.markdown(f"""
         height: 32px !important;
     }}
 
-    /* Desktop/Laptop: Normal collapse with space for arrow */
-    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 80px !important;
-        width: calc(100% - 80px) !important;
-        transition: all 0.3s ease !important;
-    }}
-
-    /* Mobile: FULL COLLAPSE - sidebar width 0, only arrow remains, content full screen */
+    /* Hide Streamlit's default back/hamburger arrow on mobile */
     @media (max-width: 768px) {{
-        /* When expanded: full width */
-        section[data-testid="stSidebar"] {{ width: 100% !important; min-width: 100% !important; }}
+        /* Hide native Streamlit collapse button (the < or hamburger) */
+        button[kind="headerNoPadding"], 
+        button[title="View sidebar"] {{
+            display: none !important;
+        }}
         
-        /* When collapsed: hide sidebar completely (width 0), only arrow visible */
+        /* When collapsed: hide sidebar completely, show only our custom green arrow */
         section[data-testid="stSidebar"].collapsed {{
             width: 0 !important;
             min-width: 0 !important;
             overflow: hidden !important;
+            padding: 0 !important;
         }}
         
-        /* Content full width with minimal space for arrow */
+        /* Content full width, small space for arrow */
         section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-            margin-left: 70px !important; /* Just enough for arrow */
-            width: calc(100% - 70px) !important;
-            transition: all 0.3s ease !important;
+            margin-left: 0 !important;
+            padding-left: 1rem !important;
+            width: 100% !important;
         }}
         
-        /* Arrow adjustment for mobile */
+        /* When expanded: full screen overlay */
+        section[data-testid="stSidebar"] {{
+            width: 100% !important;
+            min-width: 100% !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: 9998 !important;
+        }}
+        
+        /* Arrow position on mobile */
         button[data-testid="collapsedControl"] {{
-            left: 10px !important;
-            width: 45px !important;
-            height: 45px !important;
+            left: 12px !important;
+            top: 80px !important;
+            width: 48px !important;
+            height: 48px !important;
         }}
         button[data-testid="collapsedControl"] svg {{
-            width: 28px !important;
-            height: 28px !important;
+            width: 30px !important;
+            height: 30px !important;
         }}
     }}
 
-    /* Other mobile optimizations (unchanged) */
+    /* Desktop/Laptop: Normal fixed sidebar with space for arrow when collapsed */
+    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+        margin-left: 80px !important;
+        width: calc(100% - 80px) !important;
+    }}
+
+    /* Other mobile optimizations */
     @media (max-width: 768px) {{
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
