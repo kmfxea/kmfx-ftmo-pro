@@ -113,7 +113,7 @@ accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
-    card_bg = "rgba(15, 20, 30, 0.70)"  # More transparent
+    card_bg = "rgba(15, 20, 30, 0.70)"
     sidebar_bg = "rgba(10, 13, 20, 0.90)"
     border_color = "rgba(100, 100, 100, 0.15)"
     text_primary = "#ffffff"
@@ -121,7 +121,7 @@ if theme == "dark":
     input_bg = "rgba(30, 35, 45, 0.5)"
 else:
     bg_color = "#f8fbff"
-    card_bg = "rgba(255, 255, 255, 0.75)"  # More transparent light
+    card_bg = "rgba(255, 255, 255, 0.75)"
     sidebar_bg = "rgba(255, 255, 255, 0.90)"
     border_color = "rgba(0, 0, 0, 0.08)"
     text_primary = "#0f172a"
@@ -164,7 +164,7 @@ st.markdown(f"""
         -webkit-backdrop-filter: {glass_blur};
         border-radius: 20px;
         border: 1px solid {border_color};
-        padding: 2.2rem;  /* Slightly more padding for breathing room */
+        padding: 2.2rem;
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
     }}
@@ -196,6 +196,17 @@ st.markdown(f"""
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
     
+    /* TOP HEADER FULL BLEND */
+    header[data-testid="stHeader"] {{
+        background-color: {bg_color} !important;
+        backdrop-filter: {glass_blur};
+    }}
+    header[data-testid="stHeader"] button,
+    header[data-testid="stHeader"] div[role="menubar"] button {{
+        color: {text_primary} !important;
+        background: transparent !important;
+    }}
+    
     /* SIDEBAR - NO SHADOW */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
@@ -208,7 +219,7 @@ st.markdown(f"""
         transition: all 0.3s ease;
     }}
     
-    /* RED arrow/hamburger - highly visible */
+    /* RED arrow/hamburger */
     [data-testid="collapsedControl"] {{
         color: #ff4757 !important;
         background: transparent !important;
@@ -227,13 +238,12 @@ st.markdown(f"""
         }}
     }}
     
-    /* Mobile: Wider sidebar + looser layout */
+    /* Mobile: Wider + looser */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             width: 92% !important;
-            max-width: 420px !important;  /* Even wider */
+            max-width: 420px !important;
         }}
-        /* Smaller font + more padding in sidebar menu */
         div[data-testid="stSidebar"] div.stRadio > div > label {{
             font-size: 13px !important;
             padding: 16px 22px !important;
@@ -243,7 +253,6 @@ st.markdown(f"""
         div[data-testid="stSidebar"] div, div[data-testid="stSidebar"] span {{
             font-size: 13px !important;
         }}
-        /* Main content boxes wider/looser on mobile */
         .glass-card {{
             padding: 2.5rem !important;
         }}
@@ -251,7 +260,6 @@ st.markdown(f"""
             padding: 1.5rem !important;
             padding-top: 80px !important;
         }}
-        /* General mobile text slightly smaller */
         .stMarkdown, p, div, span {{
             font-size: 14px !important;
         }}
