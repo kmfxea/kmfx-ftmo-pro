@@ -95,59 +95,60 @@ def create_default_users():
         st.error(f"Error creating default users: {e}")
 
 create_default_users()
-# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
+# ====================== FINAL PREMIUM THEME - ENHANCED WITH SIDEBAR PRIORITY (GLASS + FIXED BEHAVIOR) ======================
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 theme = st.session_state.theme
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
-accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
     text_color = "#ffffff"
     secondary_text = "#e0e0e0"
+    glass_bg = "transparent"
     glass_border = "1px solid rgba(255, 255, 255, 0.18)"
+    input_bg = "rgba(255, 255, 255, 0.06)"
+    input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
-    overlay_bg = "rgba(0, 0, 0, 0.60)"
-    sidebar_tint = "rgba(255, 255, 255, 0.06)"
+    sidebar_bg = "rgba(255, 255, 255, 0.06)"  # Subtle tint - elegant frosted glass feel
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
+    dropdown_text = "#ffffff"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#888888"
 else:
     bg_color = "#f5f8fa"
     text_color = "#000000"
     secondary_text = "#333333"
+    glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
+    input_bg = "rgba(0, 0, 0, 0.06)"
+    input_border = "1px solid rgba(0, 0, 0, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
-    overlay_bg = "rgba(0, 0, 0, 0.40)"
-    sidebar_tint = "rgba(0, 0, 0, 0.06)"
+    sidebar_bg = "rgba(0, 0, 0, 0.06)"  # Subtle tint - elegant frosted glass feel
+    dropdown_popup_bg = "#ffffff"
+    dropdown_text = "#000000"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#666666"
 
-sidebar_bg = sidebar_tint  # Subtle tint for elegant frosted feel
-
-# ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
+# ====================== CUSTOM THEME + SIDEBAR TOGGLE (ARROW IN HEADER) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* Global font + smooth feel */
-    html, body, [data-testid="stAppViewContainer"], .stApp {{
-        font-family: 'Poppins', sans-serif !important;
-    }}
+    html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
+ 
+    .stApp {{ background: {bg_color}; color: {text_color}; }}
+    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
+    small, caption {{ color: {secondary_text} !important; }}
 
-    /* Main background */
-    .stApp {{
-        background-color: {bg_color};
-        color: {text_color} !important;
-    }}
-
-    /* Hide default Streamlit collapse button (cleaner UI) */
-    button[data-testid="collapsedControl"] {{
-        display: none !important;
-    }}
-
-    /* Spacious but optimized layout – more content on mobile */
+    /* Spacious centered layout (professional) */
     .block-container {{
         max-width: 1280px !important;
         margin: 0 auto !important;
-        padding-top: 2rem !important;
-        padding-bottom: 5rem !important;
+        padding-top: 4rem !important;
+        padding-bottom: 4rem !important;
         padding-left: 3rem !important;
         padding-right: 3rem !important;
     }}
@@ -157,29 +158,86 @@ st.markdown(f"""
         }}
     }}
 
-    /* Text colors */
-    .main .block-container,
-    .main [data-testid="stVerticalBlock"],
-    .main p, .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
-    .main li, .main span, .main div {{
+    /* Glass card (for any containers you add class="glass-card") */
+    .glass-card {{
+        background: {glass_bg};
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: {glass_border};
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: {card_shadow};
+        transition: all 0.3s ease;
+    }}
+    .glass-card:hover {{ transform: translateY(-8px); }}
+
+    /* Inputs + Selectboxes */
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div,
+    .stTextInput > div > div,
+    .stSelectbox > div > div {{
+        background: {input_bg} !important;
+        border: {input_border} !important;
+        border-radius: 16px !important;
         color: {text_color} !important;
     }}
-    .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"] {{
-        color: {secondary_text} !important;
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] > div > div > div {{
+        color: {text_color} !important;
+    }}
+    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
+        color: {dropdown_placeholder} !important;
     }}
 
-    /* Frosted glass sidebar (elegant but still transparent feel) */
+    /* Dropdown popup */
+    div[data-baseweb="popover"],
+    div[role="listbox"],
+    div[data-baseweb="menu"] {{
+        background: {dropdown_popup_bg} !important;
+        border-radius: 16px !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
+    }}
+    div[role="option"] > div > div,
+    div[role="option"] {{
+        color: {dropdown_text} !important;
+        background: transparent !important;
+        padding: 12px 16px !important;
+    }}
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"] {{
+        background: {dropdown_hover_bg} !important;
+        color: {dropdown_hover_text} !important;
+    }}
+
+    /* Buttons */
+    .stButton > button {{
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        color: #000 !important;
+        border: none !important;
+        border-radius: 16px !important;
+        padding: 0.9rem 2rem !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3) !important;
+        transition: all 0.3s ease !important;
+    }}
+    .stButton > button:hover {{
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5) !important;
+    }}
+
+    /* Sidebar - PRIORITY: kept exactly elegant glass (not touched heavily) */
     section[data-testid="stSidebar"] {{
-        background-color: {sidebar_bg} !important;
-        color: {text_color} !important;
+        background: {sidebar_bg} !important;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-right: {glass_border};
-        position: relative !important;
     }}
-    section[data-testid="stSidebar"] > div {{
-        color: {text_color} !important;
-    }}
+
+    /* Metrics accent */
+    [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
+
+    /* Hide only unnecessary Streamlit elements (keep toolbar visible) */
+    #MainMenu, footer {{ visibility: hidden !important; }}
 
     /* Transparent header + visible toolbar icons */
     [data-testid="stHeader"] {{
@@ -189,125 +247,108 @@ st.markdown(f"""
     [data-testid="stToolbar"] svg,
     button[kind="headerAction"] svg {{
         fill: {text_color} !important;
-        color: {text_color} !important;
         opacity: 1 !important;
     }}
 
-    .mobile-sidebar-trigger:hover {{
-        color: {accent_primary};
-        opacity: 1;
-        transform: scale(1.15);
-    }}
-    
-    .sidebar-close-btn:hover {{
-        color: {accent_primary};
-        opacity: 1;
-        transform: scale(1.15);
+    /* Hide default sidebar controls */
+    button[data-testid="collapsedControl"],
+    button[title="View sidebar"] {{
+        display: none !important;
     }}
 
-    /* Smooth blurred overlay on mobile */
-    .sidebar-overlay {{
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: {overlay_bg};
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        z-index: 9998;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.4s ease;
+    /* Custom arrow button (premium glass + accent) */
+    .custom-header-arrow {{
+        position: fixed !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 9999 !important;
+        width: 50px !important;
+        height: 50px !important;
+        background: rgba(0, 255, 170, 0.15) !important;
+        border: 1px solid rgba(0, 255, 170, 0.25) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.35s ease !important;
+        box-shadow: 0 4px 20px rgba(0, 255, 170, 0.3) !important;
+    }}
+    .custom-header-arrow:hover {{
+        background: {accent_primary} !important;
+        transform: scale(1.1) !important;
+        box-shadow: 0 8px 35px rgba(0, 255, 170, 0.5) !important;
+    }}
+    .custom-header-arrow:hover svg {{
+        stroke: #000000 !important;
+    }}
+    .custom-header-arrow svg {{
+        width: 32px !important;
+        height: 32px !important;
+        stroke: {text_color} !important;
+        fill: none !important;
+        stroke-width: 3 !important;
     }}
 
-    /* Elegant buttons (if you use st.button) */
-    .stButton > button {{
-        background-color: {accent_primary} !important;
-        color: #000000 !important;
-        border: none !important;
-        border-radius: 16px !important;
-        padding: 12px 28px !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 6px 25px rgba(0, 255, 170, 0.35) !important;
+    /* Mobile optimizations */
+    @media (max-width: 768px) {{
+        .custom-header-arrow {{
+            top: 10px !important;
+            left: 10px !important;
+            width: 48px !important;
+            height: 48px !important;
+        }}
+        .custom-header-arrow svg {{
+            width: 28px !important;
+            height: 28px !important;
+        }}
+        .block-container {{ padding: 1rem !important; }}
+        .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
+        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
     }}
-    .stButton > button:hover {{
-        background-color: {accent_hover} !important;
-        transform: translateY(-3px) !important;
-        box-shadow: 0 12px 40px rgba(0, 255, 170, 0.55) !important;
+    @media (max-width: 480px) {{
+        .glass-card {{ padding: 1.2rem !important; }}
+        .block-container {{ padding: 0.8rem !important; }}
     }}
 </style>
-
-<!-- Custom Mobile Controls (simple icons only) -->
-<div class="mobile-sidebar-trigger">☰</div>
-<div class="sidebar-overlay"></div>
-<div class="sidebar-close-btn">×</div>
-
 <script>
-    // Desktop: Force sidebar open
-    if (window.innerWidth > 992) {{
-        const desktopInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
-                control.click();
-                clearInterval(desktopInterval);
+    document.addEventListener('DOMContentLoaded', function() {{
+        const arrowBtn = document.createElement('div');
+        arrowBtn.className = 'custom-header-arrow';
+        arrowBtn.innerHTML = `
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+        document.body.appendChild(arrowBtn);
+       
+        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
+        if (!sidebarButton) return;
+       
+        arrowBtn.addEventListener('click', function() {{
+            sidebarButton.click();
+        }});
+       
+        const path = arrowBtn.querySelector('svg path');
+        const observer = new MutationObserver(() => {{
+            if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                // Sidebar closed → arrow points RIGHT (to open)
+                path.setAttribute('d', 'M9 18l6-6-6-6');
+            }} else {{
+                // Sidebar open → arrow points LEFT (to close)
+                path.setAttribute('d', 'M15 18l-6-6 6-6');
             }}
-        }}, 100);
-    }}
-
-    // Mobile: Force sidebar closed on load
-    if (window.innerWidth <= 992) {{
-        const mobileInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && !sidebar.classList.contains('collapsed')) {{
-                control.click();
-                clearInterval(mobileInterval);
-            }}
-        }}, 100);
-    }}
-
-    // Mobile controls + smooth overlay
-    document.addEventListener('DOMContentLoaded', () => {{
-        const trigger = document.querySelector('.mobile-sidebar-trigger');
-        const overlay = document.querySelector('.sidebar-overlay');
-        const closeBtn = document.querySelector('.sidebar-close-btn');
-        const control = document.querySelector('button[data-testid="collapsedControl"]');
-        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-
-        if (!control || !sidebar) return;
-
-        // Click handlers
-        if (trigger) trigger.addEventListener('click', () => control.click());
-        if (overlay) overlay.addEventListener('click', () => control.click());
-        if (closeBtn) closeBtn.addEventListener('click', () => control.click());
-
-        // Update visibility
-        const updateUI = () => {{
-            const isMobile = window.innerWidth <= 992;
-
-            if (trigger) {{
-                trigger.style.display = (isMobile && sidebar.classList.contains('collapsed')) ? 'block' : 'none';
-            }}
-            if (closeBtn) {{
-                closeBtn.style.display = (isMobile && !sidebar.classList.contains('collapsed')) ? 'block' : 'none';
-            }}
-            if (overlay) {{
-                if (isMobile && !sidebar.classList.contains('collapsed')) {{
-                    overlay.style.opacity = '1';
-                    overlay.style.pointerEvents = 'auto';
-                }} else {{
-                    overlay.style.opacity = '0';
-                    overlay.style.pointerEvents = 'none';
-                }}
-            }}
-        }};
-
-        updateUI();
-
-        // Observe changes + resize
-        const observer = new MutationObserver(updateUI);
-        observer.observe(sidebar, {{ attributes: true, attributeFilter: ['class'] }});
-        window.addEventListener('resize', updateUI);
+        }});
+        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
+        
+        // Initial state
+        if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+            path.setAttribute('d', 'M9 18l6-6-6-6');
+        }} else {{
+            path.setAttribute('d', 'M15 18l-6-6 6-6');
+        }}
     }});
 </script>
 """, unsafe_allow_html=True)
