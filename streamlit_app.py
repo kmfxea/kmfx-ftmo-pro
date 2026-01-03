@@ -230,37 +230,75 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: Clickable glowing line */
+    /* Mobile: New floating hamburger + overlay + close button */
     @media (max-width: 992px) {{
-        .sidebar-trigger-line {{
-            text-align: center;
-            margin: 2rem 0;
+        /* Floating Hamburger Trigger */
+        .mobile-sidebar-trigger {{
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            background: linear-gradient(135deg, {accent_primary}, {accent_hover});
+            color: #000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: 0 0 30px rgba(0, 255, 170, 0.6);
             cursor: pointer;
+            z-index: 9999;
             transition: all 0.3s ease;
-            pointer-events: all !important;
         }}
-        .sidebar-trigger-line hr {{
-            border: none;
-            height: 2px;
-            background: linear-gradient(to right, transparent, {accent_primary}, transparent);
-            width: 80%;
-            margin: 0 auto;
-            border-radius: 2px;
-            box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
-            transition: all 0.4s ease;
+        .mobile-sidebar-trigger:hover {{
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(0, 255, 170, 0.9);
         }}
-        .sidebar-trigger-line:hover hr {{
-            box-shadow: 0 0 30px rgba(0, 255, 170, 0.8);
-            transform: scaleX(1.1);
+        .mobile-sidebar-trigger:active {{
+            transform: scale(0.95);
         }}
-        .sidebar-trigger-line:active hr {{
-            animation: line-pop 0.6s ease;
+        /* Dark Overlay when sidebar open */
+        .sidebar-overlay {{
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            z-index: 9997;
         }}
-        @keyframes line-pop {{
-            0% {{ transform: scaleX(1); box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }}
-            50% {{ transform: scaleX(1.3); box-shadow: 0 0 40px rgba(0, 255, 170, 1); }}
-            100% {{ transform: scaleX(1); box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main > .sidebar-overlay {{
+            display: block;
         }}
+        /* Close Button (X) */
+        .sidebar-close-btn {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            display: none;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main > .sidebar-close-btn {{
+            display: flex;
+        }}
+        .sidebar-close-btn:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }}
+        /* Full sidebar when open */
         section[data-testid="stSidebar"]:not(.collapsed) {{
             width: 100% !important;
             height: 100vh !important;
@@ -269,10 +307,7 @@ st.markdown(f"""
             left: 0 !important;
             z-index: 9998 !important;
         }}
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-            margin-left: 0 !important;
-            width: 100% !important;
-        }}
+        /* Original mobile sizes */
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
@@ -486,12 +521,25 @@ with col1:
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
 
-st.markdown("""
-<div class="sidebar-trigger-line" onclick="(() => { 
+st.markdown(f"""
+<!-- Mobile Sidebar Controls -->
+<div class="mobile-sidebar-trigger" onclick="(() => {{ 
     const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
     if (btn) btn.click(); 
-})();">
-    <hr>
+}})();">
+    ☰
+</div>
+
+<div class="sidebar-overlay" onclick="(() => {{ 
+    const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
+    if (btn) btn.click(); 
+}})();"></div>
+
+<div class="sidebar-close-btn" onclick="(() => {{ 
+    const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
+    if (btn) btn.click(); 
+}})();">
+    ×
 </div>
 """, unsafe_allow_html=True)
 # ====================== ANNOUNCEMENT BANNER ======================
