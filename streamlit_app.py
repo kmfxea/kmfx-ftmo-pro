@@ -219,63 +219,15 @@ st.markdown(f"""
     section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
-
-    /* ==================== MOBILE: CUSTOM HAMBURGER ICON IN HEADER (CLICK TO TOGGLE SIDEBAR) ==================== */
+    /* ==================== MOBILE SIDEBAR SWIPE - IMPROVED & WORKING ==================== */
     @media (max-width: 768px) {{
-        /* Hide default Streamlit hamburger & arrow */
+        /* Hide default hamburger */
         button[kind="headerNoPadding"],
-        button[title="View sidebar"],
-        button[data-testid="collapsedControl"] {{
+        button[title="View sidebar"] {{
             display: none !important;
         }}
-        
-        /* Custom hamburger button - fixed top-left */
-        .custom-mobile-menu {{
-            position: fixed !important;
-            top: 12px !important;
-            left: 12px !important;
-            z-index: 9999 !important;
-            width: 48px !important;
-            height: 48px !important;
-            background: rgba(0, 255, 170, 0.2) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3) !important;
-        }}
-        .custom-mobile-menu:hover {{
-            background: rgba(0, 255, 170, 0.4) !important;
-            transform: scale(1.1) !important;
-        }}
-        
-        /* Hamburger lines */
-        .hamburger {{
-            width: 28px;
-            height: 20px;
-            position: relative;
-        }}
-        .hamburger span {{
-            display: block;
-            width: 100%;
-            height: 4px;
-            background: {accent_primary};
-            border-radius: 2px;
-            position: absolute;
-            transition: all 0.3s ease;
-        }}
-        .hamburger span:nth-child(1) {{ top: 0; }}
-        .hamburger span:nth-child(2) {{ top: 8px; }}
-        .hamburger span:nth-child(3) {{ top: 16px; }}
-        
-        /* X when open */
-        .hamburger.open span:nth-child(1) {{ transform: rotate(45deg); top: 8px; }}
-        .hamburger.open span:nth-child(2) {{ opacity: 0; }}
-        .hamburger.open span:nth-child(3) {{ transform: rotate(-45deg); top: 8px; }}
-        
-        /* Sidebar full screen when expanded */
+       
+        /* Expanded: full screen */
         section[data-testid="stSidebar"] {{
             width: 100% !important;
             min-width: 100% !important;
@@ -285,101 +237,93 @@ st.markdown(f"""
             left: 0 !important;
             z-index: 9998 !important;
         }}
-        
-        /* Collapsed: completely hidden */
+       
+        /* Collapsed: hidden */
         section[data-testid="stSidebar"].collapsed {{
             width: 0 !important;
             overflow: hidden !important;
         }}
-        
-        /* Content full width when collapsed */
+       
+        /* Content full when collapsed */
         section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
             margin-left: 0 !important;
-            padding-left: 1rem !important;
             width: 100% !important;
         }}
-    }}
-
-    /* Other mobile optimizations */
-    @media (max-width: 768px) {{
-        .block-container {{ padding: 1rem !important; }}
-        h1 {{ font-size: 2rem !important; }}
-        h2 {{ font-size: 1.7rem !important; }}
-        h3 {{ font-size: 1.4rem !important; }}
-        .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
-        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
-        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
-        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
-        .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
-        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
-        .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
-        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
-        .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
-        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
-    }}
-
-    @media (max-width: 480px) {{
-        h1 {{ font-size: 1.8rem !important; }}
-        h2 {{ font-size: 1.5rem !important; }}
-        .glass-card {{ padding: 1.2rem !important; }}
-        .block-container {{ padding: 0.8rem !important; }}
-        .stButton > button {{ font-size: 1rem !important; }}
+       
+        /* Arrow visible */
+        button[data-testid="collapsedControl"] {{
+            left: 12px !important;
+            top: 80px !important;
+            width: 48px !important;
+            height: 48px !important;
+        }}
+        button[data-testid="collapsedControl"] svg {{
+            width: 30px !important;
+            height: 30px !important;
+        }}
     }}
 </style>
-
 <script>
-    // Custom Mobile Hamburger Menu + Toggle (replaces swipe)
+    // Mobile Swipe Gesture - Swipe RIGHT from LEFT EDGE to open, Swipe LEFT anywhere to close
     document.addEventListener('DOMContentLoaded', function() {{
-        if (window.innerWidth > 768) return; // Mobile only
-        
-        // Create custom menu button
-        const menuBtn = document.createElement('div');
-        menuBtn.className = 'custom-mobile-menu';
-        menuBtn.innerHTML = `
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
-        document.body.appendChild(menuBtn);
-        
-        const hamburger = menuBtn.querySelector('.hamburger');
+        let touchstartX = 0;
+        let touchendX = 0;
+        let touchstartY = 0;
+        let touchendY = 0;
+        const edgeThreshold = 80; // Only trigger open if swipe starts near left edge
+        const swipeThreshold = 80; // Minimum swipe distance
+        const verticalRestraint = 100; // Ignore if too vertical
+       
         const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-        
         if (!sidebarButton) return;
-        
-        // Click to toggle
-        menuBtn.addEventListener('click', function() {{
-            sidebarButton.click();
-            hamburger.classList.toggle('open');
-        }});
-        
-        // Sync icon state
-        const observer = new MutationObserver(() => {{
-            const isCollapsed = document.querySelector('section[data-testid="stSidebar"].collapsed');
-            if (isCollapsed) {{
-                hamburger.classList.remove('open');
-            }} else {{
-                hamburger.classList.add('open');
+       
+        document.body.addEventListener('touchstart', e => {{
+            touchstartX = e.changedTouches[0].screenX;
+            touchstartY = e.changedTouches[0].screenY;
+        }}, {{ passive: true }});
+       
+        document.body.addEventListener('touchend', e => {{
+            touchendX = e.changedTouches[0].screenX;
+            touchendY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }}, {{ passive: true }});
+       
+        function handleSwipe() {{
+            const deltaX = touchendX - touchstartX;
+            const deltaY = Math.abs(touchendY - touchstartY);
+           
+            if (deltaY > verticalRestraint) return; // Ignore vertical scroll
+           
+            // Swipe RIGHT from left edge to OPEN
+            if (deltaX > swipeThreshold && touchstartX < edgeThreshold) {{
+                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                    sidebarButton.click();
+                }}
             }}
-        }});
-        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
+           
+            // Swipe LEFT anywhere to CLOSE
+            if (deltaX < -swipeThreshold) {{
+                if (!document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                    sidebarButton.click();
+                }}
+            }}
+        }}
     }});
 </script>
-
 <script>
     // Keyboard shortcut 'S' to toggle sidebar (desktop/laptop only)
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function(e) {{
+        // Only trigger if 'S' or 's' pressed, and no input/textarea focused
         if ((e.key === 'S' || e.key === 's') &&
             document.activeElement.tagName !== 'INPUT' &&
-            document.activeElement.tagName !== 'TEXTAREA') {
+            document.activeElement.tagName !== 'TEXTAREA') {{
            
             const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-            if (sidebarButton) {
+            if (sidebarButton) {{
                 sidebarButton.click();
             }}
-    });
+        }}
+    }});
 </script>
 """, unsafe_allow_html=True)
 
