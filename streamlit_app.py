@@ -705,10 +705,16 @@ if selected == "🏠 Dashboard":
     </div>
     """, unsafe_allow_html=True)
 # ====================== PART 4: FTMO ACCOUNTS PAGE (FINAL SUPER ADVANCED - FIXED SUBMIT & COLUMN VALUE ERROR) ======================
-# ====================== FTMO ACCOUNTS PAGE - FULL LATEST WITH CONTRIBUTOR POOL % ======================
+# ====================== FTMO ACCOUNTS PAGE - FULL LATEST UNIFIED TREE WITH CONTRIBUTOR POOL ======================
+# Unified participants tree: Fixed "Contributor Pool" row (non-editable %)
+# Editable rows sum exactly to remaining %
+# Total always 100% — connected
+# Contributors funding tracked + auto pro-rata from pool in Profit Sharing
+# Full create/edit/live list/client view
+
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Participants auto-selected from registered clients with Title • Growth Fund optional • Contributors (PHP units) • **Contributor Pool %**: % of gross profit auto to contributors pro-rata • Real-time tree previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree includes fixed Contributor Pool % • Editable participants sum to remaining % • Contributors funding tracked + auto pro-rata from pool • Real-time unified tree previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -749,38 +755,65 @@ elif selected == "📊 FTMO Accounts":
                
                 # CONTRIBUTOR POOL %
                 st.subheader("🌟 Contributor Pool Allocation")
-                st.info("**% of gross profit auto to contributors pro-rata (funded PHP). Remaining to participants.**")
+                st.info("**Fixed row in tree below • % of gross profit auto to contributors pro-rata**")
                 contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30)
+                remaining_pct = 100 - contributor_share_pct
+                st.info(f"Editable participants must sum exactly to {remaining_pct}%")
                
-                # PARTICIPANTS TREE
-                st.subheader("🌳 Participants Tree - Profit Distribution (%)")
-                st.info(f"Participants get remaining {100 - contributor_share_pct}% • Must sum exactly 100%")
+                # UNIFIED PARTICIPANTS TREE
+                st.subheader("🌳 Unified Profit Distribution Tree (%)")
+                st.info("**Fixed row:** Contributor Pool • **Editable rows:** Must sum exactly 100% total")
                
-                default_part = [{"name": "King Minted", "role": "Founder/Owner", "percentage": 100.0}]
+                fixed_row = pd.DataFrame([{
+                    "name": "Contributor Pool",
+                    "role": "Funding Contributors (pro-rata)",
+                    "percentage": contributor_share_pct
+                }])
+                
+                default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
                 for display in registered_display:
-                    default_part.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
-               
-                part_df = pd.DataFrame(default_part)
-                edited_part = st.data_editor(
-                    part_df,
+                    default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
+                
+                editable_df = pd.DataFrame(default_editable)
+                
+                # Combine fixed + editable
+                full_df = pd.concat([fixed_row, editable_df], ignore_index=True)
+                
+                edited_full = st.data_editor(
+                    full_df,
                     num_rows="dynamic",
                     use_container_width=True,
                     column_config={
-                        "name": st.column_config.SelectboxColumn("Name *", options=participant_options, required=True),
+                        "name": st.column_config.SelectboxColumn(
+                            "Name *",
+                            options=["Contributor Pool"] + participant_options,
+                            required=True
+                        ),
                         "role": st.column_config.TextColumn("Role"),
-                        "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
-                    }
+                        "percentage": st.column_config.NumberColumn(
+                            "% *",
+                            min_value=0.0,
+                            max_value=100.0,
+                            step=0.5
+                        )
+                    },
+                    disabled=["name", "role", "percentage"] if st.session_state.get("editing_fixed", False) else ["percentage"]  # Protect fixed row
                 )
-               
-                current_sum = edited_part["percentage"].sum()
-                st.progress(min(current_sum / 100, 1.0))
-                if abs(current_sum - 100.0) > 0.1:
-                    st.error(f"Exactly 100% required (current: {current_sum:.1f}%)")
+                
+                # Validation
+                contrib_row = edited_full[edited_full["name"] == "Contributor Pool"]
+                if len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != contributor_share_pct:
+                    st.error("Contributor Pool row cannot be edited/removed!")
                 else:
-                    st.success("✅ Perfect 100%")
+                    total_sum = edited_full["percentage"].sum()
+                    st.progress(total_sum / 100)
+                    if abs(total_sum - 100.0) > 0.1:
+                        st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
+                    else:
+                        st.success("✅ Perfect 100% unified tree")
                
                 manual_inputs = []
-                for idx, row in edited_part.iterrows():
+                for idx, row in edited_full.iterrows():
                     if row["name"] == "Manual Payout (Temporary)":
                         custom_name = st.text_input(f"Custom Name for Manual Row {idx+1}", key=f"manual_create_{idx}")
                         if custom_name:
@@ -788,7 +821,7 @@ elif selected == "📊 FTMO Accounts":
                
                 # CONTRIBUTORS TREE
                 st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
-                st.info("Track funded capital • Auto pro-rata from Contributor Pool %")
+                st.info("Track funded capital • Auto pro-rata from Contributor Pool above")
                
                 contrib_df = pd.DataFrame(columns=["name", "units", "php_per_unit"])
                 edited_contrib = st.data_editor(
@@ -806,37 +839,32 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                
-                # PREVIEWS
-                tab_prev1, tab_prev2 = st.tabs(["Participants Preview", "Contributors Preview"])
-                with tab_prev1:
-                    if current_sum > 0:
-                        labels = [f"Participants ({100 - contributor_share_pct}%)"] + [f"{row['name']} ({row['percentage']:.1f}%)" for _, row in edited_part.iterrows()]
-                        values = edited_part["percentage"].tolist()
-                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                        st.plotly_chart(fig, use_container_width=True)
-                with tab_prev2:
-                    if not edited_contrib.empty:
-                        valid = edited_contrib.dropna(subset=["units", "php_per_unit"])
-                        if not valid.empty:
-                            labels = ["Funded (PHP)"] + [f"{row['name']} ({row['units']} units @ ₱{row['php_per_unit']:,.0f}/unit)" for _, row in valid.iterrows()]
-                            values = (valid["units"] * valid["php_per_unit"]).tolist()
-                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                            st.plotly_chart(fig, use_container_width=True)
+                # UNIFIED TREE PREVIEW
+                st.subheader("🌳 Unified Profit Tree Preview")
+                labels = ["Gross Profit"] + [f"{row['name']} ({row['percentage']:.1f}%)" for _, row in edited_full.iterrows()]
+                values = edited_full["percentage"].tolist()
+                fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                st.plotly_chart(fig, use_container_width=True)
                
                 submitted = st.form_submit_button("🚀 Launch Account", type="primary", use_container_width=True)
                 if submitted:
                     if not name.strip():
                         st.error("Account name required")
-                    elif abs(current_sum - 100.0) > 0.1:
-                        st.error("Exactly 100% required")
+                    elif abs(total_sum - 100.0) > 0.1:
+                        st.error("Total must be exactly 100%")
+                    elif len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != contributor_share_pct:
+                        st.error("Contributor Pool row invalid")
                     else:
                         final_part = []
-                        for row in edited_part.to_dict(orient="records"):
+                        for row in edited_full.to_dict(orient="records"):
                             display = row["name"]
-                            actual_name = full_name_to_display.get(display, display)
-                            final_part.append({"name": actual_name, "role": row["role"], "percentage": row["percentage"]})
+                            actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
+                            final_part.append({
+                                "name": actual_name,
+                                "role": row["role"],
+                                "percentage": row["percentage"]
+                            })
                        
                         for row_idx, custom in manual_inputs:
                             final_part[row_idx]["name"] = custom
@@ -856,7 +884,7 @@ elif selected == "📊 FTMO Accounts":
                                 "contributors": contributors_json,
                                 "contributor_share_pct": contributor_share_pct
                             }).execute()
-                            st.success("Account launched! Contributor pool configured.")
+                            st.success("Account launched! Unified tree with contributor pool.")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
@@ -869,26 +897,20 @@ elif selected == "📊 FTMO Accounts":
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in acc.get("contributors", []))
                 contrib_pct = acc.get("contributor_share_pct", 0)
                 with st.expander(f"🌟 {acc['name']} • {acc['current_phase']} • Equity ${acc.get('current_equity', 0):,.0f} • Funded ₱{total_funded_php:,.0f} • Contributor Pool: {contrib_pct}%", expanded=False):
-                    tab1, tab2 = st.tabs(["Participants Tree", "Contributors Tree"])
+                    tab1 = st.tabs(["Unified Profit Tree"])[0]
                     with tab1:
                         participants = acc.get("participants", [])
                         if participants:
-                            labels = [f"Participants ({100 - contrib_pct}%)"]
+                            labels = ["Gross Profit"]
                             for p in participants:
                                 display = p["name"]
+                                if display == "Contributor Pool":
+                                    display = "Contributor Pool (pro-rata)"
                                 user = next((u for u in all_users if u["full_name"] == p["name"]), None)
                                 if user and user.get("title"):
                                     display += f" ({user['title']})"
                                 labels.append(f"{display} ({p['percentage']:.1f}%)")
                             values = [p["percentage"] for p in participants]
-                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                            st.plotly_chart(fig, use_container_width=True)
-                    with tab2:
-                        contributors = acc.get("contributors", [])
-                        if contributors:
-                            labels = [f"Contributor Pool ({contrib_pct}%)"] + [f"{c['name']} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)" for c in contributors]
-                            values = [c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors]
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                             st.plotly_chart(fig, use_container_width=True)
@@ -910,7 +932,7 @@ elif selected == "📊 FTMO Accounts":
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
            
-            # EDIT FORM
+            # EDIT FORM - mirror create with fixed contributor row
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -929,36 +951,51 @@ elif selected == "📊 FTMO Accounts":
                         new_notes = st.text_area("Notes (Optional)", value=cur.get("notes") or "")
                        
                         new_contrib_pct = st.slider("Contributor Pool %", 0, 100, cur.get("contributor_share_pct", 30))
+                        remaining_pct = 100 - new_contrib_pct
+                        st.info(f"Editable participants must sum exactly to {remaining_pct}%")
                        
-                        st.subheader("🌳 Participants Tree - Profit Distribution (%)")
-                        st.info(f"Participants get remaining {100 - new_contrib_pct}%")
-                       
-                        part_df = pd.DataFrame(cur["participants"])
-                        edited_part = st.data_editor(
-                            part_df,
+                        st.subheader("🌳 Unified Profit Distribution Tree (%)")
+                        fixed_row = pd.DataFrame([{
+                            "name": "Contributor Pool",
+                            "role": "Funding Contributors (pro-rata)",
+                            "percentage": new_contrib_pct
+                        }])
+                        
+                        current_part = pd.DataFrame(cur["participants"])
+                        # Remove old contributor row if exists
+                        current_part = current_part[current_part["name"] != "Contributor Pool"]
+                        
+                        full_df = pd.concat([fixed_row, current_part], ignore_index=True)
+                        
+                        edited_full = st.data_editor(
+                            full_df,
                             num_rows="dynamic",
                             use_container_width=True,
                             column_config={
-                                "name": st.column_config.SelectboxColumn("Name *", options=participant_options, required=True),
+                                "name": st.column_config.SelectboxColumn("Name *", options=["Contributor Pool"] + participant_options, required=True),
                                 "role": st.column_config.TextColumn("Role"),
                                 "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
                             }
                         )
-                       
-                        current_sum = edited_part["percentage"].sum()
-                        st.progress(min(current_sum / 100, 1.0))
-                        if abs(current_sum - 100.0) > 0.1:
-                            st.error(f"Exactly 100% required (current: {current_sum:.1f}%)")
+                        
+                        contrib_row = edited_full[edited_full["name"] == "Contributor Pool"]
+                        if len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != new_contrib_pct:
+                            st.error("Contributor Pool row cannot be edited/removed!")
                         else:
-                            st.success("✅ Perfect 100%")
-                       
+                            total_sum = edited_full["percentage"].sum()
+                            st.progress(total_sum / 100)
+                            if abs(total_sum - 100.0) > 0.1:
+                                st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
+                            else:
+                                st.success("✅ Perfect 100% unified tree")
+                        
                         manual_inputs = []
-                        for idx, row in edited_part.iterrows():
+                        for idx, row in edited_full.iterrows():
                             if row["name"] == "Manual Payout (Temporary)":
                                 custom_name = st.text_input(f"Custom Name for Manual Row {idx+1}", key=f"manual_edit_{eid}_{idx}")
                                 if custom_name:
                                     manual_inputs.append((idx, custom_name))
-                       
+                        
                         st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
                         contrib_df = pd.DataFrame(cur.get("contributors", []))
                         edited_contrib = st.data_editor(
@@ -971,42 +1008,37 @@ elif selected == "📊 FTMO Accounts":
                                 "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0)
                             }
                         )
-                       
+                        
                         if not edited_contrib.empty:
                             total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                             st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
-                       
-                        tab_prev1, tab_prev2 = st.tabs(["Participants Preview", "Contributors Preview"])
-                        with tab_prev1:
-                            if current_sum > 0:
-                                labels = [f"Participants ({100 - new_contrib_pct}%)"] + [f"{row['name']} ({row['percentage']:.1f}%)" for _, row in edited_part.iterrows()]
-                                values = edited_part["percentage"].tolist()
-                                fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                                st.plotly_chart(fig, use_container_width=True)
-                        with tab_prev2:
-                            if not edited_contrib.empty:
-                                valid = edited_contrib.dropna(subset=["units", "php_per_unit"])
-                                if not valid.empty:
-                                    labels = ["Funded (PHP)"] + [f"{row['name']} ({row['units']} units @ ₱{row['php_per_unit']:,.0f}/unit)" for _, row in valid.iterrows()]
-                                    values = (valid["units"] * valid["php_per_unit"]).tolist()
-                                    fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                                    link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                                    st.plotly_chart(fig, use_container_width=True)
-                       
+                        
+                        st.subheader("🌳 Unified Profit Tree Preview")
+                        labels = ["Gross Profit"] + [f"{row['name']} ({row['percentage']:.1f}%)" for _, row in edited_full.iterrows()]
+                        values = edited_full["percentage"].tolist()
+                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                        st.plotly_chart(fig, use_container_width=True)
+                        
                         col_save, col_cancel = st.columns(2)
                         with col_save:
                             if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                                 if not new_name.strip():
                                     st.error("Account name required")
-                                elif abs(current_sum - 100.0) > 0.1:
-                                    st.error("Exactly 100% required")
+                                elif abs(total_sum - 100.0) > 0.1:
+                                    st.error("Total must be exactly 100%")
+                                elif len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != new_contrib_pct:
+                                    st.error("Contributor Pool row invalid")
                                 else:
                                     final_part = []
-                                    for row in edited_part.to_dict(orient="records"):
+                                    for row in edited_full.to_dict(orient="records"):
                                         display = row["name"]
-                                        actual_name = full_name_to_display.get(display, display)
-                                        final_part.append({"name": actual_name, "role": row["role"], "percentage": row["percentage"]})
+                                        actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
+                                        final_part.append({
+                                            "name": actual_name,
+                                            "role": row["role"],
+                                            "percentage": row["percentage"]
+                                        })
                                    
                                     for row_idx, custom in manual_inputs:
                                         final_part[row_idx]["name"] = custom
@@ -1025,7 +1057,7 @@ elif selected == "📊 FTMO Accounts":
                                             "contributors": contributors_json,
                                             "contributor_share_pct": new_contrib_pct
                                         }).eq("id", eid).execute()
-                                        st.success("Account updated!")
+                                        st.success("Account updated! Unified tree saved.")
                                         del st.session_state.edit_acc_id
                                         del st.session_state.edit_acc_data
                                         st.cache_data.clear()
@@ -1040,7 +1072,7 @@ elif selected == "📊 FTMO Accounts":
         else:
             st.info("No accounts yet")
    
-    # CLIENT VIEW
+    # CLIENT VIEW - shows unified tree
     else:
         my_name = st.session_state.full_name
         my_accounts = [a for a in accounts if any(p["name"] == my_name for p in a.get("participants", []))]
@@ -1051,26 +1083,20 @@ elif selected == "📊 FTMO Accounts":
                 my_funded_php = sum(c["units"] * c["php_per_unit"] for c in acc.get("contributors", []) if c["name"] == my_name)
                 with st.expander(f"🌟 {acc['name']} • Your Share: {my_pct:.1f}% • Your Funded ₱{my_funded_php:,.0f}", expanded=True):
                     st.markdown(f"**Phase:** {acc['current_phase']} • **Equity:** ${acc.get('current_equity', 0):,.0f}")
-                    tab1, tab2 = st.tabs(["Participants Tree", "Contributors Tree"])
+                    tab1 = st.tabs(["Unified Profit Tree"])[0]
                     with tab1:
                         participants = acc.get("participants", [])
                         if participants:
-                            labels = ["Profits"]
+                            labels = ["Gross Profit"]
                             for p in participants:
                                 display = p["name"]
+                                if display == "Contributor Pool":
+                                    display = "Contributor Pool (pro-rata)"
                                 user = next((u for u in all_users if u["full_name"] == p["name"]), None)
                                 if user and user.get("title"):
                                     display += f" ({user['title']})"
                                 labels.append(f"{display} ({p['percentage']:.1f}%)")
                             values = [p["percentage"] for p in participants]
-                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                            st.plotly_chart(fig, use_container_width=True)
-                    with tab2:
-                        contributors = acc.get("contributors", [])
-                        if contributors:
-                            labels = ["Funded (PHP)"] + [f"{c['name']} ({c['units']} units @ ₱{c['php_per_unit']:,.0f}/unit)" for c in contributors]
-                            values = [c["units"] * c["php_per_unit"] for c in contributors]
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                             st.plotly_chart(fig, use_container_width=True)
@@ -1081,26 +1107,20 @@ elif selected == "📊 FTMO Accounts":
         for acc in accounts:
             total_funded_php = sum(c["units"] * c["php_per_unit"] for c in acc.get("contributors", []))
             with st.expander(f"{acc['name']} • {acc['current_phase']} • Equity ${acc.get('current_equity', 0):,.0f} • Funded ₱{total_funded_php:,.0f}"):
-                tab1, tab2 = st.tabs(["Participants Tree", "Contributors Tree"])
+                tab1 = st.tabs(["Unified Profit Tree"])[0]
                 with tab1:
                     participants = acc.get("participants", [])
                     if participants:
-                        labels = ["Profits"]
+                        labels = ["Gross Profit"]
                         for p in participants:
                             display = p["name"]
+                            if display == "Contributor Pool":
+                                display = "Contributor Pool (pro-rata)"
                             user = next((u for u in all_users if u["full_name"] == p["name"]), None)
                             if user and user.get("title"):
                                 display += f" ({user['title']})"
                             labels.append(f"{display} ({p['percentage']:.1f}%)")
                         values = [p["percentage"] for p in participants]
-                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                        st.plotly_chart(fig, use_container_width=True)
-                with tab2:
-                    contributors = acc.get("contributors", [])
-                    if contributors:
-                        labels = ["Funded (PHP)"] + [f"{c['name']} ({c['units']} units @ ₱{c['php_per_unit']:,.0f}/unit)" for c in contributors]
-                        values = [c["units"] * c["php_per_unit"] for c in contributors]
                         fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                         link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                         st.plotly_chart(fig, use_container_width=True)
