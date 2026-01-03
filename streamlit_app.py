@@ -210,15 +210,17 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* Do NOT use display:none on control button - it breaks click() */
-    button[data-testid="collapsedControl"],
+    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE via JS */
+    button[data-testid="collapsedControl"] {{
+        opacity: 0 !important;
+        position: absolute !important;
+        left: -100px !important; /* Off-screen but still in DOM */
+        pointer-events: auto !important; /* Allow JS click */
+        z-index: -1 !important;
+    }}
     button[kind="headerNoPadding"],
     button[title="View sidebar"] {{
-        opacity: 0 !important;
-        pointer-events: none !important;
-        width: 0 !important;
-        height: 0 !important;
-        position: absolute !important;
+        display: none !important;
     }}
 
     /* Desktop: Force open & fixed */
@@ -242,6 +244,7 @@ st.markdown(f"""
             margin: 2rem 0;
             cursor: pointer;
             transition: all 0.3s ease;
+            pointer-events: all !important; /* Ensure clickable */
         }}
         .sidebar-trigger-line hr {{
             border: none;
@@ -314,21 +317,16 @@ st.markdown(f"""
         const trigger = document.querySelector('.sidebar-trigger-line');
         if (!trigger) return;
 
-        trigger.onclick = function() {{
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (!sidebar) return;
+        const observer = new MutationObserver(() => {{
+            const control = document.querySelector('button[data-testid="collapsedControl"]');
+            if (!control) return;
 
-            // Directly toggle the 'collapsed' class - more reliable than clicking hidden button
-            if (sidebar.classList.contains('collapsed')) {{
-                sidebar.classList.remove('collapsed');
-            }} else {{
-                sidebar.classList.add('collapsed');
-            }}
+            trigger.onclick = () => {{
+                control.click();  // This now works because button is hidden visually but clickable
+            }};
+        }});
 
-            // Optional: add pop animation to line
-            trigger.classList.add('line-pop');
-            setTimeout(() => trigger.classList.remove('line-pop'), 600);
-        }};
+        observer.observe(document.body, {{ childList: true, subtree: true }});
 
         window.addEventListener('resize', () => location.reload());
     }});
@@ -336,9 +334,10 @@ st.markdown(f"""
     // Desktop force open
     if (window.innerWidth > 992) {{
         const interval = setInterval(() => {{
-            const sb = document.querySelector('section[data-testid="stSidebar"]');
-            if (sb && sb.classList.contains('collapsed')) {{
-                sb.classList.remove('collapsed');
+            const control = document.querySelector('button[data-testid="collapsedControl"]');
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
+                control.click();
             }}
         }}, 100);
     }}
