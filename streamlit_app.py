@@ -227,91 +227,96 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== FINAL FIX: GLOWING CIRCLE BUTTON IN TOP CENTER HEADER (TAP TO TOGGLE SIDEBAR) ==================== */
-    /* Hide default arrows completely */
-    button[data-testid="collapsedControl"],
-    button[kind="headerNoPadding"],
-    button[title="View sidebar"] {{
-        display: none !important;
-    }}
-
-    /* Custom glowing circle button - centered in top header */
-    .custom-glowing-toggle {{
-        position: fixed !important;
-        top: 12px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        z-index: 9999 !important;
-        width: 60px !important;
-        height: 60px !important;
-        background: rgba(0, 255, 170, 0.25) !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        box-shadow: 0 0 20px rgba(0, 255, 170, 0.6), 0 0 40px rgba(0, 255, 170, 0.4) !important;
-        transition: all 0.3s ease !important;
-        animation: glow-pulse 2s infinite alternate !important;
-    }}
-    .custom-glowing-toggle:hover {{
-        background: rgba(0, 255, 170, 0.4) !important;
-        box-shadow: 0 0 30px rgba(0, 255, 170, 0.8), 0 0 60px rgba(0, 255, 170, 0.6) !important;
-        transform: translateX(-50%) scale(1.1) !important;
-    }}
-
-    @keyframes glow-pulse {{
-        from {{ box-shadow: 0 0 20px rgba(0, 255, 170, 0.6), 0 0 40px rgba(0, 255, 170, 0.4); }}
-        to {{ box-shadow: 0 0 30px rgba(0, 255, 170, 0.8), 0 0 60px rgba(0, 255, 170, 0.6); }}
-    }}
-
-    /* Hamburger/X icon inside circle */
-    .custom-glowing-toggle .hamburger {{
-        width: 32px;
-        height: 24px;
-        position: relative;
-    }}
-    .custom-glowing-toggle .hamburger span {{
-        display: block;
-        width: 100%;
-        height: 4px;
-        background: {accent_primary};
-        border-radius: 2px;
-        position: absolute;
-        transition: all 0.3s ease;
-    }}
-    .custom-glowing-toggle .hamburger span:nth-child(1) {{ top: 0; }}
-    .custom-glowing-toggle .hamburger span:nth-child(2) {{ top: 10px; }}
-    .custom-glowing-toggle .hamburger span:nth-child(3) {{ top: 20px; }}
-
-    /* X when sidebar open */
-    .custom-glowing-toggle.open .hamburger span:nth-child(1) {{ transform: rotate(45deg); top: 10px; }}
-    .custom-glowing-toggle.open .hamburger span:nth-child(2) {{ opacity: 0; }}
-    .custom-glowing-toggle.open .hamburger span:nth-child(3) {{ transform: rotate(-45deg); top: 10px; }}
-
-    /* Mobile adjustments */
+    /* ==================== FINAL: ANIMATED BALLOON POPUP BUTTON IN BOTTOM CENTER (MOBILE ONLY) ==================== */
     @media (max-width: 768px) {{
-        .custom-glowing-toggle {{
-            top: 10px !important;
-            width: 56px !important;
-            height: 56px !important;
+        /* Hide default arrows */
+        button[data-testid="collapsedControl"],
+        button[kind="headerNoPadding"],
+        button[title="View sidebar"] {{
+            display: none !important;
         }}
-        .custom-glowing-toggle .hamburger {{
-            width: 30px;
-            height: 22px;
+        
+        /* Balloon popup button - bottom center, animated bounce */
+        .balloon-toggle {{
+            position: fixed !important;
+            bottom: 30px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999 !important;
+            width: 70px !important;
+            height: 70px !important;
+            background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 8px 25px rgba(0, 255, 170, 0.6) !important;
+            animation: balloon-bounce 2s infinite ease-in-out !important;
+            transition: all 0.3s ease !important;
         }}
-        .custom-glowing-toggle .hamburger span {{
-            height: 3.5px;
+        .balloon-toggle:hover {{
+            transform: translateX(-50%) scale(1.15) !important;
+            box-shadow: 0 12px 35px rgba(0, 255, 170, 0.8) !important;
         }}
-        section[data-testid="stSidebar"] {{ width: 100% !important; min-width: 100% !important; height: 100vh !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 9998 !important; }}
-        section[data-testid="stSidebar"].collapsed {{ width: 0 !important; overflow: hidden !important; }}
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{ margin-left: 0 !important; width: 100% !important; }}
+        
+        @keyframes balloon-bounce {{
+            0%, 100% {{ transform: translateX(-50%) translateY(0); }}
+            50% {{ transform: translateX(-50%) translateY(-15px); }}
+        }}
+        
+        /* Menu icon inside balloon */
+        .balloon-toggle .menu-icon {{
+            width: 36px;
+            height: 28px;
+            position: relative;
+        }}
+        .balloon-toggle .menu-icon span {{
+            display: block;
+            width: 100%;
+            height: 5px;
+            background: #000;
+            border-radius: 3px;
+            position: absolute;
+            transition: all 0.3s ease;
+        }}
+        .balloon-toggle .menu-icon span:nth-child(1) {{ top: 0; }}
+        .balloon-toggle .menu-icon span:nth-child(2) {{ top: 11px; }}
+        .balloon-toggle .menu-icon span:nth-child(3) {{ top: 22px; }}
+        
+        /* X when open */
+        .balloon-toggle.open .menu-icon span:nth-child(1) {{ transform: rotate(45deg); top: 11px; }}
+        .balloon-toggle.open .menu-icon span:nth-child(2) {{ opacity: 0; }}
+        .balloon-toggle.open .menu-icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
+        
+        /* Sidebar full when expanded */
+        section[data-testid="stSidebar"] {{
+            width: 100% !important;
+            min-width: 100% !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: 9998 !important;
+        }}
+        
+        /* Collapsed: hidden */
+        section[data-testid="stSidebar"].collapsed {{
+            width: 0 !important;
+            overflow: hidden !important;
+        }}
+        
+        /* Content full when collapsed */
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+            margin-left: 0 !important;
+            width: 100% !important;
+        }}
     }}
 
-    /* Desktop: content full when collapsed */
+    /* Desktop: normal behavior */
     section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 0 !important;
-        width: 100% !important;
+        margin-left: 80px !important;
+        width: calc(100% - 80px) !important;
     }}
 
     /* Other mobile optimizations */
@@ -342,36 +347,38 @@ st.markdown(f"""
 </style>
 
 <script>
-    // Custom Glowing Circle Button in Top Center + Toggle
+    // Animated Balloon Popup Button in Bottom Center (Mobile Only)
     document.addEventListener('DOMContentLoaded', function() {{
-        // Create glowing circle button
-        const glowBtn = document.createElement('div');
-        glowBtn.className = 'custom-glowing-toggle';
-        glowBtn.innerHTML = `
-            <div class="hamburger">
+        if (window.innerWidth > 768) return; // Mobile only
+        
+        // Create balloon button
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon-toggle';
+        balloon.innerHTML = `
+            <div class="menu-icon">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
         `;
-        document.body.appendChild(glowBtn);
+        document.body.appendChild(balloon);
         
-        const hamburger = glowBtn.querySelector('.hamburger');
+        const menuIcon = balloon.querySelector('.menu-icon');
         const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
         if (!sidebarButton) return;
         
         // Click to toggle
-        glowBtn.addEventListener('click', function() {{
+        balloon.addEventListener('click', function() {{
             sidebarButton.click();
-            hamburger.classList.toggle('open');
+            menuIcon.classList.toggle('open');
         }});
         
         // Sync state
         const observer = new MutationObserver(() => {{
             if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                hamburger.classList.remove('open');
+                menuIcon.classList.remove('open');
             }} else {{
-                hamburger.classList.add('open');
+                menuIcon.classList.add('open');
             }}
         }});
         observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
