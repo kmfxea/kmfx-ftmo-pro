@@ -106,7 +106,7 @@ theme = st.session_state.theme
 accent_primary = "#10b981"
 accent_hover = "#059669"
 accent_active = "#064e3b"
-accent_color = accent_primary  # <-- FIXED: Restored alias for your existing title code
+accent_color = accent_primary  # Restored alias for your existing title code
 
 if theme == "dark":
     bg_color = "#0f172a"                    # slate-900 — deep, calm
@@ -152,12 +152,12 @@ st.markdown(f"""
         color: {secondary_text} !important;
     }}
 
-    /* Hide Streamlit header & toolbar completely for clean look */
+    /* Hide Streamlit header & toolbar completely for clean full-screen look */
     [data-testid="stHeader"], [data-testid="stToolbar"] {{
         display: none !important;
     }}
 
-    /* Hide default collapse button (we use custom ones) */
+    /* Hide default collapse button (we use minimal custom icons instead) */
     button[data-testid="collapsedControl"] {{
         display: none !important;
     }}
@@ -222,56 +222,42 @@ st.markdown(f"""
         box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
     }}
 
-    /* Mobile custom controls */
+    /* Minimal floating mobile controls — NO big circles, NO glass background, just clean icons */
     .mobile-sidebar-trigger {{
         position: fixed;
-        top: 20px;
-        left: 20px;
+        top: 24px;
+        left: 24px;
         z-index: 1002;
-        font-size: 28px;
-        width: 50px;
-        height: 50px;
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
+        font-size: 30px;
         color: {text_color};
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        transition: all 0.3s ease;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        line-height: 1;
     }}
     .mobile-sidebar-trigger:hover {{
-        background: {accent_primary};
-        color: #000;
-        transform: scale(1.1);
+        color: {accent_primary};
     }}
 
     .sidebar-close-btn {{
-        position: absolute;
-        top: 20px;
-        right: 20px;
+        position: fixed;
+        top: 24px;
+        right: 24px;
         z-index: 1003;
-        font-size: 32px;
-        font-weight: 300;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
+        font-size: 30px;
         color: {text_color};
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        line-height: 1;
     }}
     .sidebar-close-btn:hover {{
-        background: {accent_hover};
-        color: #000;
-        transform: rotate(90deg);
+        color: {accent_primary};
+    }}
+
+    /* Hide close button on desktop/laptop (only needed on mobile) */
+    @media (min-width: 993px) {{
+        .sidebar-close-btn {{
+            display: none !important;
+        }}
     }}
 
     .sidebar-overlay {{
@@ -289,13 +275,13 @@ st.markdown(f"""
     }}
 </style>
 
-<!-- Custom Mobile Controls -->
+<!-- Minimal Custom Mobile Controls (just the icons) -->
 <div class="mobile-sidebar-trigger">☰</div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn">×</div>
 
 <script>
-    // Force sidebar behavior
+    // Force sidebar behavior: always open on desktop/laptop, closed by default on mobile
     const enforceSidebarState = () => {{
         const control = document.querySelector('button[data-testid="collapsedControl"]');
         const sidebar = document.querySelector('section[data-testid="stSidebar"]');
@@ -314,7 +300,7 @@ st.markdown(f"""
     window.addEventListener('load', enforceSidebarState);
     window.addEventListener('resize', enforceSidebarState);
 
-    // Custom controls logic
+    // Custom minimal controls logic
     document.addEventListener('DOMContentLoaded', () => {{
         const trigger = document.querySelector('.mobile-sidebar-trigger');
         const overlay = document.querySelector('.sidebar-overlay');
@@ -332,8 +318,8 @@ st.markdown(f"""
         // Update visibility
         const updateUI = () => {{
             const isCollapsed = sidebar.classList.contains('collapsed');
-            if (trigger) trigger.style.display = isCollapsed ? 'flex' : 'none';
-            if (closeBtn) closeBtn.style.display = isCollapsed ? 'none' : 'flex';
+            if (trigger) trigger.style.display = isCollapsed ? 'block' : 'none';
+            if (closeBtn) closeBtn.style.display = isCollapsed ? 'none' : 'block';
             if (overlay) overlay.classList.toggle('active', !isCollapsed);
         }};
 
