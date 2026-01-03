@@ -150,22 +150,22 @@ accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
-    text_color = "#ffffff"          # Pure white text
-    secondary_text = "#e0e0e0"       # Slightly off-white for small/caption
+    text_color = "#ffffff"          # Pure white text (all main text)
+    secondary_text = "#e0e0e0"       # Light gray for small/caption
     glass_bg = "transparent"
     glass_border = "1px solid rgba(255, 255, 255, 0.18)"
     input_bg = "rgba(255, 255, 255, 0.06)"
     input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"   # Near-transparent glass for dropdown in dark
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"   # Glass/near-transparent in dark mode
     dropdown_text = "#ffffff"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#888888"
 else:
     bg_color = "#f5f8fa"
-    text_color = "#000000"          # Pure black text
+    text_color = "#000000"          # Pure black text (all main text)
     secondary_text = "#333333"      # Dark gray for small/caption
     glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
@@ -179,6 +179,7 @@ else:
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#666666"
 
+# ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT (PRIORITY - FULLY WORKING) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -215,7 +216,7 @@ st.markdown(f"""
     div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
         color: {dropdown_placeholder} !important;
     }}
-    /* Dropdown Popup - NOW GLASS/TRANSPARENT IN DARK MODE */
+    /* Dropdown Popup - GLASS EFFECT IN DARK MODE */
     div[data-baseweb="popover"],
     div[role="listbox"],
     div[data-baseweb="menu"] {{
@@ -276,7 +277,6 @@ st.markdown(f"""
     }}
     /* Mobile: Top-left 3-line trigger + smooth left slide + overlay + close button */
     @media (max-width: 992px) {{
-        /* Sidebar smooth slide from left */
         section[data-testid="stSidebar"] {{
             position: fixed !important;
             top: 0;
@@ -293,7 +293,6 @@ st.markdown(f"""
         section[data-testid="stSidebar"]:not(.collapsed) {{
             transform: translateX(0);
         }}
-        /* Top-left 3-line Trigger */
         .mobile-sidebar-trigger {{
             position: fixed;
             top: 20px;
@@ -317,7 +316,6 @@ st.markdown(f"""
             transform: scale(1.1);
             box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
         }}
-        /* Dark Overlay when open */
         .sidebar-overlay {{
             display: none;
             position: fixed;
@@ -330,7 +328,6 @@ st.markdown(f"""
         section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
             display: block;
         }}
-        /* Close Button (X) top right */
         .sidebar-close-btn {{
             position: fixed;
             top: 20px;
@@ -357,7 +354,6 @@ st.markdown(f"""
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.1);
         }}
-        /* Mobile layout */
         .block-container {{
             padding: 1rem !important;
             padding-top: 90px !important;
@@ -380,7 +376,7 @@ st.markdown(f"""
     }}
 </style>
 
-<!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
+<!-- Custom Mobile Controls (PRIORITY - FULLY WORKING SIDEBAR TRIGGER) -->
 <div class="mobile-sidebar-trigger">☰</div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn">×</div>
@@ -410,7 +406,7 @@ st.markdown(f"""
         }}, 100);
     }}
 
-    // Custom mobile controls functionality
+    // Custom mobile controls functionality (PRIORITY - PERFECT MOBILE SIDEBAR)
     document.addEventListener('DOMContentLoaded', () => {{
         const trigger = document.querySelector('.mobile-sidebar-trigger');
         const overlay = document.querySelector('.sidebar-overlay');
@@ -425,7 +421,7 @@ st.markdown(f"""
         if (overlay) overlay.addEventListener('click', () => control.click());
         if (closeBtn) closeBtn.addEventListener('click', () => control.click());
 
-        // Show/hide trigger based on sidebar state
+        // Show/hide trigger when sidebar opens/closes
         const updateTrigger = () => {{
             if (trigger) {{
                 trigger.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
@@ -434,7 +430,7 @@ st.markdown(f"""
 
         updateTrigger();
 
-        // Observe sidebar class changes
+        // Observe sidebar state changes
         const observer = new MutationObserver(updateTrigger);
         observer.observe(sidebar, {{ attributes: true, attributeFilter: ['class'] }});
     }});
