@@ -193,40 +193,12 @@ st.markdown(f"""
         opacity: 1 !important;
     }}
 
-    /* Simple floating hamburger (no circle/background) – large touch target */
-    .mobile-sidebar-trigger {{
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 9999;
-        font-size: 34px;
-        font-weight: bold;
-        color: {text_color};
-        cursor: pointer;
-        padding: 16px;
-        opacity: 0.85;
-        transition: all 0.3s ease;
-    }}
     .mobile-sidebar-trigger:hover {{
         color: {accent_primary};
         opacity: 1;
         transform: scale(1.15);
     }}
-
-    /* Simple floating close × (no circle/background) – large touch target */
-    .sidebar-close-btn {{
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        z-index: 10001;
-        font-size: 32px;
-        font-weight: bold;
-        color: {text_color};
-        cursor: pointer;
-        padding: 16px;
-        opacity: 0.85;
-        transition: all 0.3s ease;
-    }}
+    
     .sidebar-close-btn:hover {{
         color: {accent_primary};
         opacity: 1;
