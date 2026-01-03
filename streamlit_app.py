@@ -99,7 +99,12 @@ create_default_users()
 # ====================== FINAL SIDEBAR FIX: NATIVE ARROW ON DESKTOP + WIDER MOBILE SLIDE-IN ======================
 # Desktop: Native Streamlit arrow visible & working (collapsible, default expanded)
 # Mobile: No native arrow, custom glass hamburger, starts closed, WIDER sidebar (90% / max 380px), smooth slide-in + overlay
-# Fully theme-aware, premium glass, perfect text contrast
+# ====================== FINAL: MEDIUM BOXES + FONT BALANCE + ALL PREVIOUS FIXES ======================
+# Boxes (glass-cards): Medium size (reduced padding, tighter feel)
+# Global font: Slightly larger (15px base) for better readability
+# Font inside boxes: Slightly smaller (14px text, 1.8rem headings) — looser but not tight
+# Top header blended, red arrow, no sidebar shadow, mobile wide/looser — all intact
+
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
@@ -142,8 +147,11 @@ st.set_page_config(
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* Global */
-    html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
+    /* Global - Slightly larger base font */
+    html, body, [class*="css-"] {{ 
+        font-family: 'Poppins', sans-serif !important; 
+        font-size: 15px !important;  /* Increased overall */
+    }}
     .stApp {{
         background: {bg_color};
         color: {text_primary};
@@ -157,14 +165,14 @@ st.markdown(f"""
         color: {text_muted} !important;
     }}
     
-    /* Pure transparent glass cards */
+    /* Medium glass cards - reduced padding for medium size */
     .glass-card {{
         background: {card_bg};
         backdrop-filter: {glass_blur};
         -webkit-backdrop-filter: {glass_blur};
         border-radius: 20px;
         border: 1px solid {border_color};
-        padding: 2.2rem;
+        padding: 1.8rem !important;  /* Medium/tighter */
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
     }}
@@ -173,6 +181,17 @@ st.markdown(f"""
         transform: translateY(-4px);
         border-color: {accent_primary};
     }}
+    
+    /* Smaller font inside cards */
+    .glass-card h1, .glass-card h2, .glass-card h3, 
+    .glass-card h4, .glass-card p, .glass-card div, 
+    .glass-card span, .glass-card label {{
+        font-size: 14px !important;  /* Slightly smaller inside boxes */
+        line-height: 1.5 !important;
+    }}
+    .glass-card h1 {{ font-size: 1.8rem !important; }}
+    .glass-card h2 {{ font-size: 1.6rem !important; }}
+    .glass-card h3 {{ font-size: 1.4rem !important; }}
     
     /* Inputs */
     .stTextInput > div > div > input,
@@ -196,7 +215,7 @@ st.markdown(f"""
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
     
-    /* TOP HEADER FULL BLEND */
+    /* TOP HEADER BLEND */
     header[data-testid="stHeader"] {{
         background-color: {bg_color} !important;
         backdrop-filter: {glass_blur};
@@ -254,14 +273,11 @@ st.markdown(f"""
             font-size: 13px !important;
         }}
         .glass-card {{
-            padding: 2.5rem !important;
+            padding: 2rem !important;  /* Balanced for mobile */
         }}
         .block-container {{
             padding: 1.5rem !important;
             padding-top: 80px !important;
-        }}
-        .stMarkdown, p, div, span {{
-            font-size: 14px !important;
         }}
     }}
     
