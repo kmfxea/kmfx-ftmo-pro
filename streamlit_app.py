@@ -43,12 +43,11 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
-# ====================== PAGE CONFIG - SIDEBAR EXPANDED BY DEFAULT & CENTERED LAYOUT ======================
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
-    layout="centered",  # Perfect auto-fit on all devices (mobile/tablet/desktop)
-    initial_sidebar_state="expanded"  # Sidebar OPEN & VISIBLE by default on all devices
+    layout="centered",
+    initial_sidebar_state="expanded"  # Sidebar open by default pag login/load
 )
 
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
@@ -219,15 +218,57 @@ st.markdown(f"""
     section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
-    /* ==================== MOBILE SIDEBAR SWIPE - IMPROVED & WORKING ==================== */
+
+    /* ==================== FIXED: CUSTOM ARROW BUTTON IN HEADER (ALL DEVICES) - REMOVED DEFAULT ARROW ==================== */
+    /* Hide default collapse arrow completely */
+    button[data-testid="collapsedControl"] {{
+        display: none !important;
+    }}
+
+    /* Custom arrow button container - fixed top-left in header area */
+    .custom-sidebar-toggle {{
+        position: fixed !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 9999 !important;
+        width: 48px !important;
+        height: 48px !important;
+        background: rgba(0, 255, 170, 0.15) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3) !important;
+    }}
+    .custom-sidebar-toggle:hover {{
+        background: rgba(0, 255, 170, 0.3) !important;
+        transform: scale(1.1) !important;
+    }}
+
+    /* Arrow icon color - white in dark mode, black in light mode */
+    .custom-sidebar-toggle svg {{
+        width: 28px !important;
+        height: 28px !important;
+        stroke: {'#ffffff' if theme == 'dark' else '#000000'} !important;
+        fill: none !important;
+    }}
+
+    /* Mobile adjustments */
     @media (max-width: 768px) {{
-        /* Hide default hamburger */
-        button[kind="headerNoPadding"],
-        button[title="View sidebar"] {{
-            display: none !important;
+        .custom-sidebar-toggle {{
+            top: 10px !important;
+            left: 10px !important;
+            width: 45px !important;
+            height: 45px !important;
         }}
-       
-        /* Expanded: full screen */
+        .custom-sidebar-toggle svg {{
+            width: 26px !important;
+            height: 26px !important;
+        }}
+        
+        /* Sidebar full when expanded */
         section[data-testid="stSidebar"] {{
             width: 100% !important;
             min-width: 100% !important;
@@ -237,92 +278,58 @@ st.markdown(f"""
             left: 0 !important;
             z-index: 9998 !important;
         }}
-       
+        
         /* Collapsed: hidden */
         section[data-testid="stSidebar"].collapsed {{
             width: 0 !important;
             overflow: hidden !important;
         }}
-       
+        
         /* Content full when collapsed */
         section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
             margin-left: 0 !important;
             width: 100% !important;
         }}
-       
-        /* Arrow visible */
-        button[data-testid="collapsedControl"] {{
-            left: 12px !important;
-            top: 80px !important;
-            width: 48px !important;
-            height: 48px !important;
-        }}
-        button[data-testid="collapsedControl"] svg {{
-            width: 30px !important;
-            height: 30px !important;
-        }}
+    }}
+
+    /* Desktop collapse space (no arrow needed, but content shift) */
+    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+        margin-left: 0 !important;
+        width: 100% !important;
     }}
 </style>
+
 <script>
-    // Mobile Swipe Gesture - Swipe RIGHT from LEFT EDGE to open, Swipe LEFT anywhere to close
+    // Custom Header Arrow Button + Toggle (all devices)
     document.addEventListener('DOMContentLoaded', function() {{
-        let touchstartX = 0;
-        let touchendX = 0;
-        let touchstartY = 0;
-        let touchendY = 0;
-        const edgeThreshold = 80; // Only trigger open if swipe starts near left edge
-        const swipeThreshold = 80; // Minimum swipe distance
-        const verticalRestraint = 100; // Ignore if too vertical
-       
+        // Create custom toggle button
+        const toggleBtn = document.createElement('div');
+        toggleBtn.className = 'custom-sidebar-toggle';
+        toggleBtn.innerHTML = `
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+        document.body.appendChild(toggleBtn);
+        
         const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
         if (!sidebarButton) return;
-       
-        document.body.addEventListener('touchstart', e => {{
-            touchstartX = e.changedTouches[0].screenX;
-            touchstartY = e.changedTouches[0].screenY;
-        }}, {{ passive: true }});
-       
-        document.body.addEventListener('touchend', e => {{
-            touchendX = e.changedTouches[0].screenX;
-            touchendY = e.changedTouches[0].screenY;
-            handleSwipe();
-        }}, {{ passive: true }});
-       
-        function handleSwipe() {{
-            const deltaX = touchendX - touchstartX;
-            const deltaY = Math.abs(touchendY - touchstartY);
-           
-            if (deltaY > verticalRestraint) return; // Ignore vertical scroll
-           
-            // Swipe RIGHT from left edge to OPEN
-            if (deltaX > swipeThreshold && touchstartX < edgeThreshold) {{
-                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                    sidebarButton.click();
-                }}
+        
+        // Click to toggle
+        toggleBtn.addEventListener('click', function() {{
+            sidebarButton.click();
+        }});
+        
+        // Rotate arrow based on state (180deg when open)
+        const observer = new MutationObserver(() => {{
+            const svgPath = toggleBtn.querySelector('svg path');
+            if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                svgPath.setAttribute('d', 'M15 18l-6-6 6-6'); // Right arrow (collapsed)
+            }} else {{
+                svgPath.setAttribute('d', 'M9 18l6-6-6-6'); // Left arrow (expanded)
             }}
-           
-            // Swipe LEFT anywhere to CLOSE
-            if (deltaX < -swipeThreshold) {{
-                if (!document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                    sidebarButton.click();
-                }}
-            }}
-        }}
-    }});
-</script>
-<script>
-    // Keyboard shortcut 'S' to toggle sidebar (desktop/laptop only)
-    document.addEventListener('keydown', function(e) {{
-        // Only trigger if 'S' or 's' pressed, and no input/textarea focused
-        if ((e.key === 'S' || e.key === 's') &&
-            document.activeElement.tagName !== 'INPUT' &&
-            document.activeElement.tagName !== 'TEXTAREA') {{
-           
-            const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-            if (sidebarButton) {{
-                sidebarButton.click();
-            }}
-        }}
+        }});
+        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
     }});
 </script>
 """, unsafe_allow_html=True)
