@@ -176,6 +176,39 @@ st.markdown(f"""
     div[data-baseweb="select"] > div > div > div {{
         color: {text_color} !important;
     }}
+    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
+        color: {dropdown_placeholder} !important;
+    }}
+
+    /* ====================== DROPDOWN POPUP ====================== */
+    div[data-baseweb="popover"],
+    div[role="listbox"],
+    div[data-baseweb="menu"] {{
+        background: {dropdown_popup_bg} !important;
+        border-radius: 16px !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
+    }}
+    div[role="option"] > div > div,
+    div[role="option"] {{
+        color: {dropdown_text} !important;
+        background: transparent !important;
+        padding: 12px 16px !important;
+    }}
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"] {{
+        background: {dropdown_hover_bg} !important;
+        color: {dropdown_hover_text} !important;
+    }}
+
+    /* ====================== BUTTONS ====================== */
+    .stButton > button {{
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        color: #000 !important;
+        border-radius: 16px !important;
+        padding: 0.9rem 2rem !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
+    }}
+    .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
 
     /* ====================== SIDEBAR - PURE TRANSPARENT + STRONG BLUR ====================== */
     section[data-testid="stSidebar"] {{
@@ -185,15 +218,19 @@ st.markdown(f"""
         border-right: {glass_border};
     }}
 
-    /* ====================== BUTTONS (UNCHANGED - KEEP ACCENT GRADIENT) ====================== */
-    .stButton > button {{
-        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
-        color: #000 !important;
-        border-radius: 16px !important;
-        padding: 0.9rem 2rem !important;
-        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
+    [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
+    #MainMenu, footer, header {{ visibility: hidden !important; }}
+
+    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
+    button[data-testid="collapsedControl"] {{
+        opacity: 0 !important;
+        position: absolute !important;
+        left: -100px !important;
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+        width: 40px !important;
+        height: 40px !important;
     }}
-    .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
 
     /* ====================== DESKTOP SIDEBAR FORCED OPEN ====================== */
     @media (min-width: 993px) {{
@@ -209,12 +246,10 @@ st.markdown(f"""
         }}
     }}
 
-    /* ====================== MOBILE OPTIMIZATIONS ====================== */
+    /* ====================== MOBILE OPTIMIZATIONS - FIXED CLOSING ISSUE ====================== */
     @media (max-width: 992px) {{
-        /* Prevent horizontal scroll */
         .stApp, .block-container {{ overflow-x: hidden !important; max-width: 100% !important; }}
 
-        /* Sidebar slide-in - pure transparent + extra strong blur */
         section[data-testid="stSidebar"] {{
             position: fixed !important;
             top: 0; left: 0;
@@ -234,7 +269,7 @@ st.markdown(f"""
             transform: translateX(0);
         }}
 
-        /* Custom hamburger trigger */
+        /* Hamburger Trigger */
         .mobile-sidebar-trigger {{
             position: fixed;
             top: 18px;
@@ -273,7 +308,7 @@ st.markdown(f"""
             display: block;
         }}
 
-        /* Close button */
+        /* Close Button */
         .sidebar-close-btn {{
             position: fixed;
             top: 18px;
@@ -296,15 +331,18 @@ st.markdown(f"""
         section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
             display: flex;
         }}
+        .sidebar-close-btn:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }}
 
-        /* Main content spacing */
+        /* Main content */
         .block-container {{
             padding: 1rem !important;
             padding-top: 90px !important;
             max-width: 100% !important;
         }}
 
-        /* Responsive typography & spacing */
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
         h3 {{ font-size: 1.4rem !important; }}
@@ -324,51 +362,77 @@ st.markdown(f"""
         .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
+""", unsafe_allow_html=True)
+
+# === FIXED MOBILE SIDEBAR CONTROLS (PLACE THIS AFTER YOUR HEADER OR WHEREVER YOU HAD IT BEFORE) ===
+st.markdown("""
+<!-- Mobile Sidebar Controls - FIXED VERSION -->
+<div class="mobile-sidebar-trigger">☰</div>
+<div class="sidebar-overlay"></div>
+<div class="sidebar-close-btn">×</div>
+
 <script>
-    // Desktop: force open
-    if (window.innerWidth > 992) {{
-        const desktopInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
-                control.click();
-            }}
-        }}, 100);
-    }}
+    // Robust toggle function - clicks the hidden Streamlit control button
+    function toggleSidebar() {
+        const controlBtn = document.querySelector('button[data-testid="collapsedControl"]');
+        if (controlBtn) {
+            controlBtn.click();
+        } else {
+            // Fallback: try again after a short delay (helps after reruns/login)
+            setTimeout(toggleSidebar, 100);
+        }
+    }
 
-    // Mobile: force closed on load + custom trigger logic
-    if (window.innerWidth <= 992) {{
-        const mobileInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && !sidebar.classList.contains('collapsed')) {{
-                control.click();
-                clearInterval(mobileInterval);
-            }}
-        }}, 100);
-    }}
+    // Attach listeners with retry logic (ensures they work after Streamlit reruns)
+    function attachMobileListeners() {
+        const trigger = document.querySelector('.mobile-sidebar-trigger');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const closeBtn = document.querySelector('.sidebar-close-btn');
 
-    function toggleSidebar() {{
-        const btn = document.querySelector('button[data-testid="collapsedControl"]');
-        if (btn) btn.click();
-    }}
+        if (trigger && overlay && closeBtn) {
+            trigger.onclick = toggleSidebar;
+            overlay.onclick = toggleSidebar;
+            closeBtn.onclick = toggleSidebar;
+        } else {
+            setTimeout(attachMobileListeners, 100);
+        }
+    }
 
-    document.querySelector('.mobile-sidebar-trigger')?.addEventListener('click', toggleSidebar);
-    document.querySelector('.sidebar-overlay')?.addEventListener('click', toggleSidebar);
-    document.querySelector('.sidebar-close-btn')?.addEventListener('click', toggleSidebar);
-
-    // Icon change ☰ ↔ ×
-    const observer = new MutationObserver(() => {{
+    // Icon change ☰ ↔ × with reliable observer
+    const observer = new MutationObserver(() => {
         const sidebar = document.querySelector('section[data-testid="stSidebar"]');
         const trigger = document.querySelector('.mobile-sidebar-trigger');
-        if (trigger && sidebar) {{
-            trigger.innerHTML = sidebar.classList.contains('collapsed') ? '☰' : '×';
-            trigger.style.fontSize = sidebar.classList.contains('collapsed') ? '30px' : '36px';
-        }}
-    }});
-    observer.observe(document.querySelector('section[data-testid="stSidebar"]') || document.body, {{
-        attributes: true, subtree: true, attributeFilter: ['class']
-    }});
+        if (sidebar && trigger) {
+            if (sidebar.classList.contains('collapsed')) {
+                trigger.innerHTML = '☰';
+                trigger.style.fontSize = '30px';
+            } else {
+                trigger.innerHTML = '×';
+                trigger.style.fontSize = '36px';
+            }
+        }
+    });
+
+    // Start observing and attach listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        attachMobileListeners();
+        observer.observe(document.body, { subtree: true, childList: true, attributes: true });
+    });
+
+    // Re-attach after every rerun (Streamlit clears DOM)
+    if (window.Streamlit) {
+        window.Streamlit.events.addEventListener(window.Streamlit.RENDER_EVENT, () => {
+            setTimeout(attachMobileListeners, 200);
+        });
+    }
+
+    // Initial force closed on mobile
+    if (window.innerWidth <= 992) {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            toggleSidebar();
+        }
+    }
 </script>
 """, unsafe_allow_html=True)
 
@@ -547,6 +611,77 @@ with col1:
     st.markdown(f"<h1>{selected}</h1>", unsafe_allow_html=True)
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
+    # === FIXED MOBILE SIDEBAR CONTROLS (PLACE THIS AFTER YOUR HEADER OR WHEREVER YOU HAD IT BEFORE) ===
+st.markdown("""
+<!-- Mobile Sidebar Controls - FIXED VERSION -->
+<div class="mobile-sidebar-trigger">☰</div>
+<div class="sidebar-overlay"></div>
+<div class="sidebar-close-btn">×</div>
+
+<script>
+    // Robust toggle function - clicks the hidden Streamlit control button
+    function toggleSidebar() {
+        const controlBtn = document.querySelector('button[data-testid="collapsedControl"]');
+        if (controlBtn) {
+            controlBtn.click();
+        } else {
+            // Fallback: try again after a short delay (helps after reruns/login)
+            setTimeout(toggleSidebar, 100);
+        }
+    }
+
+    // Attach listeners with retry logic (ensures they work after Streamlit reruns)
+    function attachMobileListeners() {
+        const trigger = document.querySelector('.mobile-sidebar-trigger');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const closeBtn = document.querySelector('.sidebar-close-btn');
+
+        if (trigger && overlay && closeBtn) {
+            trigger.onclick = toggleSidebar;
+            overlay.onclick = toggleSidebar;
+            closeBtn.onclick = toggleSidebar;
+        } else {
+            setTimeout(attachMobileListeners, 100);
+        }
+    }
+
+    // Icon change ☰ ↔ × with reliable observer
+    const observer = new MutationObserver(() => {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        const trigger = document.querySelector('.mobile-sidebar-trigger');
+        if (sidebar && trigger) {
+            if (sidebar.classList.contains('collapsed')) {
+                trigger.innerHTML = '☰';
+                trigger.style.fontSize = '30px';
+            } else {
+                trigger.innerHTML = '×';
+                trigger.style.fontSize = '36px';
+            }
+        }
+    });
+
+    // Start observing and attach listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        attachMobileListeners();
+        observer.observe(document.body, { subtree: true, childList: true, attributes: true });
+    });
+
+    // Re-attach after every rerun (Streamlit clears DOM)
+    if (window.Streamlit) {
+        window.Streamlit.events.addEventListener(window.Streamlit.RENDER_EVENT, () => {
+            setTimeout(attachMobileListeners, 200);
+        });
+    }
+
+    // Initial force closed on mobile
+    if (window.innerWidth <= 992) {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            toggleSidebar();
+        }
+    }
+</script>
+""", unsafe_allow_html=True)
     
    
 # ====================== ANNOUNCEMENT BANNER ======================
