@@ -142,7 +142,6 @@ st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
- 
     .stApp {{ background: {bg_color}; color: {text_color}; }}
     h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
     small, caption {{ color: {secondary_text} !important; }}
@@ -232,68 +231,36 @@ st.markdown(f"""
         }}
     }}
 
-    /* Mobile: Toggle button BELOW welcome card (centered middle) */
+    /* Mobile: Make the divider line clickable to open full sidebar */
     @media (max-width: 992px) {{
-        .mobile-sidebar-toggle {{
-            position: fixed !important;
-            bottom: 100px !important; /* Adjust 80-120px para exact below welcome card */
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            z-index: 9999 !important;
-            width: 70px !important;
-            height: 70px !important;
-            background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            box-shadow: 0 10px 40px rgba(0, 255, 170, 0.8) !important;
-            animation: floating-pulse 3s infinite ease-in-out !important;
-            transition: all 0.4s ease !important;
-        }}
-        @keyframes floating-pulse {{
-            0% {{ transform: translateX(-50%) translateY(0) scale(1); box-shadow: 0 10px 40px rgba(0, 255, 170, 0.8); }}
-            50% {{ transform: translateX(-50%) translateY(-10px) scale(1.05); box-shadow: 0 20px 50px rgba(0, 255, 170, 1); }}
-            100% {{ transform: translateX(-50%) translateY(0) scale(1); box-shadow: 0 10px 40px rgba(0, 255, 170, 0.8); }}
-        }}
-        .mobile-sidebar-toggle:hover {{
-            transform: translateX(-50%) scale(1.2) !important;
-            box-shadow: 0 20px 60px rgba(0, 255, 170, 1) !important;
-        }}
-        .mobile-sidebar-toggle:active {{
-            animation: pop 0.6s ease !important;
-        }}
-        @keyframes pop {{
-            0% {{ transform: translateX(-50%) scale(1); }}
-            50% {{ transform: translateX(-50%) scale(1.4); }}
-            100% {{ transform: translateX(-50%) scale(1); }}
-        }}
-
-        /* Hamburger to X */
-        .mobile-sidebar-toggle .icon {{
-            width: 36px;
-            height: 28px;
-            position: relative;
-        }}
-        .mobile-sidebar-toggle .icon span {{
-            display: block;
-            width: 100%;
-            height: 5px;
-            background: #000;
-            border-radius: 3px;
-            position: absolute;
+        .sidebar-trigger-line {{
+            text-align: center;
+            margin: 2rem 0;
+            cursor: pointer;
             transition: all 0.3s ease;
         }}
-        .mobile-sidebar-toggle .icon span:nth-child(1) {{ top: 4px; }}
-        .mobile-sidebar-toggle .icon span:nth-child(2) {{ top: 12px; }}
-        .mobile-sidebar-toggle .icon span:nth-child(3) {{ top: 20px; }}
-
-        .mobile-sidebar-toggle.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 12px; }}
-        .mobile-sidebar-toggle.open .icon span:nth-child(2) {{ opacity: 0; }}
-        .mobile-sidebar-toggle.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 12px; }}
+        .sidebar-trigger-line hr {{
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, transparent, {accent_primary}, transparent);
+            width: 80%;
+            margin: 0 auto;
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
+            transition: all 0.4s ease;
+        }}
+        .sidebar-trigger-line:hover hr {{
+            box-shadow: 0 0 30px rgba(0, 255, 170, 0.8);
+            transform: scaleX(1.1);
+        }}
+        .sidebar-trigger-line:active hr {{
+            animation: line-pop 0.6s ease;
+        }}
+        @keyframes line-pop {{
+            0% {{ transform: scaleX(1); box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }}
+            50% {{ transform: scaleX(1.3); box-shadow: 0 0 40px rgba(0, 255, 170, 1); }}
+            100% {{ transform: scaleX(1); box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }}
+        }}
 
         /* Full sidebar when open */
         section[data-testid="stSidebar"]:not(.collapsed) {{
@@ -340,30 +307,14 @@ st.markdown(f"""
     document.addEventListener('DOMContentLoaded', function() {{
         if (window.innerWidth > 992) return; // Mobile only
 
-        const toggle = document.createElement('div');
-        toggle.className = 'mobile-sidebar-toggle';
-        toggle.innerHTML = `
-            <div class="icon">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
-        document.body.appendChild(toggle);
+        const trigger = document.querySelector('.sidebar-trigger-line');
+        if (!trigger) return;
 
         const observer = new MutationObserver(() => {{
             const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (!control) return;
 
-            if (!control || !sidebar) return;
-
-            if (!sidebar.classList.contains('collapsed')) {{
-                toggle.classList.add('open');
-            }} else {{
-                toggle.classList.remove('open');
-            }}
-
-            toggle.onclick = () => {{
+            trigger.onclick = () => {{
                 control.click();
             }};
         }});
@@ -562,7 +513,11 @@ with col1:
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
 
-st.divider()
+st.markdown("""
+<div class="sidebar-trigger-line">
+    <hr>
+</div>
+""", unsafe_allow_html=True)
 
 # ====================== ANNOUNCEMENT BANNER ======================
 try:
