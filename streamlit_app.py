@@ -106,7 +106,6 @@ theme = st.session_state.theme
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_color = accent_primary
-
 if theme == "dark":
     bg_color = "#0a0d14"
     text_color = "#f0f4f8"
@@ -137,7 +136,6 @@ else:
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#777777"
-
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -204,15 +202,7 @@ st.markdown(f"""
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
     section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
-    #MainMenu, footer, header {{ visibility: hidden !important; }}
-    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
-    button[data-testid="collapsedControl"] {{
-        opacity: 0 !important;
-        position: absolute !important;
-        left: -100px !important;
-        pointer-events: auto !important;
-        z-index: -1 !important;
-    }}
+    #MainMenu, footer {{ visibility: hidden !important; }}
     button[kind="headerNoPadding"],
     button[title="View sidebar"] {{
         display: none !important;
@@ -230,12 +220,12 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: Floating hamburger + overlay + close button (UPDATED & ROBUST) */
+    /* Mobile: Floating toggle button (TOP RIGHT) + overlay */
     @media (max-width: 992px) {{
-        /* Floating Hamburger Trigger */
+        /* Floating Toggle Button (Top Right) */
         .mobile-sidebar-trigger {{
             position: fixed;
-            bottom: 30px;
+            top: 20px;
             right: 20px;
             background: linear-gradient(135deg, {accent_primary}, {accent_hover});
             color: #000;
@@ -267,36 +257,11 @@ st.markdown(f"""
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(10px);
             z-index: 9997;
-        }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
-            display: block;
-        }}
-        /* Close Button (X) */
-        .sidebar-close-btn {{
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
             cursor: pointer;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            display: none;
         }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
-            display: flex;
-        }}
-        .sidebar-close-btn:hover {{
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay,
+        section[data-testid="stSidebar"]:not(.collapsed) + .sidebar-overlay {{
+            display: block;
         }}
         /* Full sidebar when open */
         section[data-testid="stSidebar"]:not(.collapsed) {{
@@ -306,6 +271,7 @@ st.markdown(f"""
             top: 0 !important;
             left: 0 !important;
             z-index: 9998 !important;
+            border-right: none !important;
         }}
         /* Original mobile sizes */
         .block-container {{ padding: 1rem !important; }}
@@ -521,47 +487,66 @@ with col1:
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
 
-st.markdown(f"""
-<!-- Mobile Sidebar Controls (Robust with Retry) -->
-<div class="mobile-sidebar-trigger" onclick="(() => {{ 
-    const tryClick = () => {{
-        const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]');
-        if (btn) {{
-            btn.click();
-        }} else {{
-            setTimeout(tryClick, 100); // Retry every 100ms until found
-        }}
-    }};
-    tryClick();
-}})();">
-    ☰
-</div>
+# ====================== MOBILE SIDEBAR TOGGLE (TOP RIGHT + TOGGLE ICON) ======================
+st.markdown("""
+<!-- Mobile Sidebar Toggle (Top Right) + Overlay -->
+<div class="mobile-sidebar-trigger" id="mobileSidebarTrigger">☰</div>
+<div class="sidebar-overlay"></div>
 
-<div class="sidebar-overlay" onclick="(() => {{ 
-    const tryClick = () => {{
-        const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]');
-        if (btn) {{
-            btn.click();
-        }} else {{
-            setTimeout(tryClick, 100);
-        }}
-    }};
-    tryClick();
-}})();"></div>
+<script>
+    const toggleBtn = document.getElementById('mobileSidebarTrigger');
+    const overlay = document.querySelector('.sidebar-overlay');
 
-<div class="sidebar-close-btn" onclick="(() => {{ 
-    const tryClick = () => {{
-        const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]');
-        if (btn) {{
-            btn.click();
-        }} else {{
-            setTimeout(tryClick, 100);
-        }}
-    }};
-    tryClick();
-}})();">
-    ×
-</div>
+    function updateIcon() {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            toggleBtn.innerHTML = '×';
+        } else {
+            toggleBtn.innerHTML = '☰';
+        }
+    }
+
+    if (toggleBtn) {
+        // Initial icon
+        updateIcon();
+
+        // Click to toggle sidebar
+        toggleBtn.addEventListener('click', () => {
+            const tryClick = () => {
+                const control = document.querySelector('button[data-testid="collapsedControl"]');
+                if (control) {
+                    control.click();
+                    setTimeout(updateIcon, 400);
+                } else {
+                    setTimeout(tryClick, 100);
+                }
+            };
+            tryClick();
+        });
+
+        // Observe sidebar state changes
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar) {
+            const observer = new MutationObserver(updateIcon);
+            observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+        }
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            const tryClick = () => {
+                const control = document.querySelector('button[data-testid="collapsedControl"]');
+                if (control && control.offsetParent !== null) {
+                    control.click();
+                    setTimeout(updateIcon, 400);
+                } else {
+                    setTimeout(tryClick, 100);
+                }
+            };
+            tryClick();
+        });
+    }
+</script>
 """, unsafe_allow_html=True)
 # ====================== ANNOUNCEMENT BANNER ======================
 try:
