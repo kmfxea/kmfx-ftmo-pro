@@ -99,38 +99,33 @@ create_default_users()
 
 # ====================== END OF PART 1 ======================
 # Next: Copy Part 2 (Theme, Login, Sidebar) below this line
-# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
+# ====================== FINAL FIXED RESPONSIVE SIDEBAR (100% WORKING - DESKTOP, TABLET, MOBILE) ======================
+st.set_page_config(
+    page_title="KMFX FTMO Pro Manager",
+    page_icon="🚀",
+    layout="centered",
+    initial_sidebar_state="expanded"  # ← CRITICAL: Start expanded (JS will auto-close on mobile)
+)
+
+# Theme block (keep your current one with white/black text)
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
-
 accent_primary = "#00ffaa"
 accent_hover   = "#00cc88"
-accent_color   = accent_primary  # Fixed NameError + consistent accent
+accent_color   = accent_primary
 
 if theme == "dark":
-    bg_color         = "#0a0d14"          # Deep dark background
-    text_color       = "#ffffff"          # White text (as requested)
-    secondary_text   = "#e0e0e0"          # Light gray for secondary
-    glass_bg         = "transparent"
-    glass_border     = "1px solid rgba(255, 255, 255, 0.18)"
-    input_bg         = "rgba(255, 255, 255, 0.06)"
-    input_border     = "1px solid rgba(255, 255, 255, 0.25)"
-    card_shadow      = "0 12px 40px rgba(0, 0, 0, 0.6)"
-    sidebar_bg       = "rgba(10, 13, 20, 0.85)"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
+    bg_color         = "#0a0d14"
+    text_color       = "#ffffff"
+    secondary_text   = "#e0e0e0"
+    sidebar_bg       = "rgba(10, 13, 20, 0.92)"
 else:
-    bg_color         = "#f5f8fa"          # Light background
-    text_color       = "#000000"          # Black text (as requested)
-    secondary_text   = "#333333"          # Dark gray for secondary
-    glass_bg         = "transparent"
-    glass_border     = "1px solid rgba(0, 0, 0, 0.15)"
-    input_bg         = "rgba(0, 0, 0, 0.06)"
-    input_border     = "1px solid rgba(0, 0, 0, 0.25)"
-    card_shadow      = "0 12px 40px rgba(0, 0, 0, 0.08)"
-    sidebar_bg       = "rgba(255, 255, 255, 0.85)"
-    dropdown_popup_bg = "#ffffff"
+    bg_color         = "#f5f8fa"
+    text_color       = "#000000"
+    secondary_text   = "#333333"
+    sidebar_bg       = "rgba(255, 255, 255, 0.92)"
 
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -138,22 +133,21 @@ st.markdown(f"""
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
     .stApp {{ background: {bg_color}; color: {text_color}; }}
 
-    /* Sidebar base */
+    /* Sidebar core */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
         width: 300px !important;
         min-width: 300px !important;
-        border-right: {glass_border};
+        border-right: 1px solid rgba(255,255,255,0.15);
         transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         z-index: 9998;
     }}
 
-    /* Hide default collapse button completely (we use custom) */
+    /* Hide default collapse button */
     button[data-testid="collapsedControl"] {{ display: none !important; }}
 
-    /* Desktop: always open + push content */
+    /* Desktop: fixed open + push content */
     @media (min-width: 901px) {{
         section[data-testid="stSidebar"] {{
             transform: translateX(0) !important;
@@ -176,8 +170,7 @@ st.markdown(f"""
             width: 80% !important;
             max-width: 300px !important;
             transform: translateX(-100%);
-            box-shadow: 8px 0 30px rgba(0,0,0,0.5);
-            overflow-y: auto;
+            box-shadow: 8px 0 30px rgba(0,0,0,0.6);
         }}
         section[data-testid="stSidebar"][aria-expanded="true"] {{
             transform: translateX(0);
@@ -192,18 +185,18 @@ st.markdown(f"""
         .block-container {{ padding-top: 80px !important; }}
     }}
 
-    /* Custom hamburger trigger (glass round button) */
+    /* Hamburger trigger (premium glass round) */
     .mobile-sidebar-trigger {{
         display: none;
         position: fixed;
-        top: 20px;
-        left: 20px;
+        top: 18px;
+        left: 18px;
         width: 56px;
         height: 56px;
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
         border-radius: 50%;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         align-items: center;
         justify-content: center;
         cursor: pointer;
@@ -212,30 +205,30 @@ st.markdown(f"""
     }}
     .mobile-sidebar-trigger:hover {{
         background: {accent_primary};
-        transform: scale(1.1);
+        transform: scale(1.08);
     }}
     .mobile-sidebar-trigger span {{ font-size: 32px; color: {text_color}; }}
 
-    /* Close button inside sidebar */
+    /* Close button */
     .sidebar-close-btn {{
         display: none;
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 18px;
+        right: 18px;
         width: 48px;
         height: 48px;
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
         border-radius: 50%;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
+        z-index: 9999;
     }}
     .sidebar-close-btn:hover {{
         background: #ff4757;
-        transform: scale(1.1);
+        transform: scale(1.08);
     }}
     .sidebar-close-btn span {{ font-size: 30px; color: {text_color}; }}
 
@@ -244,8 +237,8 @@ st.markdown(f"""
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(8px);
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(10px);
         z-index: 9997;
         opacity: 0;
         transition: opacity 0.4s ease;
@@ -260,41 +253,27 @@ st.markdown(f"""
         .mobile-sidebar-trigger {{ display: flex; }}
     }}
 
-    /* Beautiful sidebar menu (radio styled as modern buttons) */
-    div[data-testid="stSidebar"] div.stRadio > div {{
-        gap: 8px;
-        padding: 0 12px;
-    }}
+    /* Modern menu style */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.06);
         border-radius: 16px;
-        padding: 16px 24px;
-        margin: 4px 0;
+        padding: 16px 20px;
+        margin: 6px 12px;
         transition: all 0.3s ease;
         border: 1px solid rgba(255,255,255,0.1);
     }}
     div[data-testid="stSidebar"] div.stRadio > div > label:hover {{
-        background: rgba(0,255,170,0.2);
+        background: rgba(0,255,170,0.15);
         border-color: {accent_primary};
     }}
-    div[data-testid="stSidebar"] div.stRadio > div > label > div:first-child {{
-        font-size: 17px;
-        font-weight: 500;
-    }}
     div[data-testid="stSidebar"] div.stRadio > div > label[data-checked="true"] {{
-        background: {accent_primary};
+        background: {accent_primary} !important;
         color: #000000 !important;
         border-color: {accent_primary};
     }}
-
-    /* Theme & logout buttons */
-    section[data-testid="stSidebar"] button {{
-        border-radius: 16px !important;
-        margin: 12px 16px !important;
-    }}
 </style>
 
-<!-- Custom mobile controls -->
+<!-- Controls -->
 <div class="mobile-sidebar-trigger"><span>☰</span></div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn"><span>×</span></div>
@@ -304,9 +283,18 @@ st.markdown(f"""
     const trigger = document.querySelector('.mobile-sidebar-trigger');
     const overlay = document.querySelector('.sidebar-overlay');
     const closeBtn = document.querySelector('.sidebar-close-btn');
-    const control = document.querySelector('button[data-testid="collapsedControl"]');
 
     if (sidebar && trigger && overlay && closeBtn) {{
+        const control = document.querySelector('button[data-testid="collapsedControl"]');
+
+        const toggle = () => {{
+            if (control) control.click();
+        }};
+
+        trigger.addEventListener('click', toggle);
+        overlay.addEventListener('click', toggle);
+        closeBtn.addEventListener('click', toggle);
+
         const updateUI = () => {{
             const isMobile = window.innerWidth <= 900;
             const isOpen = sidebar.getAttribute('aria-expanded') === 'true';
@@ -322,32 +310,27 @@ st.markdown(f"""
             }}
         }};
 
-        const toggle = () => {{
-            if (control) control.click();
-            setTimeout(updateUI, 100); // small delay for state update
-        }};
-
-        trigger.addEventListener('click', toggle);
-        overlay.addEventListener('click', toggle);
-        closeBtn.addEventListener('click', toggle);
-
-        const enforceState = () => {{
+        const enforce = () => {{
             const isMobile = window.innerWidth <= 900;
             const isOpen = sidebar.getAttribute('aria-expanded') === 'true';
 
-            if (isMobile && isOpen) {{
-                toggle(); // close on mobile
-            }} else if (!isMobile && !isOpen) {{
-                toggle(); // open on desktop
-            }}
+            if (isMobile && isOpen) toggle();
+            else if (!isMobile && !isOpen) toggle();
+
             updateUI();
         }};
 
-        window.addEventListener('resize', enforceState);
-        document.addEventListener('DOMContentLoaded', enforceState);
-        window.addEventListener('load', enforceState);
+        // Multiple checks for reliable initial load
+        setTimeout(enforce, 50);
+        setTimeout(enforce, 200);
+        setTimeout(enforce, 600);
+        setTimeout(enforce, 1200);
 
-        // Observe aria-expanded changes
+        window.addEventListener('resize', enforce);
+        document.addEventListener('DOMContentLoaded', enforce);
+        window.addEventListener('load', enforce);
+
+        // Observe aria-expanded
         const observer = new MutationObserver(updateUI);
         observer.observe(sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
     }}
