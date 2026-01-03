@@ -113,26 +113,24 @@ accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
-    card_bg = "rgba(15, 20, 30, 0.85)"
-    sidebar_bg = "rgba(10, 13, 20, 0.95)"
-    border_color = "rgba(100, 100, 100, 0.2)"
+    card_bg = "rgba(15, 20, 30, 0.70)"  # More transparent
+    sidebar_bg = "rgba(10, 13, 20, 0.90)"
+    border_color = "rgba(100, 100, 100, 0.15)"
     text_primary = "#ffffff"
     text_muted = "#aaaaaa"
-    input_bg = "rgba(30, 35, 45, 0.6)"
-    arrow_color = "#ffffff"  # White arrow in dark
+    input_bg = "rgba(30, 35, 45, 0.5)"
 else:
     bg_color = "#f8fbff"
-    card_bg = "rgba(255, 255, 255, 0.92)"
-    sidebar_bg = "rgba(255, 255, 255, 0.95)"
-    border_color = "rgba(0, 0, 0, 0.12)"
+    card_bg = "rgba(255, 255, 255, 0.75)"  # More transparent light
+    sidebar_bg = "rgba(255, 255, 255, 0.90)"
+    border_color = "rgba(0, 0, 0, 0.08)"
     text_primary = "#0f172a"
     text_muted = "#64748b"
-    input_bg = "rgba(240, 245, 255, 0.7)"
-    arrow_color = "#000000"  # Black arrow in light
+    input_bg = "rgba(240, 245, 255, 0.6)"
 
 glass_blur = "blur(20px)"
-card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
-card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
+card_shadow = "0 8px 32px rgba(0,0,0,0.12)"
+card_shadow_hover = "0 16px 50px rgba(0,255,170,0.20)"
 
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
@@ -151,7 +149,7 @@ st.markdown(f"""
         color: {text_primary};
     }}
     
-    /* Full adaptive text */
+    /* Adaptive text */
     h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
         color: {text_primary} !important;
     }}
@@ -159,14 +157,14 @@ st.markdown(f"""
         color: {text_muted} !important;
     }}
     
-    /* Glass Cards - more transparent feel */
+    /* Pure transparent glass cards */
     .glass-card {{
         background: {card_bg};
         backdrop-filter: {glass_blur};
         -webkit-backdrop-filter: {glass_blur};
         border-radius: 20px;
         border: 1px solid {border_color};
-        padding: 2rem;
+        padding: 2.2rem;  /* Slightly more padding for breathing room */
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
     }}
@@ -198,7 +196,7 @@ st.markdown(f"""
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
     
-    /* SIDEBAR - NO SHADOW AT ALL */
+    /* SIDEBAR - NO SHADOW */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: {glass_blur};
@@ -206,21 +204,21 @@ st.markdown(f"""
         width: 320px !important;
         min-width: 320px !important;
         border-right: 1px solid {border_color};
-        box-shadow: none !important;  /* Totally removed */
+        box-shadow: none !important;
         transition: all 0.3s ease;
     }}
     
-    /* Native arrow/hamburger - adaptive color */
+    /* RED arrow/hamburger - highly visible */
     [data-testid="collapsedControl"] {{
-        color: {arrow_color} !important;
+        color: #ff4757 !important;
         background: transparent !important;
     }}
     [data-testid="collapsedControl"] svg {{
-        fill: {arrow_color} !important;
-        stroke: {arrow_color} !important;
+        fill: #ff4757 !important;
+        stroke: #ff4757 !important;
     }}
     
-    /* Desktop padding */
+    /* Desktop */
     @media (min-width: 769px) {{
         .main .block-container {{
             padding-left: 3rem !important;
@@ -229,26 +227,37 @@ st.markdown(f"""
         }}
     }}
     
-    /* Mobile: Wider + smaller font for wide view */
+    /* Mobile: Wider sidebar + looser layout */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
-            width: 90% !important;
-            max-width: 400px !important;
+            width: 92% !important;
+            max-width: 420px !important;  /* Even wider */
         }}
-        /* Smaller font in mobile sidebar menu */
+        /* Smaller font + more padding in sidebar menu */
         div[data-testid="stSidebar"] div.stRadio > div > label {{
-            font-size: 14px !important;
-            padding: 16px 20px !important;
+            font-size: 13px !important;
+            padding: 16px 22px !important;
+            margin: 8px 14px !important;
         }}
-        div[data-testid="stSidebar"] h3, div[data-testid="stSidebar"] p {{
-            font-size: 14px !important;
+        div[data-testid="stSidebar"] h3, div[data-testid="stSidebar"] p, 
+        div[data-testid="stSidebar"] div, div[data-testid="stSidebar"] span {{
+            font-size: 13px !important;
+        }}
+        /* Main content boxes wider/looser on mobile */
+        .glass-card {{
+            padding: 2.5rem !important;
         }}
         .block-container {{
+            padding: 1.5rem !important;
             padding-top: 80px !important;
+        }}
+        /* General mobile text slightly smaller */
+        .stMarkdown, p, div, span {{
+            font-size: 14px !important;
         }}
     }}
     
-    /* Premium Menu Items */
+    /* Premium Menu */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
@@ -274,7 +283,6 @@ st.markdown(f"""
         font-weight: 600;
     }}
     
-    /* Force sidebar text */
     section[data-testid="stSidebar"] * {{
         color: {text_primary} !important;
     }}
