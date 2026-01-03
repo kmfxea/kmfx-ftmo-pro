@@ -96,211 +96,321 @@ def create_default_users():
 
 create_default_users()
 
+# ====================== END OF PART 1 ======================
+# Next: Copy Part 2 (Theme, Login, Sidebar) below this line
+# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
+# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
+if "theme" not in st.session_state:
+    st.session_state.theme = "dark"
+theme = st.session_state.theme
+accent_primary = "#00ffaa"
+accent_hover = "#00cc88"
+accent_color = accent_primary
+
+if theme == "dark":
+    bg_color = "#0a0d14"
+    text_color = "#f0f4f8"
+    secondary_text = "#a0b0c0"
+    glass_bg = "transparent"                          # Pure transparent
+    glass_border = "1px solid rgba(255, 255, 255, 0.18)"  # Slightly stronger border
+    input_bg = "rgba(255, 255, 255, 0.06)"             # Very subtle for inputs
+    input_border = "1px solid rgba(255, 255, 255, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
+    sidebar_bg = "transparent"                        # Pure transparent sidebar
+    dropdown_popup_bg = "#1a1f2e"                      # Keep solid for readability
+    dropdown_text = "#f0f4f8"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#666666"
+else:
+    bg_color = "#f5f8fa"
+    text_color = "#121618"
+    secondary_text = "#4a5568"
+    glass_bg = "transparent"                          # Pure transparent
+    glass_border = "1px solid rgba(0, 0, 0, 0.15)"
+    input_bg = "rgba(0, 0, 0, 0.06)"                   # Very subtle for inputs
+    input_border = "1px solid rgba(0, 0, 0, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
+    sidebar_bg = "transparent"                        # Pure transparent sidebar
+    dropdown_popup_bg = "#ffffff"
+    dropdown_text = text_color
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#888888"
+
+# ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
 # ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
-
-# Elegant professional accent (emerald/teal — modern, trustworthy, great contrast)
-accent_primary = "#10b981"
-accent_hover = "#059669"
-accent_active = "#064e3b"
-accent_color = accent_primary  # Restored alias for your existing title code
+accent_primary = "#00ffaa"
+accent_hover = "#00cc88"
+accent_color = accent_primary
 
 if theme == "dark":
-    bg_color = "#0f172a"                    # slate-900 — deep, calm
-    text_color = "#f1f5f9"                  # slate-100 — crisp white
-    secondary_text = "#94a3b8"               # slate-400 — subtle captions
-    sidebar_bg = "rgba(15, 23, 42, 0.65)"    # semi-transparent slate
-    glass_blur = "blur(20px)"
-    glass_border = "1px solid rgba(255, 255, 255, 0.12)"
-    input_bg = "rgba(30, 41, 59, 0.4)"
-    input_border = "1px solid rgba(255, 255, 255, 0.2)"
-    card_bg = "rgba(15, 23, 42, 0.5)"
-    card_shadow = "0 8px 32px rgba(0, 0, 0, 0.37)"
+    bg_color = "#0a0d14"
+    text_color = "#ffffff"          # Pure white text
+    secondary_text = "#e0e0e0"       # Slightly off-white for small/caption
+    glass_bg = "transparent"
+    glass_border = "1px solid rgba(255, 255, 255, 0.18)"
+    input_bg = "rgba(255, 255, 255, 0.06)"
+    input_border = "1px solid rgba(255, 255, 255, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
+    sidebar_bg = "transparent"
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"   # Near-transparent glass for dropdown in dark
+    dropdown_text = "#ffffff"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#888888"
 else:
-    bg_color = "#ffffff"
-    text_color = "#1e293b"                  # slate-800 — rich black
-    secondary_text = "#64748b"              # slate-500
-    sidebar_bg = "rgba(255, 255, 255, 0.85)"
-    glass_blur = "blur(20px)"
-    glass_border = "1px solid rgba(0, 0, 0, 0.1)"
-    input_bg = "rgba(241, 245, 249, 0.6)"
-    input_border = "1px solid rgba(0, 0, 0, 0.15)"
-    card_bg = "rgba(255, 255, 255, 0.7)"
-    card_shadow = "0 8px 32px rgba(0, 0, 0, 0.06)"
+    bg_color = "#f5f8fa"
+    text_color = "#000000"          # Pure black text
+    secondary_text = "#333333"      # Dark gray for small/caption
+    glass_bg = "transparent"
+    glass_border = "1px solid rgba(0, 0, 0, 0.15)"
+    input_bg = "rgba(0, 0, 0, 0.06)"
+    input_border = "1px solid rgba(0, 0, 0, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
+    sidebar_bg = "transparent"
+    dropdown_popup_bg = "#ffffff"   # Solid white in light mode
+    dropdown_text = "#000000"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#666666"
 
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* Global font & base */
-    html, body, [class*="css-"]  {{
-        font-family: 'Poppins', sans-serif;
-    }}
-    .stApp {{
-        background: {bg_color};
-        color: {text_color};
-    }}
-
-    /* Force all text colors */
-    .main *, section[data-testid="stSidebar"] * {{
-        color: {text_color} !important;
-    }}
-    .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"], 
-    small, .caption, placeholder {{
-        color: {secondary_text} !important;
-    }}
-
-    /* Hide Streamlit header & toolbar completely for clean full-screen look */
-    [data-testid="stHeader"], [data-testid="stToolbar"] {{
-        display: none !important;
-    }}
-
-    /* Hide default collapse button (we use minimal custom icons instead) */
-    button[data-testid="collapsedControl"] {{
-        display: none !important;
-    }}
-
-    /* Main content — centered on large screens, comfortable padding */
-    .main .block-container {{
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 2rem 1.5rem 4rem;
-    }}
-    @media (min-width: 1400px) {{
-        .main .block-container {{
-            max-width: 1400px;
-            padding: 3rem 2rem 5rem;
-        }}
-    }}
-
-    /* Sidebar — elegant frosted glass */
-    section[data-testid="stSidebar"] {{
-        background: {sidebar_bg} !important;
-        backdrop-filter: {glass_blur};
-        -webkit-backdrop-filter: {glass_blur};
-        border-right: {glass_border};
-        transition: transform 0.3s ease;
-    }}
-    section[data-testid="stSidebar"] > div:first-child {{
-        background: transparent !important;
-    }}
-
-    /* Input fields — subtle glass */
-    input, textarea, [data-baseweb="input"] input, 
-    [data-baseweb="select"] > div {{
-        background: {input_bg} !important;
-        border: {input_border} !important;
-        color: {text_color} !important;
-        backdrop-filter: blur(8px);
-    }}
-
-    /* Cards / containers (use these classes in your app if needed) */
+    html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
+    .stApp {{ background: {bg_color}; color: {text_color}; }}
+    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
+    small, caption {{ color: {secondary_text} !important; }}
     .glass-card {{
-        background: {card_bg};
+        background: {glass_bg};
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
         border: {glass_border};
-        border-radius: 16px;
-        padding: 1.5rem;
+        padding: 2rem;
+        margin: 1.5rem 0;
         box-shadow: {card_shadow};
-        backdrop-filter: {glass_blur};
-        -webkit-backdrop-filter: {glass_blur};
-    }}
-
-    /* Buttons — accent styled */
-    .stButton > button {{
-        background: {accent_primary};
-        color: #ffffff;
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
         transition: all 0.3s ease;
     }}
-    .stButton > button:hover {{
-        background: {accent_hover};
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    .glass-card:hover {{ transform: translateY(-8px); }}
+    /* Inputs Base */
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div,
+    .stTextInput > div > div,
+    .stSelectbox > div > div {{
+        background: {input_bg} !important;
+        border: {input_border} !important;
+        border-radius: 16px !important;
+        color: {text_color} !important;
     }}
-
-    /* Minimal floating mobile controls — NO big circles, NO glass background, just clean icons */
-    .mobile-sidebar-trigger {{
-        position: fixed;
-        top: 24px;
-        left: 24px;
-        z-index: 1002;
-        font-size: 30px;
-        color: {text_color};
-        cursor: pointer;
-        transition: color 0.3s ease;
-        line-height: 1;
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] > div > div > div {{
+        color: {text_color} !important;
     }}
-    .mobile-sidebar-trigger:hover {{
-        color: {accent_primary};
+    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
+        color: {dropdown_placeholder} !important;
     }}
-
-    .sidebar-close-btn {{
-        position: fixed;
-        top: 24px;
-        right: 24px;
-        z-index: 1003;
-        font-size: 30px;
-        color: {text_color};
-        cursor: pointer;
-        transition: color 0.3s ease;
-        line-height: 1;
+    /* Dropdown Popup - NOW GLASS/TRANSPARENT IN DARK MODE */
+    div[data-baseweb="popover"],
+    div[role="listbox"],
+    div[data-baseweb="menu"] {{
+        background: {dropdown_popup_bg} !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
+        border: {glass_border} !important;
     }}
-    .sidebar-close-btn:hover {{
-        color: {accent_primary};
+    div[role="option"] > div > div,
+    div[role="option"] {{
+        color: {dropdown_text} !important;
+        background: transparent !important;
+        padding: 12px 16px !important;
     }}
-
-    /* Hide close button on desktop/laptop (only needed on mobile) */
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"] {{
+        background: {dropdown_hover_bg} !important;
+        color: {dropdown_hover_text} !important;
+    }}
+    /* Buttons */
+    .stButton > button {{
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        color: #000 !important;
+        border-radius: 16px !important;
+        padding: 0.9rem 2rem !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
+    }}
+    .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
+    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
+    [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
+    #MainMenu, footer, header {{ visibility: hidden !important; }}
+    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
+    button[data-testid="collapsedControl"] {{
+        opacity: 0 !important;
+        position: absolute !important;
+        left: -100px !important;
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+    }}
+    button[kind="headerNoPadding"],
+    button[title="View sidebar"] {{
+        display: none !important;
+    }}
+    /* Desktop: Force open & fixed */
     @media (min-width: 993px) {{
-        .sidebar-close-btn {{
-            display: none !important;
+        section[data-testid="stSidebar"] {{
+            width: 320px !important;
+            min-width: 320px !important;
+            transition: none !important;
+        }}
+        .main .block-container {{
+            margin-left: 340px !important;
+            max-width: calc(100% - 340px) !important;
+            padding-left: 2rem !important;
         }}
     }}
-
-    .sidebar-overlay {{
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 1001;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s;
+    /* Mobile: Top-left 3-line trigger + smooth left slide + overlay + close button */
+    @media (max-width: 992px) {{
+        /* Sidebar smooth slide from left */
+        section[data-testid="stSidebar"] {{
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 85% !important;
+            max-width: 320px !important;
+            height: 100vh !important;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9998 !important;
+            box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+            overflow-y: auto;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) {{
+            transform: translateX(0);
+        }}
+        /* Top-left 3-line Trigger */
+        .mobile-sidebar-trigger {{
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, {accent_primary}, {accent_hover});
+            color: #000;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0, 255, 170, 0.5);
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }}
+        .mobile-sidebar-trigger:hover {{
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
+        }}
+        /* Dark Overlay when open */
+        .sidebar-overlay {{
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            z-index: 9997;
+            cursor: pointer;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
+            display: block;
+        }}
+        /* Close Button (X) top right */
+        .sidebar-close-btn {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            display: none;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
+            display: flex;
+        }}
+        .sidebar-close-btn:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }}
+        /* Mobile layout */
+        .block-container {{
+            padding: 1rem !important;
+            padding-top: 90px !important;
+        }}
+        h1 {{ font-size: 2rem !important; }}
+        h2 {{ font-size: 1.7rem !important; }}
+        h3 {{ font-size: 1.4rem !important; }}
+        .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
+        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
+        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
+        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
     }}
-    .sidebar-overlay.active {{
-        opacity: 1;
-        visibility: visible;
+    @media (max-width: 480px) {{
+        h1 {{ font-size: 1.8rem !important; }}
+        h2 {{ font-size: 1.5rem !important; }}
+        .glass-card {{ padding: 1.2rem !important; }}
+        .block-container {{ padding: 0.8rem !important; padding-top: 80px !important; }}
+        .mobile-sidebar-trigger {{ width: 50px; height: 50px; font-size: 24px; top: 15px; left: 15px; }}
+        .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
 
-<!-- Minimal Custom Mobile Controls (just the icons) -->
+<!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
 <div class="mobile-sidebar-trigger">☰</div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn">×</div>
 
 <script>
-    // Force sidebar behavior: always open on desktop/laptop, closed by default on mobile
-    const enforceSidebarState = () => {{
-        const control = document.querySelector('button[data-testid="collapsedControl"]');
-        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-        if (!control || !sidebar) return;
+    // Desktop: Force sidebar open
+    if (window.innerWidth > 992) {{
+        const desktopInterval = setInterval(() => {{
+            const control = document.querySelector('button[data-testid="collapsedControl"]');
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
+                control.click();
+                clearInterval(desktopInterval);
+            }}
+        }}, 100);
+    }}
 
-        if (window.innerWidth > 992) {{
-            // Desktop/Laptop → always open
-            if (sidebar.classList.contains('collapsed')) control.click();
-        }} else {{
-            // Mobile → closed by default
-            if (!sidebar.classList.contains('collapsed')) control.click();
-        }}
-    }};
+    // Mobile: Force sidebar CLOSED on load
+    if (window.innerWidth <= 992) {{
+        const mobileInterval = setInterval(() => {{
+            const control = document.querySelector('button[data-testid="collapsedControl"]');
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (control && sidebar && !sidebar.classList.contains('collapsed')) {{
+                control.click();
+                clearInterval(mobileInterval);
+            }}
+        }}, 100);
+    }}
 
-    // Run on load & resize
-    window.addEventListener('load', enforceSidebarState);
-    window.addEventListener('resize', enforceSidebarState);
-
-    // Custom minimal controls logic
+    // Custom mobile controls functionality
     document.addEventListener('DOMContentLoaded', () => {{
         const trigger = document.querySelector('.mobile-sidebar-trigger');
         const overlay = document.querySelector('.sidebar-overlay');
@@ -311,27 +421,25 @@ st.markdown(f"""
         if (!control || !sidebar) return;
 
         // Click handlers
-        trigger?.addEventListener('click', () => control.click());
-        overlay?.addEventListener('click', () => control.click());
-        closeBtn?.addEventListener('click', () => control.click());
+        if (trigger) trigger.addEventListener('click', () => control.click());
+        if (overlay) overlay.addEventListener('click', () => control.click());
+        if (closeBtn) closeBtn.addEventListener('click', () => control.click());
 
-        // Update visibility
-        const updateUI = () => {{
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            if (trigger) trigger.style.display = isCollapsed ? 'block' : 'none';
-            if (closeBtn) closeBtn.style.display = isCollapsed ? 'none' : 'block';
-            if (overlay) overlay.classList.toggle('active', !isCollapsed);
+        // Show/hide trigger based on sidebar state
+        const updateTrigger = () => {{
+            if (trigger) {{
+                trigger.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+            }}
         }};
 
-        updateUI();
+        updateTrigger();
 
-        // Observe sidebar changes
-        const observer = new MutationObserver(updateUI);
+        // Observe sidebar class changes
+        const observer = new MutationObserver(updateTrigger);
         observer.observe(sidebar, {{ attributes: true, attributeFilter: ['class'] }});
     }});
 </script>
 """, unsafe_allow_html=True)
-
 
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
 # Helper function for login (defined early - no NameError)
