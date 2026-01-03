@@ -211,7 +211,7 @@ st.markdown(f"""
         position: absolute !important;
         left: -100px !important;
         pointer-events: auto !important;
-        z-index: -1 !important;
+        z-index: 9999 !important;
     }}
     button[kind="headerNoPadding"],
     button[title="View sidebar"] {{
@@ -230,35 +230,51 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: Floating hamburger + overlay + close button (UPDATED & ROBUST) */
+    /* Mobile: Top-left hamburger + smooth left slide + overlay + close button */
     @media (max-width: 992px) {{
-        /* Floating Hamburger Trigger */
+        /* Sidebar smooth slide from left */
+        section[data-testid="stSidebar"] {{
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 85% !important;
+            max-width: 320px !important;
+            height: 100vh !important;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9998 !important;
+            box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+            overflow-y: auto;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) {{
+            transform: translateX(0);
+        }}
+
+        /* Top-left Hamburger Trigger (3 lines) */
         .mobile-sidebar-trigger {{
             position: fixed;
-            bottom: 30px;
-            right: 20px;
+            top: 20px;
+            left: 20px;
             background: linear-gradient(135deg, {accent_primary}, {accent_hover});
             color: #000;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 28px;
             font-weight: bold;
-            box-shadow: 0 0 30px rgba(0, 255, 170, 0.6);
+            box-shadow: 0 6px 20px rgba(0, 255, 170, 0.5);
             cursor: pointer;
             z-index: 9999;
             transition: all 0.3s ease;
         }}
         .mobile-sidebar-trigger:hover {{
             transform: scale(1.1);
-            box-shadow: 0 0 50px rgba(0, 255, 170, 0.9);
+            box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
         }}
-        .mobile-sidebar-trigger:active {{
-            transform: scale(0.95);
-        }}
+
         /* Dark Overlay when sidebar open */
         .sidebar-overlay {{
             display: none;
@@ -267,11 +283,13 @@ st.markdown(f"""
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(10px);
             z-index: 9997;
+            cursor: pointer;
         }}
         section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
             display: block;
         }}
-        /* Close Button (X) */
+
+        /* Close Button (X) top right */
         .sidebar-close-btn {{
             position: fixed;
             top: 20px;
@@ -298,36 +316,24 @@ st.markdown(f"""
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.1);
         }}
-        /* Full sidebar when open */
-        section[data-testid="stSidebar"]:not(.collapsed) {{
-            width: 100% !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            z-index: 9998 !important;
+
+        /* Mobile layout */
+        .block-container {{ 
+            padding: 1rem !important; 
+            padding-top: 90px !important;
         }}
-        /* Original mobile sizes */
-        .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
         h3 {{ font-size: 1.4rem !important; }}
         .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
         .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
-        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
-        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
-        .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
-        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
-        .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
-        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
-        .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
-        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
     }}
     @media (max-width: 480px) {{
         h1 {{ font-size: 1.8rem !important; }}
         h2 {{ font-size: 1.5rem !important; }}
         .glass-card {{ padding: 1.2rem !important; }}
-        .block-container {{ padding: 0.8rem !important; }}
+        .block-container {{ padding: 0.8rem !important; padding-top: 80px !important; }}
+        .mobile-sidebar-trigger {{ width: 50px; height: 50px; font-size: 24px; top: 15px; left: 15px; }}
         .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
@@ -339,6 +345,18 @@ st.markdown(f"""
             const sidebar = document.querySelector('section[data-testid="stSidebar"]');
             if (control && sidebar && sidebar.classList.contains('collapsed')) {{
                 control.click();
+            }}
+        }}, 100);
+    }}
+
+    // Mobile: Force sidebar CLOSED on load (prevents always open bug)
+    if (window.innerWidth <= 992) {{
+        const mobileInterval = setInterval(() => {{
+            const control = document.querySelector('button[data-testid="collapsedControl"]');
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (control && sidebar && !sidebar.classList.contains('collapsed')) {{
+                control.click();
+                clearInterval(mobileInterval);
             }}
         }}, 100);
     }}
@@ -521,66 +539,58 @@ with col1:
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
     
-    # ====================== MOBILE SIDEBAR TRIGGER (TOP LEFT ARROW - EXACTLY AS YOU WANTED) ======================
+    # ====================== MOBILE SIDEBAR TRIGGER (TOP LEFT 3-LINE + OVERLAY + CLOSE BUTTON) ======================
 st.markdown("""
-<!-- Mobile Sidebar Arrow Trigger + Overlay -->
-<div class="mobile-sidebar-arrow" id="mobileSidebarArrow">☰</div>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- Mobile Sidebar Controls -->
+<div class="mobile-sidebar-trigger">☰</div>
+<div class="sidebar-overlay"></div>
+<div class="sidebar-close-btn">×</div>
 
 <script>
-    const arrowBtn = document.getElementById('mobileSidebarArrow');
-    const overlay = document.getElementById('sidebarOverlay');
+    // Robust click function
+    function toggleSidebar() {
+        const tryClick = () => {
+            const btn = document.querySelector('button[data-testid="collapsedControl"]');
+            if (btn) {
+                btn.click();
+            } else {
+                setTimeout(tryClick, 100);
+            }
+        };
+        tryClick();
+    }
 
-    function updateArrowIcon() {
+    // Hamburger trigger
+    const trigger = document.querySelector('.mobile-sidebar-trigger');
+    if (trigger) {
+        trigger.addEventListener('click', toggleSidebar);
+        
+        // Change icon ☰ → × when open
+        const observer = new MutationObserver(() => {
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (sidebar && !sidebar.classList.contains('collapsed')) {
+                trigger.innerHTML = '×';
+                trigger.style.fontSize = '36px';
+            } else {
+                trigger.innerHTML = '☰';
+                trigger.style.fontSize = '28px';
+            }
+        });
+        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), { attributes: true, attributeFilter: ['class'] });
+        
+        // Initial icon
         const sidebar = document.querySelector('section[data-testid="stSidebar"]');
         if (sidebar && !sidebar.classList.contains('collapsed')) {
-            arrowBtn.innerHTML = '×';
-            arrowBtn.style.fontSize = '36px';
-        } else {
-            arrowBtn.innerHTML = '☰';
-            arrowBtn.style.fontSize = '28px';
+            trigger.innerHTML = '×';
+            trigger.style.fontSize = '36px';
         }
     }
 
-    if (arrowBtn) {
-        updateArrowIcon();
+    // Overlay close
+    document.querySelector('.sidebar-overlay').addEventListener('click', toggleSidebar);
 
-        arrowBtn.addEventListener('click', () => {
-            const tryToggle = () => {
-                const control = document.querySelector('button[data-testid="collapsedControl"]');
-                if (control) {
-                    control.click();
-                    setTimeout(updateArrowIcon, 350);
-                } else {
-                    setTimeout(tryToggle, 100);
-                }
-            };
-            tryToggle();
-        });
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            const tryClose = () => {
-                const control = document.querySelector('button[data-testid="collapsedControl"]');
-                const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-                if (control && sidebar && !sidebar.classList.contains('collapsed')) {
-                    control.click();
-                    setTimeout(updateArrowIcon, 350);
-                } else {
-                    setTimeout(tryClose, 100);
-                }
-            };
-            tryClose();
-        });
-    }
-
-    // Live update icon
-    const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-    if (sidebar) {
-        const observer = new MutationObserver(updateArrowIcon);
-        observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
-    }
+    // Close button close
+    document.querySelector('.sidebar-close-btn').addEventListener('click', toggleSidebar);
 </script>
 """, unsafe_allow_html=True)
 
