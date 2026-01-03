@@ -48,7 +48,7 @@ st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
     layout="centered",
-    initial_sidebar_state="auto"  # Changed to auto for natural + controlled behavior
+    initial_sidebar_state="expanded"  # ← CHANGE TO "expanded" (this fixes most sidebar issues)
 )
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
 folders = [
