@@ -230,7 +230,7 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: New floating hamburger + overlay + close button */
+    /* Mobile: Floating hamburger + overlay + close button (UPDATED & ROBUST) */
     @media (max-width: 992px) {{
         /* Floating Hamburger Trigger */
         .mobile-sidebar-trigger {{
@@ -268,7 +268,7 @@ st.markdown(f"""
             backdrop-filter: blur(10px);
             z-index: 9997;
         }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main > .sidebar-overlay {{
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
             display: block;
         }}
         /* Close Button (X) */
@@ -291,7 +291,7 @@ st.markdown(f"""
             backdrop-filter: blur(10px);
             display: none;
         }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main > .sidebar-close-btn {{
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
             display: flex;
         }}
         .sidebar-close-btn:hover {{
@@ -522,22 +522,43 @@ with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
 
 st.markdown(f"""
-<!-- Mobile Sidebar Controls -->
+<!-- Mobile Sidebar Controls (Robust with Retry) -->
 <div class="mobile-sidebar-trigger" onclick="(() => {{ 
-    const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
-    if (btn) btn.click(); 
+    const tryClick = () => {{
+        const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]');
+        if (btn) {{
+            btn.click();
+        }} else {{
+            setTimeout(tryClick, 100); // Retry every 100ms until found
+        }}
+    }};
+    tryClick();
 }})();">
     ☰
 </div>
 
 <div class="sidebar-overlay" onclick="(() => {{ 
-    const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
-    if (btn) btn.click(); 
+    const tryClick = () => {{
+        const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]');
+        if (btn) {{
+            btn.click();
+        }} else {{
+            setTimeout(tryClick, 100);
+        }}
+    }};
+    tryClick();
 }})();"></div>
 
 <div class="sidebar-close-btn" onclick="(() => {{ 
-    const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
-    if (btn) btn.click(); 
+    const tryClick = () => {{
+        const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]');
+        if (btn) {{
+            btn.click();
+        }} else {{
+            setTimeout(tryClick, 100);
+        }}
+    }};
+    tryClick();
 }})();">
     ×
 </div>
