@@ -231,7 +231,7 @@ st.markdown(f"""
         }}
     }}
 
-    /* Mobile: Make the divider line clickable to open full sidebar */
+    /* Mobile: Clickable divider line in middle as sidebar trigger */
     @media (max-width: 992px) {{
         .sidebar-trigger-line {{
             text-align: center;
