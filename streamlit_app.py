@@ -1418,71 +1418,65 @@ elif selected == "👤 My Profile":
       </div>
     </div>
     <style>
-      .flip-card {{ 
-        background: transparent; 
-        width: 600px; 
-        height: 380px; 
-        perspective: 1000px; 
-        margin: 0 auto; 
+      .flip-card {{
+        background: transparent;
+        width: 600px;
+        height: 380px;
+        perspective: 1000px;
+        margin: 0 auto;
       }}
-      .flip-card-inner {{ 
-        position: relative; 
-        width: 100%; 
-        height: 100%; 
-        text-align: center; 
-        transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
-        transform-style: preserve-3d; 
+      .flip-card-inner {{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        transform-style: preserve-3d;
       }}
-      .flip-card:hover .flip-card-inner, 
-      .flip-card:focus-within .flip-card-inner {{ 
-        transform: rotateY(180deg); 
+      .flip-card:hover .flip-card-inner,
+      .flip-card:focus-within .flip-card-inner {{
+        transform: rotateY(180deg);
       }}
-      .flip-card-front, .flip-card-back {{ 
-        position: absolute; 
-        width: 100%; 
-        height: 100%; 
-        -webkit-backface-visibility: hidden; 
-        backface-visibility: hidden; 
-        border-radius: 20px; 
+      .flip-card-front, .flip-card-back {{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 20px;
       }}
-      .flip-card-back {{ 
-        transform: rotateY(180deg); 
+      .flip-card-back {{
+        transform: rotateY(180deg);
       }}
       
-      /* Mobile: Small rectangle Visa card - fits perfectly, no overflow */
       @media (max-width: 768px) {{
-        .flip-card {{ 
-          width: 90vw !important;   /* 90% of screen width */
-          max-width: 340px !important; 
-          height: 57vw !important;   /* Maintain Visa ratio (width * 0.63 approx) */
-          max-height: 215px !important; 
+        .flip-card {{
+          width: 90vw !important;
+          max-width: 340px !important;
+          height: 215px !important;
           margin: 2rem auto !important;
-          border-radius: 16px !important;
         }}
-        .flip-card-front > div, 
-        .flip-card-back > div {{ 
-          padding: 1rem !important; 
-          height: 100% !important; 
+        .flip-card-front > div,
+        .flip-card-back > div {{
+          padding: 1rem !important;
+          height: 215px !important;
           border-radius: 16px !important;
           box-sizing: border-box !important;
           overflow: hidden !important;
         }}
-        /* Front text - sakto fit */
-        .flip-card-front h2:first-child {{ font-size: 5vw !important; max-font-size: 1.8rem !important; }}
-        .flip-card-front h3 {{ font-size: 3vw !important; }}
-        .flip-card-front h1 {{ font-size: 4vw !important; }}
-        .flip-card-front h2:last-of-type {{ font-size: 5vw !important; }}
-        .flip-card-front p {{ font-size: 2.2vw !important; }}
-        .flip-card-front > div > div:first-child {{ margin-bottom: 2vw !important; }}
-        .flip-card-front > div > div:nth-child(3) {{ margin-top: 2vw !important; }}
-        .flip-card-front > div > div:nth-child(3) > div:first-child {{ font-size: 2.8vw !important; }}
-        .flip-card-front > div > div:nth-child(3) > div:last-child p {{ font-size: 2.5vw !important; }}
-        
-        /* Back text - responsive */
-        .flip-card-back h2 {{ font-size: 3.5vw !important; }}
-        .flip-card-back div:nth-child(2) {{ height: 6vw !important; }}
-        .flip-card-back div:nth-child(3) {{ font-size: 2.5vw !important; line-height: 1.4 !important; }}
-        .flip-card-back p:last-child {{ font-size: 2vw !important; }}
+        .flip-card-front h2:first-child {{ font-size: 1.8rem !important; }}
+        .flip-card-front h3 {{ font-size: 1rem !important; }}
+        .flip-card-front h1 {{ font-size: 1.4rem !important; }}
+        .flip-card-front h2:last-of-type {{ font-size: 1.8rem !important; }}
+        .flip-card-front p {{ font-size: 0.75rem !important; }}
+        .flip-card-front > div > div:first-child {{ margin-bottom: 0.3rem !important; }}
+        .flip-card-front > div > div:nth-child(3) {{ margin-top: 0.3rem !important; }}
+        .flip-card-front > div > div:nth-child(3) > div:first-child {{ font-size: 0.85rem !important; }}
+        .flip-card-front > div > div:nth-child(3) > div:last-child p {{ font-size: 0.75rem !important; }}
+        .flip-card-back h2 {{ font-size: 1.1rem !important; }}
+        .flip-card-back div:nth-child(2) {{ height: 22px !important; }}
+        .flip-card-back div:nth-child(3) {{ font-size: 0.78rem !important; line-height: 1.35 !important; }}
+        .flip-card-back p:last-child {{ font-size: 0.7rem !important; }}
       }}
     </style>
     <p style="text-align:center; opacity:0.7; margin-top:1rem; font-size:1rem;">
