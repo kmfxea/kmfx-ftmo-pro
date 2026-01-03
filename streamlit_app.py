@@ -151,6 +151,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"  # Sidebar open by default
 )
 
+st.set_page_config(
+    page_title="KMFX FTMO Pro Manager",
+    page_icon="🚀",
+    layout="centered",
+    initial_sidebar_state="expanded"  # Open by default
+)
+
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -227,7 +234,7 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== UNIVERSAL BALLOON BUTTON (ALL DEVICES: MOBILE, TABLET, LAPTOP, DESKTOP) ==================== */
+    /* ==================== UNIVERSAL BALLOON BUTTON (ALL DEVICES) - BOTTOM RIGHT (DESKTOP) / BOTTOM CENTER (MOBILE) ==================== */
     /* Hide default arrows */
     button[data-testid="collapsedControl"],
     button[kind="headerNoPadding"],
@@ -235,7 +242,7 @@ st.markdown(f"""
         display: none !important;
     }}
 
-    /* Balloon button - appears on ALL devices */
+    /* Balloon button */
     .universal-balloon {{
         position: fixed !important;
         z-index: 9999 !important;
@@ -253,7 +260,7 @@ st.markdown(f"""
         box-shadow: 0 12px 40px rgba(0, 255, 170, 0.8) !important;
     }}
     
-    /* Pop animation on click */
+    /* Pop animation */
     .universal-balloon:active {{
         animation: balloon-pop 0.6s ease !important;
     }}
@@ -263,9 +270,11 @@ st.markdown(f"""
         100% {{ transform: scale(1); }}
     }}
     
-    /* Hamburger/X icon */
+    /* Icon */
     .universal-balloon .icon {{
         position: relative;
+        width: 36px;
+        height: 28px;
     }}
     .universal-balloon .icon span {{
         display: block;
@@ -284,26 +293,20 @@ st.markdown(f"""
     .universal-balloon.open .icon span:nth-child(2) {{ opacity: 0; }}
     .universal-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
     
-    /* Position & size - responsive */
+    /* Position & size */
     .universal-balloon {{
         bottom: 30px !important;
         right: 30px !important; /* Bottom right on desktop/laptop/tablet */
         width: 70px !important;
         height: 70px !important;
     }}
-    .universal-balloon .icon {{
-        width: 36px;
-        height: 28px;
-    }}
     
     @media (max-width: 768px) {{
         .universal-balloon {{
             bottom: 30px !important;
-            left: 50% !important;
             right: auto !important;
+            left: 50% !important;
             transform: translateX(-50%) !important; /* Bottom center on mobile */
-            width: 70px !important;
-            height: 70px !important;
         }}
     }}
     
@@ -312,10 +315,9 @@ st.markdown(f"""
             width: 65px !important;
             height: 65px !important;
         }}
-        .universal-balloon .icon span {{ height: 4.5px; }}
     }}
 
-    /* Sidebar behavior */
+    /* Mobile sidebar */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             width: 100% !important;
@@ -366,7 +368,7 @@ st.markdown(f"""
 <script>
     // Universal Balloon Button (All Devices) + Pop Animation + Toggle
     document.addEventListener('DOMContentLoaded', function() {{
-        // Create balloon button
+        // Create balloon
         const balloon = document.createElement('div');
         balloon.className = 'universal-balloon';
         balloon.innerHTML = `
@@ -379,26 +381,29 @@ st.markdown(f"""
         document.body.appendChild(balloon);
         
         const icon = balloon.querySelector('.icon');
-        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-        if (!sidebarButton) return;
         
-        // Click to toggle + pop
-        balloon.addEventListener('click', function() {{
-            sidebarButton.click();
-            balloon.classList.add('pop');
-            setTimeout(() => balloon.classList.remove('pop'), 600);
-            icon.classList.toggle('open');
-        }});
-        
-        // Sync icon state
+        // Wait for sidebar button to appear
         const observer = new MutationObserver(() => {{
-            if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                icon.classList.remove('open');
-            }} else {{
-                icon.classList.add('open');
+            const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
+            if (sidebarButton) {{
+                balloon.addEventListener('click', function() {{
+                    sidebarButton.click();
+                    balloon.classList.add('pop');
+                    setTimeout(() => balloon.classList.remove('pop'), 600);
+                    icon.classList.toggle('open');
+                }});
+                
+                // Initial state sync
+                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                    icon.classList.remove('open');
+                }} else {{
+                    icon.classList.add('open');
+                }}
+                
+                observer.disconnect(); // Stop observing once found
             }}
         }});
-        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
+        observer.observe(document.body, {{ childList: true, subtree: true }});
     }});
 </script>
 """, unsafe_allow_html=True)
