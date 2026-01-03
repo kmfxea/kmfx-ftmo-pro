@@ -1378,7 +1378,7 @@ elif selected == "👤 My Profile":
         <div class="flip-card-inner">
           <!-- Front -->
           <div class="flip-card-front">
-            <div style="background: {front_bg}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 1.6rem; height: 380px; box-shadow: {shadow}; color: {text_color}; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {border_color};">
+            <div style="background: {front_bg}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 2rem; height: 380px; box-shadow: {shadow}; color: {text_color}; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {border_color};">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 3rem; color: {accent_gold}; letter-spacing: 6px; text-shadow: 0 0 12px {accent_gold};">KMFX EA</h2>
                 <h3 style="margin: 0; font-size: 1.6rem; color: {accent_gold}; letter-spacing: 2px;">{card_title}</h3>
@@ -1449,38 +1449,67 @@ elif selected == "👤 My Profile":
         transform: rotateY(180deg); 
       }}
       
-      /* Mobile: Super small Visa card size + perfect professional fit */
+      /* Mobile: Super small Visa card size - NO OVERFLOW, perfect fit on phone screen */
       @media (max-width: 768px) {{
         .flip-card {{ 
-          width: 100%; 
-          max-width: 340px !important;   /* Standard credit card width feel */
-          height: 215px !important;      /* Visa card ratio ~1.586:1 */
+          width: 100% !important; 
+          max-width: 340px !important;   /* Standard credit card width */
+          height: 215px !important;      /* Visa ratio ~1.586:1 - compact & fits screen */
+          margin: 2rem auto !important;
         }}
         .flip-card-front > div, 
         .flip-card-back > div {{ 
           padding: 1rem !important; 
           height: 215px !important; 
           border-radius: 16px !important;
+          box-sizing: border-box !important;
         }}
-        /* Front - super compact professional fit */
-        .flip-card-front h2:first-child {{ font-size: 1.8rem !important; letter-spacing: 4px !important; }}
-        .flip-card-front h3 {{ font-size: 1rem !important; letter-spacing: 1px !important; }}
-        .flip-card-front h1 {{ font-size: 1.4rem !important; letter-spacing: 2px !important; }}
-        .flip-card-front h2:last-of-type {{ font-size: 1.8rem !important; }}
-        .flip-card-front p {{ font-size: 0.75rem !important; }}
-        .flip-card-front > div > div:first-child {{ margin-bottom: 0.5rem !important; }}
-        .flip-card-front > div > div:nth-child(3) {{ margin-top: 0.5rem !important; }}
-        .flip-card-front > div > div:nth-child(3) > div:first-child {{ font-size: 0.9rem !important; }}
-        .flip-card-front > div > div:nth-child(3) > div:last-child p {{ font-size: 0.8rem !important; }}
+        /* Front - super compact professional fit (text sakto, no cut off) */
+        .flip-card-front h2:first-child {{ 
+          font-size: 1.8rem !important; 
+          letter-spacing: 4px !important; 
+        }}
+        .flip-card-front h3 {{ 
+          font-size: 1rem !important; 
+          letter-spacing: 1px !important; 
+        }}
+        .flip-card-front h1 {{ 
+          font-size: 1.4rem !important; 
+          letter-spacing: 2px !important; 
+        }}
+        .flip-card-front h2:last-of-type {{ 
+          font-size: 1.8rem !important; 
+        }}
+        .flip-card-front p {{ 
+          font-size: 0.75rem !important; 
+        }}
+        .flip-card-front > div > div:first-child {{ 
+          margin-bottom: 0.5rem !important; 
+        }}
+        .flip-card-front > div > div:nth-child(3) {{ 
+          margin-top: 0.5rem !important; 
+        }}
+        .flip-card-front > div > div:nth-child(3) > div:first-child {{ 
+          font-size: 0.9rem !important; 
+        }}
+        .flip-card-front > div > div:nth-child(3) > div:last-child p {{ 
+          font-size: 0.8rem !important; 
+        }}
         
         /* Back - tight but readable */
-        .flip-card-back h2 {{ font-size: 1.1rem !important; }}
-        .flip-card-back div:nth-child(2) {{ height: 25px !important; }}
+        .flip-card-back h2 {{ 
+          font-size: 1.1rem !important; 
+        }}
+        .flip-card-back div:nth-child(2) {{ 
+          height: 25px !important; 
+        }}
         .flip-card-back div:nth-child(3) {{ 
           font-size: 0.8rem !important; 
           line-height: 1.4 !important; 
         }}
-        .flip-card-back p:last-child {{ font-size: 0.7rem !important; }}
+        .flip-card-back p:last-child {{ 
+          font-size: 0.7rem !important; 
+        }}
       }}
     </style>
     <p style="text-align:center; opacity:0.7; margin-top:1rem; font-size:1rem;">
