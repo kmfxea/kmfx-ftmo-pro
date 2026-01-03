@@ -100,7 +100,6 @@ create_default_users()
 # Desktop: Native Streamlit arrow visible & working (collapsible, default expanded)
 # Mobile: No native arrow, custom glass hamburger, starts closed, WIDER sidebar (90% / max 380px), smooth slide-in + overlay
 # Fully theme-aware, premium glass, perfect text contrast
-
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
@@ -110,7 +109,7 @@ accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_glow = "#00ffaa40"
 accent_secondary = "#ffd700"
-accent_color = accent_primary  # For your existing uses
+accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
@@ -120,7 +119,6 @@ if theme == "dark":
     text_primary = "#ffffff"
     text_muted = "#aaaaaa"
     input_bg = "rgba(30, 35, 45, 0.6)"
-    trigger_bg = "rgba(255,255,255,0.15)"
 else:
     bg_color = "#f8fbff"
     card_bg = "rgba(255, 255, 255, 0.92)"
@@ -129,13 +127,18 @@ else:
     text_primary = "#0f172a"
     text_muted = "#64748b"
     input_bg = "rgba(240, 245, 255, 0.7)"
-    trigger_bg = "rgba(0,0,0,0.08)"
 
 glass_blur = "blur(20px)"
 card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
 card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
 
-
+# Keep expanded for desktop native feel (Streamlit auto-handles mobile hamburger)
+st.set_page_config(
+    page_title="KMFX FTMO Pro Manager",
+    page_icon="🚀",
+    layout="centered",
+    initial_sidebar_state="expanded"
+)
 
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -147,8 +150,13 @@ st.markdown(f"""
         color: {text_primary};
     }}
     
-    h1, h2, h3, h4, h5, h6, p, div, span, label {{ color: {text_primary} !important; }}
-    small, caption {{ color: {text_muted} !important; }}
+    /* Full theme-adaptive text (no fixed white anywhere) */
+    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
+        color: {text_primary} !important;
+    }}
+    small, caption, .caption {{
+        color: {text_muted} !important;
+    }}
     
     /* Glass Cards */
     .glass-card {{
@@ -169,9 +177,11 @@ st.markdown(f"""
     
     /* Inputs */
     .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea {{
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > div {{
         background: {input_bg} !important;
         color: {text_primary} !important;
+        border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
     
@@ -187,7 +197,7 @@ st.markdown(f"""
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
     
-    /* SIDEBAR CORE */
+    /* SIDEBAR PREMIUM GLASS */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: {glass_blur};
@@ -195,116 +205,40 @@ st.markdown(f"""
         width: 320px !important;
         min-width: 320px !important;
         border-right: 1px solid {border_color};
-        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 9998;
         box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
     }}
     
-    /* Hide native arrow ONLY on mobile */
-    @media (max-width: 768px) {{
-        [data-testid="collapsedControl"] {{
-            display: none !important;
-        }}
+    /* Native controls visible on BOTH desktop & mobile */
+    [data-testid="collapsedControl"] {{
+        /* Keep visible — no hide */
+        color: {text_primary} !important;
+        background: rgba(255,255,255,0.08) !important;
+        backdrop-filter: blur(10px);
     }}
     
-    /* Desktop: Native Streamlit push/collapse */
+    /* Desktop: Clean padding (Streamlit auto-adjusts on collapse) */
     @media (min-width: 769px) {{
         .main .block-container {{
             padding-left: 3rem !important;
             padding-top: 2rem !important;
+            transition: all 0.3s ease !important;
         }}
     }}
     
-    /* Mobile: Wider slide-in */
+    /* Mobile: Wider sidebar + reduced shadow (cleaner) */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            height: 100vh !important;
             width: 90% !important;
-            max-width: 380px !important;
-            transform: translateX(-100%);
-            box-shadow: 12px 0 40px rgba(0,0,0,0.6);
-        }}
-        section[data-testid="stSidebar"][aria-expanded="true"] {{
-            transform: translateX(0) !important;
+            max-width: 400px !important;  /* Wider & comfortable */
+            box-shadow: 8px 0 20px rgba(0,0,0,0.3) !important;  /* Reduced shadow */
         }}
         .block-container {{
-            padding: 1rem !important;
             padding-top: 80px !important;
         }}
     }}
     
-    /* Mobile Trigger */
-    .mobile-sidebar-trigger {{
-        display: none;
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        width: 56px;
-        height: 56px;
-        background: {trigger_bg};
-        backdrop-filter: blur(16px);
-        border-radius: 50%;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 9999;
-        transition: all 0.3s ease;
-    }}
-    .mobile-sidebar-trigger:hover {{
-        background: {accent_primary};
-        transform: scale(1.12);
-    }}
-    .mobile-sidebar-trigger span {{ font-size: 30px; color: {text_primary}; }}
-    
-    /* Close Button */
-    .sidebar-close-btn {{
-        display: none;
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        width: 48px;
-        height: 48px;
-        background: {trigger_bg};
-        backdrop-filter: blur(12px);
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 9999;
-    }}
-    .sidebar-close-btn:hover {{
-        background: #ff4757;
-        transform: scale(1.1);
-    }}
-    .sidebar-close-btn span {{ font-size: 32px; color: {text_primary}; }}
-    
-    /* Overlay */
-    .sidebar-overlay {{
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(8px);
-        z-index: 9997;
-        opacity: 0;
-        transition: opacity 0.35s ease;
-        cursor: pointer;
-    }}
-    .sidebar-overlay.active {{
-        display: block;
-        opacity: 1;
-    }}
-    
-    @media (max-width: 768px) {{
-        .mobile-sidebar-trigger {{ display: flex; }}
-    }}
-    
-    /* Premium Menu */
+    /* Premium Menu Items */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
@@ -330,84 +264,11 @@ st.markdown(f"""
         font-weight: 600;
     }}
     
-    section[data-testid="stSidebar"] * {{ color: {text_primary} !important; }}
+    /* Force all sidebar text */
+    section[data-testid="stSidebar"] * {{
+        color: {text_primary} !important;
+    }}
 </style>
-
-<!-- Mobile Controls -->
-<div class="mobile-sidebar-trigger"><span>☰</span></div>
-<div class="sidebar-overlay"></div>
-<div class="sidebar-close-btn"><span>×</span></div>
-
-<script>
-    const getElements = () => {{
-        return {{
-            sidebar: document.querySelector('section[data-testid="stSidebar"]'),
-            trigger: document.querySelector('.mobile-sidebar-trigger'),
-            overlay: document.querySelector('.sidebar-overlay'),
-            closeBtn: document.querySelector('.sidebar-close-btn'),
-            control: document.querySelector('[data-testid="collapsedControl"]')
-        }};
-    }};
-
-    let elements = getElements();
-
-    const toggleSidebar = () => {{
-        elements = getElements();
-        if (elements.control) elements.control.click();
-    }};
-
-    const updateUI = () => {{
-        elements = getElements();
-        if (!elements.sidebar) return;
-        const isOpen = elements.sidebar.getAttribute('aria-expanded') === 'true';
-        const isMobile = window.innerWidth <= 768;
-
-        if (isMobile) {{
-            elements.trigger.style.display = isOpen ? 'none' : 'flex';
-            elements.closeBtn.style.display = isOpen ? 'flex' : 'none';
-            elements.overlay.classList.toggle('active', isOpen);
-        }}
-    }};
-
-    const enforceMobile = () => {{
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {{
-            elements = getElements();
-            const isOpen = elements.sidebar && elements.sidebar.getAttribute('aria-expanded') === 'true';
-            if (isOpen) toggleSidebar();  // Force closed on mobile load
-            updateUI();
-        }}
-    }};
-
-    const init = () => {{
-        const isMobile = window.innerWidth <= 768;
-        if (isMobile) {{
-            elements = getElements();
-            if (elements.trigger) elements.trigger.addEventListener('click', toggleSidebar);
-            if (elements.overlay) elements.overlay.addEventListener('click', toggleSidebar);
-            if (elements.closeBtn) elements.closeBtn.addEventListener('click', toggleSidebar);
-
-            if (elements.sidebar) {{
-                const observer = new MutationObserver(updateUI);
-                observer.observe(elements.sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
-            }}
-
-            enforceMobile();
-        }}
-        // Desktop: Native arrow handles everything — no JS interference
-    }};
-
-    const waitInterval = setInterval(() => {{
-        elements = getElements();
-        if (elements.sidebar) {{
-            clearInterval(waitInterval);
-            init();
-        }}
-    }}, 100);
-
-    window.addEventListener('resize', () => setTimeout(init, 200));
-    window.addEventListener('load', () => setTimeout(init, 500));
-</script>
 """, unsafe_allow_html=True)
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
 # Helper function for login (defined early - no NameError)
