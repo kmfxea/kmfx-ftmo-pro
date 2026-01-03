@@ -96,49 +96,141 @@ def create_default_users():
         st.error(f"Error creating default users: {e}")
 
 create_default_users()
-# Theme block (keep your current one with white/black text)
+# ====================== FINAL ENHANCED THEME + FULL SIDEBAR CSS/JS BLOCK (2026 PRO) ======================
+# Integrated: Premium glassmorphism, high-contrast text (white in dark, deep black in light),
+# Consistent cards/inputs/buttons, hover effects, full sidebar perfection.
+
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
+
+# Core accents
 accent_primary = "#00ffaa"
-accent_hover   = "#00cc88"
-accent_color   = accent_primary
+accent_hover = "#00cc88"
+accent_glow = "#00ffaa40"
+accent_secondary = "#ffd700"
 
 if theme == "dark":
-    bg_color         = "#0a0d14"
-    text_color       = "#ffffff"
-    secondary_text   = "#e0e0e0"
-    sidebar_bg       = "rgba(10, 13, 20, 0.92)"
+    bg_color = "#0a0d14"
+    surface_color = "#11141a"
+    card_bg = "rgba(15, 20, 30, 0.85)"
+    sidebar_bg = "rgba(10, 13, 20, 0.95)"
+    border_color = "rgba(100, 100, 100, 0.2)"
+    
+    text_primary = "#ffffff"
+    text_secondary = "#e0e0e0"
+    text_muted = "#aaaaaa"
+    
+    input_bg = "rgba(30, 35, 45, 0.6)"
+    trigger_bg = "rgba(255,255,255,0.15)"  # Subtle glass in dark
 else:
-    bg_color         = "#f5f8fa"
-    text_color       = "#000000"
-    secondary_text   = "#333333"
-    sidebar_bg       = "rgba(255, 255, 255, 0.92)"
+    bg_color = "#f8fbff"
+    surface_color = "#ffffff"
+    card_bg = "rgba(255, 255, 255, 0.92)"
+    sidebar_bg = "rgba(255, 255, 255, 0.95)"
+    border_color = "rgba(0, 0, 0, 0.12)"
+    
+    text_primary = "#0f172a"   # Deep slate for perfect readability
+    text_secondary = "#334155"
+    text_muted = "#64748b"
+    
+    input_bg = "rgba(240, 245, 255, 0.7)"
+    trigger_bg = "rgba(0,0,0,0.08)"  # Subtle dark glass in light
+
+# Common
+glass_blur = "blur(20px)"
+card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
+card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
 
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+    /* Global App */
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
-    .stApp {{ background: {bg_color}; color: {text_color}; }}
+    .stApp {{
+        background: {bg_color};
+        color: {text_primary};
+    }}
     
-    /* ==== SIDEBAR CORE - PREMIUM GLASS ==== */
+    /* Text consistency */
+    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
+        color: {text_primary} !important;
+    }}
+    small, caption, .caption, .secondary-text {{
+        color: {text_muted} !important;
+    }}
+    
+    /* Premium Glass Cards (use class='glass-card' in your markdowns) */
+    .glass-card {{
+        background: {card_bg};
+        backdrop-filter: {glass_blur};
+        -webkit-backdrop-filter: {glass_blur};
+        border-radius: 20px;
+        border: 1px solid {border_color};
+        padding: 2rem;
+        box-shadow: {card_shadow};
+        transition: all 0.3s ease;
+    }}
+    .glass-card:hover {{
+        box-shadow: {card_shadow_hover};
+        transform: translateY(-4px);
+        border-color: {accent_primary};
+    }}
+    
+    /* Inputs & Forms */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > div {{
+        background: {input_bg} !important;
+        color: {text_primary} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 16px !important;
+    }}
+    
+    /* Primary Buttons */
+    button[kind="primary"] {{
+        background: {accent_primary} !important;
+        color: #000000 !important;
+        border-radius: 16px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 6px 20px {accent_glow} !important;
+        transition: all 0.3s ease !important;
+    }}
+    button[kind="primary"]:hover {{
+        background: {accent_hover} !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px {accent_glow} !important;
+    }}
+    
+    /* SIDEBAR CORE */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: {glass_blur};
+        -webkit-backdrop-filter: {glass_blur};
         width: 320px !important;
         min-width: 320px !important;
-        border-right: 1px solid rgba(120,120,120,0.2);
+        border-right: 1px solid {border_color};
         transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 9998;
         box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }}
     
-    /* Hide Streamlit's native collapse button completely */
-    button[data-testid="collapsedControl"] {{ display: none !important; }}
+    /* HIDE NATIVE COLLAPSE ARROW (2026 compatible) */
+    [data-testid="collapsedControl"],
+    section[data-testid="stSidebar"] > div:first-child > div:first-child > button,
+    section[data-testid="stSidebar"] > div:first-child > div:first-child {{
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }}
     
-    /* Desktop & Tablet: Always open, push content */
+    /* Desktop & Tablet: Fixed open */
     @media (min-width: 769px) {{
         section[data-testid="stSidebar"] {{
             transform: translateX(0) !important;
@@ -148,11 +240,11 @@ st.markdown(f"""
             max-width: calc(100% - 340px) !important;
             padding-left: 3rem !important;
             padding-top: 2rem !important;
-            transition: all 0.35s ease;
+            transition: margin-left 0.35s ease;
         }}
     }}
     
-    /* Mobile: Slide-in overlay menu */
+    /* Mobile: Slide-in */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             position: fixed !important;
@@ -170,11 +262,10 @@ st.markdown(f"""
         .block-container {{
             padding: 1rem !important;
             padding-top: 80px !important;
-            transition: all 0.35s ease;
         }}
     }}
     
-    /* Elegant Hamburger Trigger (Mobile only) */
+    /* Mobile Trigger */
     .mobile-sidebar-trigger {{
         display: none;
         position: fixed;
@@ -182,7 +273,7 @@ st.markdown(f"""
         left: 16px;
         width: 56px;
         height: 56px;
-        background: rgba(255,255,255,0.15);
+        background: {trigger_bg};
         backdrop-filter: blur(16px);
         border-radius: 50%;
         box-shadow: 0 8px 30px rgba(0,0,0,0.4);
@@ -196,9 +287,9 @@ st.markdown(f"""
         background: {accent_primary};
         transform: scale(1.12);
     }}
-    .mobile-sidebar-trigger span {{ font-size: 30px; color: {text_color}; }}
+    .mobile-sidebar-trigger span {{ font-size: 30px; color: {text_primary}; }}
     
-    /* Close button inside sidebar */
+    /* Close Button */
     .sidebar-close-btn {{
         display: none;
         position: absolute;
@@ -206,7 +297,7 @@ st.markdown(f"""
         right: 16px;
         width: 48px;
         height: 48px;
-        background: rgba(255,255,255,0.15);
+        background: {trigger_bg};
         backdrop-filter: blur(12px);
         border-radius: 50%;
         align-items: center;
@@ -219,9 +310,9 @@ st.markdown(f"""
         background: #ff4757;
         transform: scale(1.1);
     }}
-    .sidebar-close-btn span {{ font-size: 32px; color: {text_color}; }}
+    .sidebar-close-btn span {{ font-size: 32px; color: {text_primary}; }}
     
-    /* Dark overlay */
+    /* Overlay */
     .sidebar-overlay {{
         display: none;
         position: fixed;
@@ -242,17 +333,17 @@ st.markdown(f"""
         .mobile-sidebar-trigger {{ display: flex; }}
     }}
     
-    /* Premium sidebar menu items */
+    /* Premium Sidebar Menu */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
         padding: 18px 24px;
         margin: 10px 16px;
         transition: all 0.3s ease;
-        border: 1px solid rgba(255,255,255,0.12);
+        border: 1px solid {border_color};
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         font-weight: 500;
-        color: {text_color} !important;
+        color: {text_primary} !important;
     }}
     div[data-testid="stSidebar"] div.stRadio > div > label:hover {{
         background: rgba(0,255,170,0.18);
@@ -268,41 +359,39 @@ st.markdown(f"""
         font-weight: 600;
     }}
     
-    /* Force proper text color in sidebar */
-    section[data-testid="stSidebar"] *, 
-    section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] div, 
-    section[data-testid="stSidebar"] span {{
-        color: {text_color} !important;
+    /* Force Sidebar Text */
+    section[data-testid="stSidebar"] *,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] div,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] label {{
+        color: {text_primary} !important;
     }}
 </style>
 
-<!-- Custom controls -->
+<!-- Custom Controls -->
 <div class="mobile-sidebar-trigger"><span>☰</span></div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn"><span>×</span></div>
 
 <script>
-    // Robust element finding
     const getElements = () => {{
         return {{
             sidebar: document.querySelector('section[data-testid="stSidebar"]'),
             trigger: document.querySelector('.mobile-sidebar-trigger'),
             overlay: document.querySelector('.sidebar-overlay'),
             closeBtn: document.querySelector('.sidebar-close-btn'),
-            control: document.querySelector('button[data-testid="collapsedControl"]')
+            control: document.querySelector('[data-testid="collapsedControl"]')
         }};
     }};
 
     let elements = getElements();
 
-    // Toggle function
     const toggleSidebar = () => {{
         elements = getElements();
         if (elements.control) elements.control.click();
     }};
 
-    // Update UI based on state
     const updateUI = () => {{
         elements = getElements();
         if (!elements.sidebar) return;
@@ -320,7 +409,6 @@ st.markdown(f"""
         }}
     }};
 
-    // Enforce correct state based on screen size
     const enforceState = () => {{
         elements = getElements();
         if (!elements.sidebar) return;
@@ -333,28 +421,23 @@ st.markdown(f"""
         updateUI();
     }};
 
-    // Event listeners
     const init = () => {{
         elements = getElements();
         if (elements.trigger) elements.trigger.addEventListener('click', toggleSidebar);
         if (elements.overlay) elements.overlay.addEventListener('click', toggleSidebar);
         if (elements.closeBtn) elements.closeBtn.addEventListener('click', toggleSidebar);
 
-        // Observe sidebar state changes
         if (elements.sidebar) {{
             const observer = new MutationObserver(updateUI);
             observer.observe(elements.sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
         }}
 
-        // Handle resize & orientation change
         window.addEventListener('resize', enforceState);
         window.addEventListener('orientationchange', enforceState);
 
-        // Initial enforcement
         enforceState();
     }};
 
-    // Wait for Streamlit to load elements (robust)
     const waitInterval = setInterval(() => {{
         elements = getElements();
         if (elements.sidebar && elements.control) {{
@@ -363,8 +446,8 @@ st.markdown(f"""
         }}
     }}, 100);
 
-    // Fallback
     window.addEventListener('load', () => setTimeout(enforceState, 500));
+    document.addEventListener('DOMContentLoaded', enforceState);
 </script>
 """, unsafe_allow_html=True)
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
