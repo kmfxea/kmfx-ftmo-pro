@@ -144,7 +144,6 @@ else:
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#777777"
 
-# ====================== FINAL PREMIUM THEME - FULLY FIXED SIDEBAR ARROW IN HEADER (ALL DEVICES) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -221,89 +220,61 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== FULL FIX: CUSTOM ARROW BUTTON IN HEADER (ALL DEVICES) - NO DEFAULT ARROW ==================== */
-    /* Hide default collapse arrow & hamburger completely */
-    button[data-testid="collapsedControl"],
-    button[kind="headerNoPadding"],
-    button[title="View sidebar"] {{
-        display: none !important;
-    }}
-
-    /* Custom arrow button - fixed in header (top-left) */
-    .custom-header-arrow {{
-        position: fixed !important;
-        top: 12px !important;
+    /* ==================== FINAL FIX: STYLE BUILT-IN ARROW TO TOP-LEFT HEADER POSITION ==================== */
+    /* Built-in collapse arrow - styled & positioned in top-left "header" area */
+    button[data-testid="collapsedControl"] {{
+        background: rgba(0, 255, 170, 0.2) !important;
+        color: {'#ffffff' if theme == 'dark' else '#000000'} !important;
+        border: none !important;
         left: 12px !important;
+        top: 12px !important;
+        transform: none !important;
         z-index: 9999 !important;
-        width: 50px !important;
-        height: 50px !important;
-        background: rgba(0, 255, 170, 0.15) !important;
+        width: 48px !important;
+        height: 48px !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        cursor: pointer !important;
-        transition: all 0.3s ease !important;
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3) !important;
+        transition: all 0.3s ease !important;
     }}
-    .custom-header-arrow:hover {{
-        background: rgba(0, 255, 170, 0.3) !important;
+    button[data-testid="collapsedControl"]:hover {{
+        background: rgba(0, 255, 170, 0.4) !important;
         transform: scale(1.1) !important;
     }}
-
-    /* Arrow icon - white in dark mode, black in light mode */
-    .custom-header-arrow svg {{
-        width: 32px !important;
-        height: 32px !important;
+    button[data-testid="collapsedControl"] svg {{
         stroke: {'#ffffff' if theme == 'dark' else '#000000'} !important;
         fill: none !important;
+        width: 30px !important;
+        height: 30px !important;
         stroke-width: 3 !important;
     }}
 
-    /* Mobile adjustments */
-    @media (max-width: 768px) {{
-        .custom-header-arrow {{
-            top: 10px !important;
-            left: 10px !important;
-            width: 48px !important;
-            height: 48px !important;
-        }}
-        .custom-header-arrow svg {{
-            width: 30px !important;
-            height: 30px !important;
-        }}
-        
-        /* Sidebar full when expanded */
-        section[data-testid="stSidebar"] {{
-            width: 100% !important;
-            min-width: 100% !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            z-index: 9998 !important;
-        }}
-        
-        /* Collapsed: hidden */
-        section[data-testid="stSidebar"].collapsed {{
-            width: 0 !important;
-            overflow: hidden !important;
-        }}
-        
-        /* Content full when collapsed */
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-            margin-left: 0 !important;
-            width: 100% !important;
-        }}
-    }}
-
-    /* Desktop: content full when collapsed (no margin) */
+    /* Content full when collapsed (no margin) */
     section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
         margin-left: 0 !important;
         width: 100% !important;
     }}
 
-    /* Other mobile optimizations (unchanged) */
+    /* Mobile: Arrow top-left, sidebar full when open */
+    @media (max-width: 768px) {{
+        button[data-testid="collapsedControl"] {{
+            left: 10px !important;
+            top: 10px !important;
+            width: 45px !important;
+            height: 45px !important;
+        }}
+        button[data-testid="collapsedControl"] svg {{
+            width: 28px !important;
+            height: 28px !important;
+        }}
+        section[data-testid="stSidebar"] {{ width: 100% !important; min-width: 100% !important; height: 100vh !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 9998 !important; }}
+        section[data-testid="stSidebar"].collapsed {{ width: 0 !important; overflow: hidden !important; }}
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{ margin-left: 0 !important; width: 100% !important; }}
+    }}
+
+    /* Other mobile optimizations (same as last) */
     @media (max-width: 768px) {{
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
@@ -329,40 +300,6 @@ st.markdown(f"""
         .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
-
-<script>
-    // Custom Header Arrow Button + Toggle (all devices)
-    document.addEventListener('DOMContentLoaded', function() {{
-        // Create custom arrow button
-        const arrowBtn = document.createElement('div');
-        arrowBtn.className = 'custom-header-arrow';
-        arrowBtn.innerHTML = `
-            <svg viewBox="0 0 24 24">
-                <path d="M15 18l-6-6 6-6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        `;
-        document.body.appendChild(arrowBtn);
-        
-        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-        if (!sidebarButton) return;
-        
-        // Click to toggle
-        arrowBtn.addEventListener('click', function() {{
-            sidebarButton.click();
-        }});
-        
-        // Rotate arrow (right when collapsed, left when expanded)
-        const observer = new MutationObserver(() => {{
-            const path = arrowBtn.querySelector('svg path');
-            if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                path.setAttribute('d', 'M15 18l-6-6 6-6'); // Right arrow
-            }} else {{
-                path.setAttribute('d', 'M9 18l6-6-6-6'); // Left arrow
-            }}
-        }});
-        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
-    }});
-</script>
 """, unsafe_allow_html=True)
 
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
