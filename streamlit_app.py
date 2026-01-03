@@ -43,13 +43,13 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
-# Change this line in set_page_config
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
     layout="centered",
-    initial_sidebar_state="expanded"  # ← CHANGE TO "expanded" (this fixes most sidebar issues)
+    initial_sidebar_state="collapsed"  # ← CRITICAL FIX: Let custom JS fully control state
 )
+
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
 folders = [
     "uploaded_files",
@@ -121,92 +121,92 @@ st.markdown(f"""
 <style>
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
     .stApp {{ background: {bg_color}; color: {text_color}; }}
-
-    /* Sidebar core */
+    
+    /* ==== SIDEBAR CORE - PREMIUM GLASS ==== */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: blur(20px);
-        width: 300px !important;
-        min-width: 300px !important;
-        border-right: 1px solid rgba(255,255,255,0.15);
-        transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        -webkit-backdrop-filter: blur(20px);
+        width: 320px !important;
+        min-width: 320px !important;
+        border-right: 1px solid rgba(120,120,120,0.2);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 9998;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }}
-
-    /* Hide default collapse button */
+    
+    /* Hide Streamlit's native collapse button completely */
     button[data-testid="collapsedControl"] {{ display: none !important; }}
-
-    /* Desktop: fixed open + push content */
-    @media (min-width: 901px) {{
+    
+    /* Desktop & Tablet: Always open, push content */
+    @media (min-width: 769px) {{
         section[data-testid="stSidebar"] {{
             transform: translateX(0) !important;
         }}
-        .main > .block-container {{
-            margin-left: 320px !important;
-            max-width: calc(100% - 320px) !important;
+        .main .block-container {{
+            margin-left: 340px !important;
+            max-width: calc(100% - 340px) !important;
             padding-left: 3rem !important;
             padding-top: 2rem !important;
+            transition: all 0.35s ease;
         }}
     }}
-
-    /* Mobile/Tablet: slide-in */
-    @media (max-width: 900px) {{
+    
+    /* Mobile: Slide-in overlay menu */
+    @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             position: fixed !important;
             top: 0;
             left: 0;
             height: 100vh !important;
-            width: 80% !important;
-            max-width: 300px !important;
+            width: 85% !important;
+            max-width: 320px !important;
             transform: translateX(-100%);
-            box-shadow: 8px 0 30px rgba(0,0,0,0.6);
+            box-shadow: 12px 0 40px rgba(0,0,0,0.6);
         }}
         section[data-testid="stSidebar"][aria-expanded="true"] {{
-            transform: translateX(0);
+            transform: translateX(0) !important;
         }}
         .block-container {{
-            padding: 1.5rem !important;
-            padding-top: 90px !important;
+            padding: 1rem !important;
+            padding-top: 80px !important;
+            transition: all 0.35s ease;
         }}
     }}
-
-    @media (max-width: 480px) {{
-        .block-container {{ padding-top: 80px !important; }}
-    }}
-
-    /* Hamburger trigger (premium glass round) */
+    
+    /* Elegant Hamburger Trigger (Mobile only) */
     .mobile-sidebar-trigger {{
         display: none;
         position: fixed;
-        top: 18px;
-        left: 18px;
+        top: 16px;
+        left: 16px;
         width: 56px;
         height: 56px;
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(12px);
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(16px);
         border-radius: 50%;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
         z-index: 9999;
+        transition: all 0.3s ease;
     }}
     .mobile-sidebar-trigger:hover {{
         background: {accent_primary};
-        transform: scale(1.08);
+        transform: scale(1.12);
     }}
-    .mobile-sidebar-trigger span {{ font-size: 32px; color: {text_color}; }}
-
-    /* Close button */
+    .mobile-sidebar-trigger span {{ font-size: 30px; color: {text_color}; }}
+    
+    /* Close button inside sidebar */
     .sidebar-close-btn {{
         display: none;
         position: absolute;
-        top: 18px;
-        right: 18px;
+        top: 16px;
+        right: 16px;
         width: 48px;
         height: 48px;
-        background: rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.15);
         backdrop-filter: blur(12px);
         border-radius: 50%;
         align-items: center;
@@ -217,112 +217,154 @@ st.markdown(f"""
     }}
     .sidebar-close-btn:hover {{
         background: #ff4757;
-        transform: scale(1.08);
+        transform: scale(1.1);
     }}
-    .sidebar-close-btn span {{ font-size: 30px; color: {text_color}; }}
-
-    /* Overlay */
+    .sidebar-close-btn span {{ font-size: 32px; color: {text_color}; }}
+    
+    /* Dark overlay */
     .sidebar-overlay {{
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.65);
-        backdrop-filter: blur(10px);
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(8px);
         z-index: 9997;
         opacity: 0;
-        transition: opacity 0.4s ease;
+        transition: opacity 0.35s ease;
         cursor: pointer;
     }}
     .sidebar-overlay.active {{
         display: block;
         opacity: 1;
     }}
-
-    @media (max-width: 900px) {{
+    
+    @media (max-width: 768px) {{
         .mobile-sidebar-trigger {{ display: flex; }}
     }}
-
-    /* Modern menu style */
+    
+    /* Premium sidebar menu items */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
-        background: rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 16px 20px;
-        margin: 6px 12px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 18px 24px;
+        margin: 10px 16px;
         transition: all 0.3s ease;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        font-weight: 500;
+        color: {text_color} !important;
     }}
     div[data-testid="stSidebar"] div.stRadio > div > label:hover {{
-        background: rgba(0,255,170,0.15);
+        background: rgba(0,255,170,0.18);
         border-color: {accent_primary};
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,255,170,0.25);
     }}
     div[data-testid="stSidebar"] div.stRadio > div > label[data-checked="true"] {{
         background: {accent_primary} !important;
         color: #000000 !important;
         border-color: {accent_primary};
+        box-shadow: 0 10px 30px rgba(0,255,170,0.4);
+        font-weight: 600;
+    }}
+    
+    /* Force proper text color in sidebar */
+    section[data-testid="stSidebar"] *, 
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] div, 
+    section[data-testid="stSidebar"] span {{
+        color: {text_color} !important;
     }}
 </style>
 
-<!-- Controls -->
+<!-- Custom controls -->
 <div class="mobile-sidebar-trigger"><span>☰</span></div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn"><span>×</span></div>
 
 <script>
-    const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-    const trigger = document.querySelector('.mobile-sidebar-trigger');
-    const overlay = document.querySelector('.sidebar-overlay');
-    const closeBtn = document.querySelector('.sidebar-close-btn');
-
-    if (sidebar && trigger && overlay && closeBtn) {{
-        const control = document.querySelector('button[data-testid="collapsedControl"]');
-
-        const toggle = () => {{
-            if (control) control.click();
+    // Robust element finding
+    const getElements = () => {{
+        return {{
+            sidebar: document.querySelector('section[data-testid="stSidebar"]'),
+            trigger: document.querySelector('.mobile-sidebar-trigger'),
+            overlay: document.querySelector('.sidebar-overlay'),
+            closeBtn: document.querySelector('.sidebar-close-btn'),
+            control: document.querySelector('button[data-testid="collapsedControl"]')
         }};
+    }};
 
-        trigger.addEventListener('click', toggle);
-        overlay.addEventListener('click', toggle);
-        closeBtn.addEventListener('click', toggle);
+    let elements = getElements();
 
-        const updateUI = () => {{
-            const isMobile = window.innerWidth <= 900;
-            const isOpen = sidebar.getAttribute('aria-expanded') === 'true';
+    // Toggle function
+    const toggleSidebar = () => {{
+        elements = getElements();
+        if (elements.control) elements.control.click();
+    }};
 
-            if (isMobile) {{
-                trigger.style.display = isOpen ? 'none' : 'flex';
-                closeBtn.style.display = isOpen ? 'flex' : 'none';
-                overlay.classList.toggle('active', isOpen);
-            }} else {{
-                trigger.style.display = 'none';
-                closeBtn.style.display = 'none';
-                overlay.classList.remove('active');
-            }}
-        }};
+    // Update UI based on state
+    const updateUI = () => {{
+        elements = getElements();
+        if (!elements.sidebar) return;
+        const isOpen = elements.sidebar.getAttribute('aria-expanded') === 'true';
+        const isMobile = window.innerWidth <= 768;
 
-        const enforce = () => {{
-            const isMobile = window.innerWidth <= 900;
-            const isOpen = sidebar.getAttribute('aria-expanded') === 'true';
+        if (isMobile) {{
+            elements.trigger.style.display = isOpen ? 'none' : 'flex';
+            elements.closeBtn.style.display = isOpen ? 'flex' : 'none';
+            elements.overlay.classList.toggle('active', isOpen);
+        }} else {{
+            elements.trigger.style.display = 'none';
+            elements.closeBtn.style.display = 'none';
+            elements.overlay.classList.remove('active');
+        }}
+    }};
 
-            if (isMobile && isOpen) toggle();
-            else if (!isMobile && !isOpen) toggle();
+    // Enforce correct state based on screen size
+    const enforceState = () => {{
+        elements = getElements();
+        if (!elements.sidebar) return;
+        const isOpen = elements.sidebar.getAttribute('aria-expanded') === 'true';
+        const isMobile = window.innerWidth <= 768;
 
-            updateUI();
-        }};
+        if (isMobile && isOpen) toggleSidebar();
+        else if (!isMobile && !isOpen) toggleSidebar();
+        
+        updateUI();
+    }};
 
-        // Multiple checks for reliable initial load
-        setTimeout(enforce, 50);
-        setTimeout(enforce, 200);
-        setTimeout(enforce, 600);
-        setTimeout(enforce, 1200);
+    // Event listeners
+    const init = () => {{
+        elements = getElements();
+        if (elements.trigger) elements.trigger.addEventListener('click', toggleSidebar);
+        if (elements.overlay) elements.overlay.addEventListener('click', toggleSidebar);
+        if (elements.closeBtn) elements.closeBtn.addEventListener('click', toggleSidebar);
 
-        window.addEventListener('resize', enforce);
-        document.addEventListener('DOMContentLoaded', enforce);
-        window.addEventListener('load', enforce);
+        // Observe sidebar state changes
+        if (elements.sidebar) {{
+            const observer = new MutationObserver(updateUI);
+            observer.observe(elements.sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
+        }}
 
-        // Observe aria-expanded
-        const observer = new MutationObserver(updateUI);
-        observer.observe(sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
-    }}
+        // Handle resize & orientation change
+        window.addEventListener('resize', enforceState);
+        window.addEventListener('orientationchange', enforceState);
+
+        // Initial enforcement
+        enforceState();
+    }};
+
+    // Wait for Streamlit to load elements (robust)
+    const waitInterval = setInterval(() => {{
+        elements = getElements();
+        if (elements.sidebar && elements.control) {{
+            clearInterval(waitInterval);
+            init();
+        }}
+    }}, 100);
+
+    // Fallback
+    window.addEventListener('load', () => setTimeout(enforceState, 500));
 </script>
 """, unsafe_allow_html=True)
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
