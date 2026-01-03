@@ -103,63 +103,61 @@ theme = st.session_state.theme
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_color = accent_primary
-
 if theme == "dark":
-    bg_color = "#000000"  # Pure black background (changed to pure black as requested)
-    text_color = "#ffffff"  # Pure white text (all main text)
-    secondary_text = "#e0e0e0"  # Light gray for small/caption
+    bg_color = "#0a0d14"
+    text_color = "#ffffff" # Pure white text (all main text)
+    secondary_text = "#e0e0e0" # Light gray for small/caption
     glass_bg = "transparent"
     glass_border = "1px solid rgba(255, 255, 255, 0.18)"
     input_bg = "rgba(255, 255, 255, 0.06)"
     input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)" # Glass/near-transparent in dark mode
     dropdown_text = "#ffffff"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#888888"
 else:
     bg_color = "#f5f8fa"
-    text_color = "#000000"  # Pure black text (all main text)
-    secondary_text = "#333333"
+    text_color = "#000000" # Pure black text (all main text)
+    secondary_text = "#333333" # Dark gray for small/caption
     glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
     input_bg = "rgba(0, 0, 0, 0.06)"
     input_border = "1px solid rgba(0, 0, 0, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "#ffffff"
+    dropdown_popup_bg = "#ffffff" # Solid white in light mode
     dropdown_text = "#000000"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#666666"
-
 # ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     /* [Existing CSS unchanged - kept exactly as provided] */
     /* ... (your full CSS block here - no changes made) ... */
-
-    /* === PREVIOUS TEXT COLOR FIX (kept) === */
+    /* === ADDED FIX FOR TEXT COLOR (Dark: white, Light: black) === */
+    /* Main app background + global text color */
     .stApp {{
         background-color: {bg_color};
         color: {text_color} !important;
     }}
-
+    /* Force main content text (covers st.write, st.markdown, titles, etc.) */
     .main .block-container,
     .main [data-testid="stVerticalBlock"],
     .main p, .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
     .main li, .main span, .main div {{
         color: {text_color} !important;
     }}
-
+    /* Sidebar background (transparent as you wanted) + text color */
     section[data-testid="stSidebar"] {{
         background-color: {sidebar_bg};
         color: {text_color} !important;
     }}
-
+    /* Force sidebar text (covers menu items, labels, etc.) */
     section[data-testid="stSidebar"] .stMarkdown,
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2,
@@ -167,36 +165,39 @@ st.markdown(f"""
     section[data-testid="stSidebar"] div, section[data-testid="stSidebar"] span {{
         color: {text_color} !important;
     }}
-
+    /* Optional: make sure secondary/caption text uses your secondary variable if you use it elsewhere */
+    /* Example: small, caption, placeholder */
     .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"] {{
         color: {secondary_text} !important;
     }}
-    /* === END OF PREVIOUS FIX === */
+    /* === END OF FIX === */
 
-    /* === NEW FIX: Hide default Streamlit top header + make background uniform overall === */
-    /* Ito ang "top" na sinasabi mo – yung default Streamlit header bar na nagiging white sa dark mode */
-    /* Hide it completely para uniform na yung background (dark = pure black, light = same sa main bg) */
+    /* === NEW FIX: Remove leftover white bar at the top (Streamlit header) === */
+    /* Make the top header fully transparent so it blends with the main background */
     [data-testid="stHeader"] {{
-        display: none !important;
+        background-color: transparent !important;
     }}
-
-    /* Optional but recommended: hide footer din para fully clean */
-    [data-testid="stFooter"] {{
-        display: none !important;
+    /* Ensure toolbar icons (rerun, settings, etc.) are visible in both themes */
+    [data-testid="stHeader"] svg,
+    [data-testid="stToolbar"] svg,
+    button[kind="headerAction"] svg {{
+        fill: {text_color} !important;
+        color: {text_color} !important;
+        opacity: 1 !important;
     }}
-
-    /* Adjust top padding ng main content pag nawala yung header (para hindi masyadong dikit sa top) */
+    /* Optional: if you want less empty space at the top (toolbar will overlay content a bit) */
+    /* Uncomment the lines below if you want content to start closer to the top */
+    /*
     .block-container {{
-        padding-top: 2rem !important;  /* Pwede mo baguhin to 1rem or 3rem depende sa gusto mo */
+        padding-top: 1rem !important;
     }}
-    /* === END OF NEW FIX === */
+    */
+    /* === END OF TOP HEADER FIX === */
 </style>
-
 <!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
 <div class="mobile-sidebar-trigger">☰</div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn">×</div>
-
 <script>
     // Desktop: Force sidebar open
     if (window.innerWidth > 992) {{
@@ -209,7 +210,6 @@ st.markdown(f"""
             }}
         }}, 100);
     }}
-
     // Mobile: Force sidebar CLOSED on load
     if (window.innerWidth <= 992) {{
         const mobileInterval = setInterval(() => {{
@@ -221,7 +221,6 @@ st.markdown(f"""
             }}
         }}, 100);
     }}
-
     // Custom mobile controls functionality
     document.addEventListener('DOMContentLoaded', () => {{
         const trigger = document.querySelector('.mobile-sidebar-trigger');
@@ -229,14 +228,11 @@ st.markdown(f"""
         const closeBtn = document.querySelector('.sidebar-close-btn');
         const control = document.querySelector('button[data-testid="collapsedControl"]');
         const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-
         if (!control || !sidebar) return;
-
         // Click handlers
         if (trigger) trigger.addEventListener('click', () => control.click());
         if (overlay) overlay.addEventListener('click', () => control.click());
         if (closeBtn) closeBtn.addEventListener('click', () => control.click());
-
         // Show/hide trigger based on sidebar state
         const updateTrigger = () => {{
             if (trigger) {{
@@ -244,7 +240,6 @@ st.markdown(f"""
             }}
         }};
         updateTrigger();
-
         // Observe sidebar class changes
         const observer = new MutationObserver(updateTrigger);
         observer.observe(sidebar, {{ attributes: true, attributeFilter: ['class'] }});
