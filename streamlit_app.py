@@ -111,32 +111,32 @@ if theme == "dark":
     bg_color = "#0a0d14"
     text_color = "#f0f4f8"
     secondary_text = "#a0b0c0"
-    glass_bg = "rgba(15, 20, 35, 0.65)"
-    glass_border = "1px solid rgba(255, 255, 255, 0.12)"
-    input_bg = "rgba(0, 0, 0, 0.25)"
-    input_border = "1px solid rgba(255, 255, 255, 0.2)"
-    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.7)"
-    sidebar_bg = "rgba(8, 12, 20, 0.95)"
-    dropdown_popup_bg = "#ffffff"
-    dropdown_text = "#000000"
+    glass_bg = "transparent"                          # Pure transparent
+    glass_border = "1px solid rgba(255, 255, 255, 0.18)"  # Slightly stronger border
+    input_bg = "rgba(255, 255, 255, 0.06)"             # Very subtle for inputs
+    input_border = "1px solid rgba(255, 255, 255, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
+    sidebar_bg = "transparent"                        # Pure transparent sidebar
+    dropdown_popup_bg = "#1a1f2e"                      # Keep solid for readability
+    dropdown_text = "#f0f4f8"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
-    dropdown_placeholder = "#555555"
+    dropdown_placeholder = "#666666"
 else:
     bg_color = "#f5f8fa"
     text_color = "#121618"
     secondary_text = "#4a5568"
-    glass_bg = "rgba(255, 255, 255, 0.85)"
-    glass_border = "1px solid rgba(0, 0, 0, 0.1)"
-    input_bg = "rgba(255, 255, 255, 0.4)"
-    input_border = "1px solid rgba(0, 0, 0, 0.15)"
-    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.1)"
-    sidebar_bg = "rgba(245, 248, 250, 0.95)"
+    glass_bg = "transparent"                          # Pure transparent
+    glass_border = "1px solid rgba(0, 0, 0, 0.15)"
+    input_bg = "rgba(0, 0, 0, 0.06)"                   # Very subtle for inputs
+    input_border = "1px solid rgba(0, 0, 0, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
+    sidebar_bg = "transparent"                        # Pure transparent sidebar
     dropdown_popup_bg = "#ffffff"
     dropdown_text = text_color
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
-    dropdown_placeholder = "#777777"
+    dropdown_placeholder = "#888888"
 
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -146,11 +146,11 @@ st.markdown(f"""
     html {{ overflow-x: hidden; }}
     .stApp {{ background: {bg_color}; color: {text_color}; overflow-x: hidden; }}
 
-    /* Your existing shared styles (glass-card, inputs, buttons, etc.) remain unchanged */
+    /* ====================== PURE TRANSPARENT GLASS CARD ====================== */
     .glass-card {{
-        background: {glass_bg};
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: transparent !important;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         border-radius: 24px;
         border: {glass_border};
         padding: 2rem;
@@ -158,9 +158,44 @@ st.markdown(f"""
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
     }}
-    /* ... (keep all your existing shared styles exactly as they are) ... */
+    .glass-card:hover {{ transform: translateY(-8px); }}
 
-    /* Desktop sidebar forced open */
+    /* ====================== INPUTS - SUBTLE & TRANSPARENT ====================== */
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div,
+    .stTextInput > div > div,
+    .stSelectbox > div > div {{
+        background: {input_bg} !important;
+        border: {input_border} !important;
+        border-radius: 16px !important;
+        color: {text_color} !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }}
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] > div > div > div {{
+        color: {text_color} !important;
+    }}
+
+    /* ====================== SIDEBAR - PURE TRANSPARENT + STRONG BLUR ====================== */
+    section[data-testid="stSidebar"] {{
+        background: transparent !important;
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border-right: {glass_border};
+    }}
+
+    /* ====================== BUTTONS (UNCHANGED - KEEP ACCENT GRADIENT) ====================== */
+    .stButton > button {{
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        color: #000 !important;
+        border-radius: 16px !important;
+        padding: 0.9rem 2rem !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
+    }}
+    .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
+
+    /* ====================== DESKTOP SIDEBAR FORCED OPEN ====================== */
     @media (min-width: 993px) {{
         section[data-testid="stSidebar"] {{
             width: 320px !important;
@@ -174,22 +209,25 @@ st.markdown(f"""
         }}
     }}
 
-    /* Mobile optimizations – refined version */
+    /* ====================== MOBILE OPTIMIZATIONS ====================== */
     @media (max-width: 992px) {{
         /* Prevent horizontal scroll */
         .stApp, .block-container {{ overflow-x: hidden !important; max-width: 100% !important; }}
 
-        /* Sidebar slide-in */
+        /* Sidebar slide-in - pure transparent + extra strong blur */
         section[data-testid="stSidebar"] {{
             position: fixed !important;
             top: 0; left: 0;
             width: 85% !important;
             max-width: 320px !important;
             height: 100vh !important;
+            background: transparent !important;
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
             transform: translateX(-100%);
             transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 9998 !important;
-            box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+            box-shadow: 10px 0 50px rgba(0,0,0,0.7);
             overflow-y: auto;
         }}
         section[data-testid="stSidebar"]:not(.collapsed) {{
@@ -510,63 +548,7 @@ with col1:
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
     
-    # ====================== MOBILE SIDEBAR CONTROLS (TOP LEFT 3-LINE + SMOOTH OPEN/CLOSE) ======================
-st.markdown("""
-<!-- Mobile Sidebar Controls -->
-<div class="mobile-sidebar-trigger">☰</div>
-<div class="sidebar-overlay"></div>
-<div class="sidebar-close-btn">×</div>
-
-<script>
-    function toggleSidebar() {
-        const tryClick = () => {
-            const btn = document.querySelector('button[data-testid="collapsedControl"]');
-            if (btn) {
-                btn.click();
-            } else {
-                setTimeout(tryClick, 100);
-            }
-        };
-        tryClick();
-    }
-
-    // 3-line button toggle
-    const trigger = document.querySelector('.mobile-sidebar-trigger');
-    if (trigger) {
-        trigger.addEventListener('click', toggleSidebar);
-        
-        // Icon change ☰ → ×
-        const observer = new MutationObserver(() => {
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (sidebar && !sidebar.classList.contains('collapsed')) {
-                trigger.innerHTML = '×';
-                trigger.style.fontSize = '36px';
-            } else {
-                trigger.innerHTML = '☰';
-                trigger.style.fontSize = '28px';
-            }
-        });
-        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-        if (sidebar) {
-            observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
-        }
-        
-        // Initial state
-        if (sidebar && !sidebar.classList.contains('collapsed')) {
-            trigger.innerHTML = '×';
-            trigger.style.fontSize = '36px';
-        }
-    }
-
-    // Overlay close
-    document.querySelector('.sidebar-overlay').addEventListener('click', toggleSidebar);
-
-    // Close button close
-    document.querySelector('.sidebar-close-btn').addEventListener('click', toggleSidebar);
-</script>
-""", unsafe_allow_html=True)
-
-
+   
 # ====================== ANNOUNCEMENT BANNER ======================
 try:
     ann_response = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute()
