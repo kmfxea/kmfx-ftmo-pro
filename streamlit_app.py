@@ -96,46 +96,38 @@ def create_default_users():
         st.error(f"Error creating default users: {e}")
 
 create_default_users()
-# ====================== FINAL THEME + FULL SIDEBAR CSS/JS BLOCK (FIXED NameError) ======================
-# Added back: accent_color = accent_primary (for compatibility with your existing login/header markdowns)
-# Everything else enhanced: glass cards, inputs, buttons, perfect contrast, theme-aware trigger/close btn
+# ====================== FINAL SIDEBAR FIX: NATIVE ARROW ON DESKTOP + WIDER MOBILE SLIDE-IN ======================
+# Desktop: Native Streamlit arrow visible & working (collapsible, default expanded)
+# Mobile: No native arrow, custom glass hamburger, starts closed, WIDER sidebar (90% / max 380px), smooth slide-in + overlay
+# Fully theme-aware, premium glass, perfect text contrast
 
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
 
-# Core accents (kept your signature mint green)
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_glow = "#00ffaa40"
 accent_secondary = "#ffd700"
-accent_color = accent_primary  # ← FIXED: Added back for your existing {accent_color} uses
+accent_color = accent_primary  # For your existing uses
 
 if theme == "dark":
     bg_color = "#0a0d14"
-    surface_color = "#11141a"
     card_bg = "rgba(15, 20, 30, 0.85)"
     sidebar_bg = "rgba(10, 13, 20, 0.95)"
     border_color = "rgba(100, 100, 100, 0.2)"
-    
     text_primary = "#ffffff"
-    text_secondary = "#e0e0e0"
     text_muted = "#aaaaaa"
-    
     input_bg = "rgba(30, 35, 45, 0.6)"
     trigger_bg = "rgba(255,255,255,0.15)"
 else:
     bg_color = "#f8fbff"
-    surface_color = "#ffffff"
     card_bg = "rgba(255, 255, 255, 0.92)"
     sidebar_bg = "rgba(255, 255, 255, 0.95)"
     border_color = "rgba(0, 0, 0, 0.12)"
-    
     text_primary = "#0f172a"
-    text_secondary = "#334155"
     text_muted = "#64748b"
-    
     input_bg = "rgba(240, 245, 255, 0.7)"
     trigger_bg = "rgba(0,0,0,0.08)"
 
@@ -143,25 +135,28 @@ glass_blur = "blur(20px)"
 card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
 card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
 
+# CHANGE THIS BACK TO "expanded" FOR DESKTOP NATIVE FEEL
+st.set_page_config(
+    page_title="KMFX FTMO Pro Manager",
+    page_icon="🚀",
+    layout="centered",
+    initial_sidebar_state="expanded"  # Desktop default open, native arrow works
+)
+
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* Global App */
+    /* Global */
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
     .stApp {{
         background: {bg_color};
         color: {text_primary};
     }}
     
-    /* Text consistency */
-    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
-        color: {text_primary} !important;
-    }}
-    small, caption, .caption, .secondary-text {{
-        color: {text_muted} !important;
-    }}
+    h1, h2, h3, h4, h5, h6, p, div, span, label {{ color: {text_primary} !important; }}
+    small, caption {{ color: {text_muted} !important; }}
     
-    /* Premium Glass Cards */
+    /* Glass Cards */
     .glass-card {{
         background: {card_bg};
         backdrop-filter: {glass_blur};
@@ -178,28 +173,23 @@ st.markdown(f"""
         border-color: {accent_primary};
     }}
     
-    /* Inputs & Forms */
+    /* Inputs */
     .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea,
-    .stSelectbox > div > div > div {{
+    .stTextArea > div > div > textarea {{
         background: {input_bg} !important;
         color: {text_primary} !important;
-        border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
     
-    /* Primary Buttons */
+    /* Buttons */
     button[kind="primary"] {{
         background: {accent_primary} !important;
         color: #000000 !important;
         border-radius: 16px !important;
-        font-weight: 600 !important;
         box-shadow: 0 6px 20px {accent_glow} !important;
-        transition: all 0.3s ease !important;
     }}
     button[kind="primary"]:hover {{
         background: {accent_hover} !important;
-        transform: translateY(-2px);
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
     
@@ -216,43 +206,31 @@ st.markdown(f"""
         box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }}
     
-    /* HIDE NATIVE COLLAPSE ARROW */
-    [data-testid="collapsedControl"],
-    section[data-testid="stSidebar"] > div:first-child > div:first-child > button,
-    section[data-testid="stSidebar"] > div:first-child > div:first-child {{
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
+    /* HIDE NATIVE ARROW ONLY ON MOBILE */
+    @media (max-width: 768px) {{
+        [data-testid="collapsedControl"] {{
+            display: none !important;
+        }}
     }}
     
-    /* Desktop & Tablet */
+    /* Desktop: Native Streamlit behavior (arrow visible, collapsible) */
     @media (min-width: 769px) {{
-        section[data-testid="stSidebar"] {{
-            transform: translateX(0) !important;
-        }}
+        /* Streamlit handles push/collapse natively */
         .main .block-container {{
-            margin-left: 340px !important;
-            max-width: calc(100% - 340px) !important;
             padding-left: 3rem !important;
             padding-top: 2rem !important;
-            transition: margin-left 0.35s ease;
         }}
     }}
     
-    /* Mobile */
+    /* Mobile: Wider slide-in (90% width, max 380px) */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             position: fixed !important;
             top: 0;
             left: 0;
             height: 100vh !important;
-            width: 85% !important;
-            max-width: 320px !important;
+            width: 90% !important;
+            max-width: 380px !important;  /* WIDER as requested */
             transform: translateX(-100%);
             box-shadow: 12px 0 40px rgba(0,0,0,0.6);
         }}
@@ -265,7 +243,7 @@ st.markdown(f"""
         }}
     }}
     
-    /* Mobile Trigger */
+    /* Mobile Custom Trigger */
     .mobile-sidebar-trigger {{
         display: none;
         position: fixed;
@@ -333,7 +311,7 @@ st.markdown(f"""
         .mobile-sidebar-trigger {{ display: flex; }}
     }}
     
-    /* Premium Sidebar Menu */
+    /* Premium Menu Items */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
@@ -359,17 +337,10 @@ st.markdown(f"""
         font-weight: 600;
     }}
     
-    /* Force Sidebar Text */
-    section[data-testid="stSidebar"] *,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] div,
-    section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] label {{
-        color: {text_primary} !important;
-    }}
+    section[data-testid="stSidebar"] * {{ color: {text_primary} !important; }}
 </style>
 
-<!-- Custom Controls -->
+<!-- Custom Mobile Controls -->
 <div class="mobile-sidebar-trigger"><span>☰</span></div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn"><span>×</span></div>
@@ -402,52 +373,47 @@ st.markdown(f"""
             elements.trigger.style.display = isOpen ? 'none' : 'flex';
             elements.closeBtn.style.display = isOpen ? 'flex' : 'none';
             elements.overlay.classList.toggle('active', isOpen);
-        }} else {{
-            elements.trigger.style.display = 'none';
-            elements.closeBtn.style.display = 'none';
-            elements.overlay.classList.remove('active');
         }}
     }};
 
-    const enforceState = () => {{
-        elements = getElements();
-        if (!elements.sidebar) return;
-        const isOpen = elements.sidebar.getAttribute('aria-expanded') === 'true';
+    const enforceMobile = () => {{
         const isMobile = window.innerWidth <= 768;
-
-        if (isMobile && isOpen) toggleSidebar();
-        else if (!isMobile && !isOpen) toggleSidebar();
-        
-        updateUI();
+        if (isMobile) {{
+            elements = getElements();
+            const isOpen = elements.sidebar && elements.sidebar.getAttribute('aria-expanded') === 'true';
+            if (isOpen) toggleSidebar();  // Start closed on mobile
+            updateUI();
+        }}
     }};
 
     const init = () => {{
-        elements = getElements();
-        if (elements.trigger) elements.trigger.addEventListener('click', toggleSidebar);
-        if (elements.overlay) elements.overlay.addEventListener('click', toggleSidebar);
-        if (elements.closeBtn) elements.closeBtn.addEventListener('click', toggleSidebar);
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {{
+            elements = getElements();
+            if (elements.trigger) elements.trigger.addEventListener('click', toggleSidebar);
+            if (elements.overlay) elements.overlay.addEventListener('click', toggleSidebar);
+            if (elements.closeBtn) elements.closeBtn.addEventListener('click', toggleSidebar);
 
-        if (elements.sidebar) {{
-            const observer = new MutationObserver(updateUI);
-            observer.observe(elements.sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
+            if (elements.sidebar) {{
+                const observer = new MutationObserver(updateUI);
+                observer.observe(elements.sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
+            }}
+
+            enforceMobile();
         }}
-
-        window.addEventListener('resize', enforceState);
-        window.addEventListener('orientationchange', enforceState);
-
-        enforceState();
-    }};
+        // Desktop: Do nothing - native arrow handles everything
+    };
 
     const waitInterval = setInterval(() => {{
         elements = getElements();
-        if (elements.sidebar && elements.control) {{
+        if (elements.sidebar) {{
             clearInterval(waitInterval);
             init();
         }}
     }}, 100);
 
-    window.addEventListener('load', () => setTimeout(enforceState, 500));
-    document.addEventListener('DOMContentLoaded', enforceState);
+    window.addEventListener('resize', () => setTimeout(init, 200));
+    window.addEventListener('load', () => setTimeout(init, 500));
 </script>
 """, unsafe_allow_html=True)
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
