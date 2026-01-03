@@ -99,241 +99,224 @@ create_default_users()
 
 # ====================== END OF PART 1 ======================
 # Next: Copy Part 2 (Theme, Login, Sidebar) below this line
-# ====================== FINAL FIXED RESPONSIVE SIDEBAR (100% WORKING - DESKTOP, TABLET, MOBILE) ======================
-st.set_page_config(
-    page_title="KMFX FTMO Pro Manager",
-    page_icon="🚀",
-    layout="centered",
-    initial_sidebar_state="expanded"  # ← CRITICAL: Start expanded (JS will auto-close on mobile)
-)
-
-# Theme block (keep your current one with white/black text)
-if "theme" not in st.session_state:
-    st.session_state.theme = "dark"
-
-theme = st.session_state.theme
-accent_primary = "#00ffaa"
-accent_hover   = "#00cc88"
-accent_color   = accent_primary
-
-if theme == "dark":
-    bg_color         = "#0a0d14"
-    text_color       = "#ffffff"
-    secondary_text   = "#e0e0e0"
-    sidebar_bg       = "rgba(10, 13, 20, 0.92)"
-else:
-    bg_color         = "#f5f8fa"
-    text_color       = "#000000"
-    secondary_text   = "#333333"
-    sidebar_bg       = "rgba(255, 255, 255, 0.92)"
-
+# ====================== FINAL PREMIUM THEME - FULLY FIXED SIDEBAR ARROW IN HEADER (ALL DEVICES) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
+  
     .stApp {{ background: {bg_color}; color: {text_color}; }}
-
-    /* Sidebar core */
-    section[data-testid="stSidebar"] {{
-        background: {sidebar_bg} !important;
+    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
+    small, caption {{ color: {secondary_text} !important; }}
+ 
+    .glass-card {{
+        background: {glass_bg};
         backdrop-filter: blur(20px);
-        width: 300px !important;
-        min-width: 300px !important;
-        border-right: 1px solid rgba(255,255,255,0.15);
-        transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        z-index: 9998;
+        border-radius: 24px;
+        border: {glass_border};
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: {card_shadow};
+        transition: all 0.3s ease;
+    }}
+    .glass-card:hover {{ transform: translateY(-8px); }}
+ 
+    /* Inputs Base */
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div,
+    .stTextInput > div > div,
+    .stSelectbox > div > div {{
+        background: {input_bg} !important;
+        border: {input_border} !important;
+        border-radius: 16px !important;
+        color: {text_color} !important;
+    }}
+ 
+    /* Selected value in trigger */
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] > div > div > div {{
+        color: {text_color} !important;
+    }}
+    /* Placeholder */
+    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
+        color: {dropdown_placeholder} !important;
+    }}
+ 
+    /* Dropdown Popup - FINAL VISIBILITY FIX */
+    div[data-baseweb="popover"],
+    div[role="listbox"],
+    div[data-baseweb="menu"] {{
+        background: {dropdown_popup_bg} !important;
+        border-radius: 16px !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
+    }}
+    div[role="option"] > div > div,
+    div[role="option"] {{
+        color: {dropdown_text} !important;
+        background: transparent !important;
+        padding: 12px 16px !important;
+    }}
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"] {{
+        background: {dropdown_hover_bg} !important;
+        color: {dropdown_hover_text} !important;
+    }}
+ 
+    /* Buttons */
+    .stButton > button {{
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        color: #000 !important;
+        border-radius: 16px !important;
+        padding: 0.9rem 2rem !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
+    }}
+    .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
+ 
+    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
+    [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
+    #MainMenu, footer, header {{ visibility: hidden !important; }}
+
+    /* ==================== FULL FIX: CUSTOM ARROW BUTTON IN HEADER (ALL DEVICES) - NO DEFAULT ARROW ==================== */
+    /* Hide default collapse arrow & hamburger completely */
+    button[data-testid="collapsedControl"],
+    button[kind="headerNoPadding"],
+    button[title="View sidebar"] {{
+        display: none !important;
     }}
 
-    /* Hide default collapse button */
-    button[data-testid="collapsedControl"] {{ display: none !important; }}
-
-    /* Desktop: fixed open + push content */
-    @media (min-width: 901px) {{
-        section[data-testid="stSidebar"] {{
-            transform: translateX(0) !important;
-        }}
-        .main > .block-container {{
-            margin-left: 320px !important;
-            max-width: calc(100% - 320px) !important;
-            padding-left: 3rem !important;
-            padding-top: 2rem !important;
-        }}
+    /* Custom arrow button - fixed in header (top-left) */
+    .custom-header-arrow {{
+        position: fixed !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 9999 !important;
+        width: 50px !important;
+        height: 50px !important;
+        background: rgba(0, 255, 170, 0.15) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3) !important;
+    }}
+    .custom-header-arrow:hover {{
+        background: rgba(0, 255, 170, 0.3) !important;
+        transform: scale(1.1) !important;
     }}
 
-    /* Mobile/Tablet: slide-in */
-    @media (max-width: 900px) {{
+    /* Arrow icon - white in dark mode, black in light mode */
+    .custom-header-arrow svg {{
+        width: 32px !important;
+        height: 32px !important;
+        stroke: {'#ffffff' if theme == 'dark' else '#000000'} !important;
+        fill: none !important;
+        stroke-width: 3 !important;
+    }}
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {{
+        .custom-header-arrow {{
+            top: 10px !important;
+            left: 10px !important;
+            width: 48px !important;
+            height: 48px !important;
+        }}
+        .custom-header-arrow svg {{
+            width: 30px !important;
+            height: 30px !important;
+        }}
+        
+        /* Sidebar full when expanded */
         section[data-testid="stSidebar"] {{
-            position: fixed !important;
-            top: 0;
-            left: 0;
+            width: 100% !important;
+            min-width: 100% !important;
             height: 100vh !important;
-            width: 80% !important;
-            max-width: 300px !important;
-            transform: translateX(-100%);
-            box-shadow: 8px 0 30px rgba(0,0,0,0.6);
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: 9998 !important;
         }}
-        section[data-testid="stSidebar"][aria-expanded="true"] {{
-            transform: translateX(0);
+        
+        /* Collapsed: hidden */
+        section[data-testid="stSidebar"].collapsed {{
+            width: 0 !important;
+            overflow: hidden !important;
         }}
-        .block-container {{
-            padding: 1.5rem !important;
-            padding-top: 90px !important;
+        
+        /* Content full when collapsed */
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+            margin-left: 0 !important;
+            width: 100% !important;
         }}
+    }}
+
+    /* Desktop: content full when collapsed (no margin) */
+    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+        margin-left: 0 !important;
+        width: 100% !important;
+    }}
+
+    /* Other mobile optimizations (unchanged) */
+    @media (max-width: 768px) {{
+        .block-container {{ padding: 1rem !important; }}
+        h1 {{ font-size: 2rem !important; }}
+        h2 {{ font-size: 1.7rem !important; }}
+        h3 {{ font-size: 1.4rem !important; }}
+        .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
+        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
+        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
+        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
+        .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
+        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
+        .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
+        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
+        .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
+        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
     }}
 
     @media (max-width: 480px) {{
-        .block-container {{ padding-top: 80px !important; }}
-    }}
-
-    /* Hamburger trigger (premium glass round) */
-    .mobile-sidebar-trigger {{
-        display: none;
-        position: fixed;
-        top: 18px;
-        left: 18px;
-        width: 56px;
-        height: 56px;
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(12px);
-        border-radius: 50%;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 9999;
-    }}
-    .mobile-sidebar-trigger:hover {{
-        background: {accent_primary};
-        transform: scale(1.08);
-    }}
-    .mobile-sidebar-trigger span {{ font-size: 32px; color: {text_color}; }}
-
-    /* Close button */
-    .sidebar-close-btn {{
-        display: none;
-        position: absolute;
-        top: 18px;
-        right: 18px;
-        width: 48px;
-        height: 48px;
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(12px);
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 9999;
-    }}
-    .sidebar-close-btn:hover {{
-        background: #ff4757;
-        transform: scale(1.08);
-    }}
-    .sidebar-close-btn span {{ font-size: 30px; color: {text_color}; }}
-
-    /* Overlay */
-    .sidebar-overlay {{
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.65);
-        backdrop-filter: blur(10px);
-        z-index: 9997;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-        cursor: pointer;
-    }}
-    .sidebar-overlay.active {{
-        display: block;
-        opacity: 1;
-    }}
-
-    @media (max-width: 900px) {{
-        .mobile-sidebar-trigger {{ display: flex; }}
-    }}
-
-    /* Modern menu style */
-    div[data-testid="stSidebar"] div.stRadio > div > label {{
-        background: rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 16px 20px;
-        margin: 6px 12px;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255,255,255,0.1);
-    }}
-    div[data-testid="stSidebar"] div.stRadio > div > label:hover {{
-        background: rgba(0,255,170,0.15);
-        border-color: {accent_primary};
-    }}
-    div[data-testid="stSidebar"] div.stRadio > div > label[data-checked="true"] {{
-        background: {accent_primary} !important;
-        color: #000000 !important;
-        border-color: {accent_primary};
+        h1 {{ font-size: 1.8rem !important; }}
+        h2 {{ font-size: 1.5rem !important; }}
+        .glass-card {{ padding: 1.2rem !important; }}
+        .block-container {{ padding: 0.8rem !important; }}
+        .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
 
-<!-- Controls -->
-<div class="mobile-sidebar-trigger"><span>☰</span></div>
-<div class="sidebar-overlay"></div>
-<div class="sidebar-close-btn"><span>×</span></div>
-
 <script>
-    const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-    const trigger = document.querySelector('.mobile-sidebar-trigger');
-    const overlay = document.querySelector('.sidebar-overlay');
-    const closeBtn = document.querySelector('.sidebar-close-btn');
-
-    if (sidebar && trigger && overlay && closeBtn) {{
-        const control = document.querySelector('button[data-testid="collapsedControl"]');
-
-        const toggle = () => {{
-            if (control) control.click();
-        }};
-
-        trigger.addEventListener('click', toggle);
-        overlay.addEventListener('click', toggle);
-        closeBtn.addEventListener('click', toggle);
-
-        const updateUI = () => {{
-            const isMobile = window.innerWidth <= 900;
-            const isOpen = sidebar.getAttribute('aria-expanded') === 'true';
-
-            if (isMobile) {{
-                trigger.style.display = isOpen ? 'none' : 'flex';
-                closeBtn.style.display = isOpen ? 'flex' : 'none';
-                overlay.classList.toggle('active', isOpen);
+    // Custom Header Arrow Button + Toggle (all devices)
+    document.addEventListener('DOMContentLoaded', function() {{
+        // Create custom arrow button
+        const arrowBtn = document.createElement('div');
+        arrowBtn.className = 'custom-header-arrow';
+        arrowBtn.innerHTML = `
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+        document.body.appendChild(arrowBtn);
+        
+        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
+        if (!sidebarButton) return;
+        
+        // Click to toggle
+        arrowBtn.addEventListener('click', function() {{
+            sidebarButton.click();
+        }});
+        
+        // Rotate arrow (right when collapsed, left when expanded)
+        const observer = new MutationObserver(() => {{
+            const path = arrowBtn.querySelector('svg path');
+            if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                path.setAttribute('d', 'M15 18l-6-6 6-6'); // Right arrow
             }} else {{
-                trigger.style.display = 'none';
-                closeBtn.style.display = 'none';
-                overlay.classList.remove('active');
+                path.setAttribute('d', 'M9 18l6-6-6-6'); // Left arrow
             }}
-        }};
-
-        const enforce = () => {{
-            const isMobile = window.innerWidth <= 900;
-            const isOpen = sidebar.getAttribute('aria-expanded') === 'true';
-
-            if (isMobile && isOpen) toggle();
-            else if (!isMobile && !isOpen) toggle();
-
-            updateUI();
-        }};
-
-        // Multiple checks for reliable initial load
-        setTimeout(enforce, 50);
-        setTimeout(enforce, 200);
-        setTimeout(enforce, 600);
-        setTimeout(enforce, 1200);
-
-        window.addEventListener('resize', enforce);
-        document.addEventListener('DOMContentLoaded', enforce);
-        window.addEventListener('load', enforce);
-
-        // Observe aria-expanded
-        const observer = new MutationObserver(updateUI);
-        observer.observe(sidebar, {{ attributes: true, attributeFilter: ['aria-expanded'] }});
-    }}
+        }});
+        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
+    }});
 </script>
 """, unsafe_allow_html=True)
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
