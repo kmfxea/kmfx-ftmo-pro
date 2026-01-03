@@ -173,11 +173,9 @@ st.markdown(f"""
     /* === END OF FIX === */
 
     /* === NEW FIX: Remove leftover white bar at the top (Streamlit header) === */
-    /* Make the top header fully transparent so it blends with the main background */
     [data-testid="stHeader"] {{
         background-color: transparent !important;
     }}
-    /* Ensure toolbar icons (rerun, settings, etc.) are visible in both themes */
     [data-testid="stHeader"] svg,
     [data-testid="stToolbar"] svg,
     button[kind="headerAction"] svg {{
@@ -185,14 +183,30 @@ st.markdown(f"""
         color: {text_color} !important;
         opacity: 1 !important;
     }}
-    /* Optional: if you want less empty space at the top (toolbar will overlay content a bit) */
-    /* Uncomment the lines below if you want content to start closer to the top */
     /*
     .block-container {{
         padding-top: 1rem !important;
     }}
     */
     /* === END OF TOP HEADER FIX === */
+
+    /* === FIX: Mobile trigger (☰) and close button (×) color === */
+    .mobile-sidebar-trigger,
+    .sidebar-close-btn {{
+        color: {text_color} !important;
+        /* Optional: slight backdrop para mas kita lalo sa transparent bg */
+        /* background-color: rgba(255, 255, 255, 0.1); */  /* dark mode */
+        /* background-color: rgba(0, 0, 0, 0.1); */      /* light mode - uncomment one if needed */
+        /* border-radius: 50%; */
+        /* padding: 10px; */
+        /* font-size: 24px; */
+    }}
+    .mobile-sidebar-trigger:hover,
+    .sidebar-close-btn:hover {{
+        color: {accent_primary} !important;
+        opacity: 0.9;
+    }}
+    /* === END OF FIX === */
 </style>
 <!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
 <div class="mobile-sidebar-trigger">☰</div>
