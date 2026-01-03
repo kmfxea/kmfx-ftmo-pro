@@ -142,13 +142,15 @@ st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
-    .stApp {{ background: {bg_color}; color: {text_color}; }}
-    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
-    small, caption {{ color: {secondary_text} !important; }}
+    * {{ box-sizing: border-box; }}
+    html {{ overflow-x: hidden; }}
+    .stApp {{ background: {bg_color}; color: {text_color}; overflow-x: hidden; }}
+
+    /* Pure Transparent Glass Card */
     .glass-card {{
-        background: {glass_bg};
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: transparent !important;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         border-radius: 24px;
         border: {glass_border};
         padding: 2rem;
@@ -157,7 +159,8 @@ st.markdown(f"""
         transition: all 0.3s ease;
     }}
     .glass-card:hover {{ transform: translateY(-8px); }}
-    /* Inputs Base */
+
+    /* Inputs - Subtle Transparent */
     div[data-baseweb="select"] > div,
     div[data-baseweb="input"] > div,
     .stTextInput > div > div,
@@ -166,33 +169,18 @@ st.markdown(f"""
         border: {input_border} !important;
         border-radius: 16px !important;
         color: {text_color} !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }}
-    div[data-baseweb="select"] span,
-    div[data-baseweb="select"] > div > div > div {{
-        color: {text_color} !important;
-    }}
-    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
-        color: {dropdown_placeholder} !important;
-    }}
-    /* Dropdown Popup */
-    div[data-baseweb="popover"],
-    div[role="listbox"],
-    div[data-baseweb="menu"] {{
-        background: {dropdown_popup_bg} !important;
-        border-radius: 16px !important;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
-    }}
-    div[role="option"] > div > div,
-    div[role="option"] {{
-        color: {dropdown_text} !important;
+
+    /* Sidebar - Pure Transparent */
+    section[data-testid="stSidebar"] {{
         background: transparent !important;
-        padding: 12px 16px !important;
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border-right: {glass_border};
     }}
-    div[role="option"]:hover,
-    div[role="option"][aria-selected="true"] {{
-        background: {dropdown_hover_bg} !important;
-        color: {dropdown_hover_text} !important;
-    }}
+
     /* Buttons */
     .stButton > button {{
         background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
@@ -202,10 +190,8 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
     }}
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
-    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
-    [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
+
     #MainMenu, footer, header {{ visibility: hidden !important; }}
-    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
     button[data-testid="collapsedControl"] {{
         opacity: 0 !important;
         position: absolute !important;
@@ -213,11 +199,8 @@ st.markdown(f"""
         pointer-events: auto !important;
         z-index: 9999 !important;
     }}
-    button[kind="headerNoPadding"],
-    button[title="View sidebar"] {{
-        display: none !important;
-    }}
-    /* Desktop: Force open & fixed */
+
+    /* Desktop */
     @media (min-width: 993px) {{
         section[data-testid="stSidebar"] {{
             width: 320px !important;
@@ -230,56 +213,59 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: Top-left 3-line trigger + smooth left slide + overlay + close button */
+
+    /* Mobile - Arrow Trigger */
     @media (max-width: 992px) {{
-        /* Sidebar smooth slide from left */
+        .stApp, .block-container {{ overflow-x: hidden !important; max-width: 100% !important; }}
+
         section[data-testid="stSidebar"] {{
             position: fixed !important;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             width: 85% !important;
             max-width: 320px !important;
             height: 100vh !important;
+            background: transparent !important;
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
             transform: translateX(-100%);
             transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 9998 !important;
-            box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+            box-shadow: 10px 0 50px rgba(0,0,0,0.7);
             overflow-y: auto;
         }}
         section[data-testid="stSidebar"]:not(.collapsed) {{
             transform: translateX(0);
         }}
 
-        /* Top-left 3-line Trigger */
+        /* Single Arrow Trigger - Moves Inside Sidebar When Open */
         .mobile-sidebar-trigger {{
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 18px;
+            left: 18px;
             background: linear-gradient(135deg, {accent_primary}, {accent_hover});
             color: #000;
-            width: 56px;
-            height: 56px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
             font-weight: bold;
             box-shadow: 0 6px 20px rgba(0, 255, 170, 0.5);
             cursor: pointer;
             z-index: 9999;
             transition: all 0.3s ease;
         }}
-        .mobile-sidebar-trigger:hover {{
-            transform: scale(1.1);
+        .mobile-sidebar-trigger:hover, .mobile-sidebar-trigger:active {{
+            transform: scale(1.12);
             box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
         }}
 
-        /* Dark Overlay when open */
+        /* Overlay */
         .sidebar-overlay {{
             display: none;
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(10px);
             z-index: 9997;
@@ -289,38 +275,11 @@ st.markdown(f"""
             display: block;
         }}
 
-        /* Close Button (X) top right */
-        .sidebar-close-btn {{
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            display: none;
-        }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
-            display: flex;
-        }}
-        .sidebar-close-btn:hover {{
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }}
-
-        /* Mobile layout */
-        .block-container {{ 
-            padding: 1rem !important; 
+        /* Layout */
+        .block-container {{
+            padding: 1rem !important;
             padding-top: 90px !important;
+            max-width: 100% !important;
         }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
@@ -328,40 +287,76 @@ st.markdown(f"""
         .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
         .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
         div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
-        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
-    }}
-    @media (max-width: 480px) {{
-        h1 {{ font-size: 1.8rem !important; }}
-        h2 {{ font-size: 1.5rem !important; }}
-        .glass-card {{ padding: 1.2rem !important; }}
-        .block-container {{ padding: 0.8rem !important; padding-top: 80px !important; }}
-        .mobile-sidebar-trigger {{ width: 50px; height: 50px; font-size: 24px; top: 15px; left: 15px; }}
-        .stButton > button {{ font-size: 1rem !important; }}
-    }}
-</style>
-<script>
-    // Desktop: Force sidebar open
-    if (window.innerWidth > 992) {{
-        const desktopInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
-                control.click();
-            }}
-        }}, 100);
+        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; overflow-x: hidden !important; }}
     }}
 
-    // Mobile: Force sidebar CLOSED on load (fix always open)
-    if (window.innerWidth <= 992) {{
-        const mobileInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && !sidebar.classList.contains('collapsed')) {{
-                control.click();
-                clearInterval(mobileInterval);
-            }}
-        }}, 100);
+    @media (max-width: 480px) {{
+        .mobile-sidebar-trigger {{ width: 54px; height: 54px; top: 14px; left: 14px; }}
+        .block-container {{ padding-top: 80px !important; }}
     }}
+</style>
+""", unsafe_allow_html=True)
+
+# Mobile Arrow Trigger Controls
+st.markdown("""
+<!-- Mobile Arrow Trigger + Overlay -->
+<div class="mobile-sidebar-trigger">▶</div>
+<div class="sidebar-overlay"></div>
+
+<script>
+    function toggleSidebar() {
+        const controlBtn = document.querySelector('button[data-testid="collapsedControl"]');
+        if (controlBtn) controlBtn.click();
+        else setTimeout(toggleSidebar, 100);
+    }
+
+    function attachListeners() {
+        const trigger = document.querySelector('.mobile-sidebar-trigger');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (trigger && overlay) {
+            trigger.onclick = toggleSidebar;
+            overlay.onclick = toggleSidebar;
+        } else {
+            setTimeout(attachListeners, 100);
+        }
+    }
+
+    const observer = new MutationObserver(() => {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        const trigger = document.querySelector('.mobile-sidebar-trigger');
+        if (sidebar && trigger) {
+            if (sidebar.classList.contains('collapsed')) {
+                // Closed: right arrow outside
+                trigger.innerHTML = '▶';
+                trigger.style.left = '18px';
+                trigger.style.fontSize = '32px';
+            } else {
+                // Open: left arrow inside sidebar
+                trigger.innerHTML = '◀';
+                trigger.style.left = 'calc(85% - 70px)'; /* Adjust to sit inside open sidebar */
+                trigger.style.fontSize = '38px';
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        attachListeners();
+        observer.observe(document.body, { subtree: true, childList: true, attributes: true });
+    });
+
+    if (window.Streamlit) {
+        window.Streamlit.events.addEventListener(window.Streamlit.RENDER_EVENT, () => {
+            setTimeout(attachListeners, 200);
+        });
+    }
+
+    // Force closed on mobile load
+    if (window.innerWidth <= 992) {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            toggleSidebar();
+        }
+    }
 </script>
 """, unsafe_allow_html=True)
 
