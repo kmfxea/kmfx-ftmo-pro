@@ -139,11 +139,245 @@ else:
     dropdown_placeholder = "#888888"
 
 # ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
+# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
+if "theme" not in st.session_state:
+    st.session_state.theme = "dark"
+
+theme = st.session_state.theme
+accent_primary = "#00ffaa"
+accent_hover = "#00cc88"
+accent_color = accent_primary
+
+if theme == "dark":
+    bg_color = "#0a0d14"
+    text_color = "#ffffff"          # Pure white text
+    secondary_text = "#e0e0e0"       # Slightly off-white for small/caption
+    glass_bg = "transparent"
+    glass_border = "1px solid rgba(255, 255, 255, 0.18)"
+    input_bg = "rgba(255, 255, 255, 0.06)"
+    input_border = "1px solid rgba(255, 255, 255, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
+    sidebar_bg = "transparent"
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"   # Near-transparent glass for dropdown in dark
+    dropdown_text = "#ffffff"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#888888"
+else:
+    bg_color = "#f5f8fa"
+    text_color = "#000000"          # Pure black text
+    secondary_text = "#333333"      # Dark gray for small/caption
+    glass_bg = "transparent"
+    glass_border = "1px solid rgba(0, 0, 0, 0.15)"
+    input_bg = "rgba(0, 0, 0, 0.06)"
+    input_border = "1px solid rgba(0, 0, 0, 0.25)"
+    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
+    sidebar_bg = "transparent"
+    dropdown_popup_bg = "#ffffff"   # Solid white in light mode
+    dropdown_text = "#000000"
+    dropdown_hover_bg = accent_primary
+    dropdown_hover_text = "#000000"
+    dropdown_placeholder = "#666666"
+
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* [Existing CSS unchanged - kept exactly as provided] */
-    /* ... (your full CSS block here - no changes made) ... */
+    html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
+    .stApp {{ background: {bg_color}; color: {text_color}; }}
+    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
+    small, caption {{ color: {secondary_text} !important; }}
+    .glass-card {{
+        background: {glass_bg};
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: {glass_border};
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: {card_shadow};
+        transition: all 0.3s ease;
+    }}
+    .glass-card:hover {{ transform: translateY(-8px); }}
+    /* Inputs Base */
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] > div,
+    .stTextInput > div > div,
+    .stSelectbox > div > div {{
+        background: {input_bg} !important;
+        border: {input_border} !important;
+        border-radius: 16px !important;
+        color: {text_color} !important;
+    }}
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] > div > div > div {{
+        color: {text_color} !important;
+    }}
+    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
+        color: {dropdown_placeholder} !important;
+    }}
+    /* Dropdown Popup - NOW GLASS/TRANSPARENT IN DARK MODE */
+    div[data-baseweb="popover"],
+    div[role="listbox"],
+    div[data-baseweb="menu"] {{
+        background: {dropdown_popup_bg} !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
+        border: {glass_border} !important;
+    }}
+    div[role="option"] > div > div,
+    div[role="option"] {{
+        color: {dropdown_text} !important;
+        background: transparent !important;
+        padding: 12px 16px !important;
+    }}
+    div[role="option"]:hover,
+    div[role="option"][aria-selected="true"] {{
+        background: {dropdown_hover_bg} !important;
+        color: {dropdown_hover_text} !important;
+    }}
+    /* Buttons */
+    .stButton > button {{
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        color: #000 !important;
+        border-radius: 16px !important;
+        padding: 0.9rem 2rem !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
+    }}
+    .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
+    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
+    [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
+    #MainMenu, footer, header {{ visibility: hidden !important; }}
+    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
+    button[data-testid="collapsedControl"] {{
+        opacity: 0 !important;
+        position: absolute !important;
+        left: -100px !important;
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+    }}
+    button[kind="headerNoPadding"],
+    button[title="View sidebar"] {{
+        display: none !important;
+    }}
+    /* Desktop: Force open & fixed */
+    @media (min-width: 993px) {{
+        section[data-testid="stSidebar"] {{
+            width: 320px !important;
+            min-width: 320px !important;
+            transition: none !important;
+        }}
+        .main .block-container {{
+            margin-left: 340px !important;
+            max-width: calc(100% - 340px) !important;
+            padding-left: 2rem !important;
+        }}
+    }}
+    /* Mobile: Top-left 3-line trigger + smooth left slide + overlay + close button */
+    @media (max-width: 992px) {{
+        /* Sidebar smooth slide from left */
+        section[data-testid="stSidebar"] {{
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 85% !important;
+            max-width: 320px !important;
+            height: 100vh !important;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9998 !important;
+            box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+            overflow-y: auto;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) {{
+            transform: translateX(0);
+        }}
+        /* Top-left 3-line Trigger */
+        .mobile-sidebar-trigger {{
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, {accent_primary}, {accent_hover});
+            color: #000;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0, 255, 170, 0.5);
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }}
+        .mobile-sidebar-trigger:hover {{
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
+        }}
+        /* Dark Overlay when open */
+        .sidebar-overlay {{
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            z-index: 9997;
+            cursor: pointer;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
+            display: block;
+        }}
+        /* Close Button (X) top right */
+        .sidebar-close-btn {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            display: none;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
+            display: flex;
+        }}
+        .sidebar-close-btn:hover {{
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }}
+        /* Mobile layout */
+        .block-container {{
+            padding: 1rem !important;
+            padding-top: 90px !important;
+        }}
+        h1 {{ font-size: 2rem !important; }}
+        h2 {{ font-size: 1.7rem !important; }}
+        h3 {{ font-size: 1.4rem !important; }}
+        .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
+        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
+        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
+        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
+    }}
+    @media (max-width: 480px) {{
+        h1 {{ font-size: 1.8rem !important; }}
+        h2 {{ font-size: 1.5rem !important; }}
+        .glass-card {{ padding: 1.2rem !important; }}
+        .block-container {{ padding: 0.8rem !important; padding-top: 80px !important; }}
+        .mobile-sidebar-trigger {{ width: 50px; height: 50px; font-size: 24px; top: 15px; left: 15px; }}
+        .stButton > button {{ font-size: 1rem !important; }}
+    }}
 </style>
 
 <!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
