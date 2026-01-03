@@ -106,6 +106,7 @@ theme = st.session_state.theme
 accent_primary = "#10b981"
 accent_hover = "#059669"
 accent_active = "#064e3b"
+accent_color = accent_primary  # <-- FIXED: Restored alias for your existing title code
 
 if theme == "dark":
     bg_color = "#0f172a"                    # slate-900 — deep, calm
@@ -344,6 +345,7 @@ st.markdown(f"""
     }});
 </script>
 """, unsafe_allow_html=True)
+
 
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
 # Helper function for login (defined early - no NameError)
