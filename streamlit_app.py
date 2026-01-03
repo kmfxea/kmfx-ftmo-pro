@@ -144,36 +144,38 @@ if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
+
+# Kept your original neon accent but made hover slightly smoother
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
-    text_color = "#ffffff"          # Pure white text
-    secondary_text = "#e0e0e0"       # Slightly off-white for small/caption
+    text_color = "#ffffff"
+    secondary_text = "#e0e0e0"
     glass_bg = "transparent"
     glass_border = "1px solid rgba(255, 255, 255, 0.18)"
     input_bg = "rgba(255, 255, 255, 0.06)"
     input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"   # Near-transparent glass for dropdown in dark
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
     dropdown_text = "#ffffff"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#888888"
 else:
     bg_color = "#f5f8fa"
-    text_color = "#000000"          # Pure black text
-    secondary_text = "#333333"      # Dark gray for small/caption
+    text_color = "#000000"
+    secondary_text = "#333333"
     glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
     input_bg = "rgba(0, 0, 0, 0.06)"
     input_border = "1px solid rgba(0, 0, 0, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "#ffffff"   # Solid white in light mode
+    dropdown_popup_bg = "#ffffff"
     dropdown_text = "#000000"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
@@ -184,8 +186,22 @@ st.markdown(f"""
 <style>
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
     .stApp {{ background: {bg_color}; color: {text_color}; }}
-    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
-    small, caption {{ color: {secondary_text} !important; }}
+
+    /* Force all text colors */
+    h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown, small, caption {{
+        color: {text_color} !important;
+    }}
+    small, caption, [data-baseweb="typo-paragraphsmall"] {{
+        color: {secondary_text} !important;
+    }}
+
+    /* Fully hide Streamlit header, footer, menu */
+    #MainMenu, footer, header, [data-testid="stHeader"], [data-testid="stToolbar"] {{
+        visibility: hidden !important;
+        display: none !important;
+    }}
+
+    /* Glass card styling (kept yours - very nice) */
     .glass-card {{
         background: {glass_bg};
         backdrop-filter: blur(20px);
@@ -198,7 +214,8 @@ st.markdown(f"""
         transition: all 0.3s ease;
     }}
     .glass-card:hover {{ transform: translateY(-8px); }}
-    /* Inputs Base */
+
+    /* Inputs & Selects (kept your improved styling) */
     div[data-baseweb="select"] > div,
     div[data-baseweb="input"] > div,
     .stTextInput > div > div,
@@ -215,7 +232,8 @@ st.markdown(f"""
     div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
         color: {dropdown_placeholder} !important;
     }}
-    /* Dropdown Popup - NOW GLASS/TRANSPARENT IN DARK MODE */
+
+    /* Dropdown Popup - Glass in dark mode (kept your fix) */
     div[data-baseweb="popover"],
     div[role="listbox"],
     div[data-baseweb="menu"] {{
@@ -237,7 +255,8 @@ st.markdown(f"""
         background: {dropdown_hover_bg} !important;
         color: {dropdown_hover_text} !important;
     }}
-    /* Buttons */
+
+    /* Buttons (kept your gradient - looks great with neon accent) */
     .stButton > button {{
         background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
         color: #000 !important;
@@ -246,10 +265,20 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
     }}
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
-    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
+
+    /* Metric accent */
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
-    #MainMenu, footer, header {{ visibility: hidden !important; }}
-    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
+
+    /* Sidebar - transparent + blur, fixed width */
+    section[data-testid="stSidebar"] {{
+        background: {sidebar_bg} !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        width: 320px !important;
+        border-right: {glass_border};
+    }}
+
+    /* Hide default toggle but keep clickable (your clever trick) */
     button[data-testid="collapsedControl"] {{
         opacity: 0 !important;
         position: absolute !important;
@@ -257,11 +286,9 @@ st.markdown(f"""
         pointer-events: auto !important;
         z-index: 9999 !important;
     }}
-    button[kind="headerNoPadding"],
-    button[title="View sidebar"] {{
-        display: none !important;
-    }}
-    /* Desktop: Force open & fixed */
+    button[title="View sidebar"] {{ display: none !important; }}
+
+    /* Desktop: Fixed sidebar, push main content */
     @media (min-width: 993px) {{
         section[data-testid="stSidebar"] {{
             width: 320px !important;
@@ -272,11 +299,12 @@ st.markdown(f"""
             margin-left: 340px !important;
             max-width: calc(100% - 340px) !important;
             padding-left: 2rem !important;
+            padding-top: 2rem !important;
         }}
     }}
-    /* Mobile: Top-left 3-line trigger + smooth left slide + overlay + close button */
+
+    /* Mobile: Slide-in sidebar + MINIMAL controls (NO big circles) */
     @media (max-width: 992px) {{
-        /* Sidebar smooth slide from left */
         section[data-testid="stSidebar"] {{
             position: fixed !important;
             top: 0;
@@ -293,71 +321,56 @@ st.markdown(f"""
         section[data-testid="stSidebar"]:not(.collapsed) {{
             transform: translateX(0);
         }}
-        /* Top-left 3-line Trigger */
+
+        /* Minimal hamburger trigger - just clean icon */
         .mobile-sidebar-trigger {{
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background: linear-gradient(135deg, {accent_primary}, {accent_hover});
-            color: #000;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: bold;
-            box-shadow: 0 6px 20px rgba(0, 255, 170, 0.5);
-            cursor: pointer;
+            top: 24px;
+            left: 24px;
             z-index: 9999;
-            transition: all 0.3s ease;
+            font-size: 30px;
+            color: {text_color};
+            cursor: pointer;
+            transition: color 0.3s ease;
         }}
         .mobile-sidebar-trigger:hover {{
-            transform: scale(1.1);
-            box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
+            color: {accent_primary};
         }}
-        /* Dark Overlay when open */
-        .sidebar-overlay {{
-            display: none;
+
+        /* Minimal close button - just clean X */
+        .sidebar-close-btn {{
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            font-size: 30px;
+            color: {text_color};
+            cursor: pointer;
+            transition: color 0.3s ease;
+            display: none;
+        }}
+        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
+            display: block;
+        }}
+        .sidebar-close-btn:hover {{
+            color: {accent_primary};
+        }}
+
+        /* Overlay with blur */
+        .sidebar-overlay {{
+            position: fixed;
+            inset: 0;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(10px);
             z-index: 9997;
+            display: none;
             cursor: pointer;
         }}
         section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
             display: block;
         }}
-        /* Close Button (X) top right */
-        .sidebar-close-btn {{
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            display: none;
-        }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
-            display: flex;
-        }}
-        .sidebar-close-btn:hover {{
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }}
-        /* Mobile layout */
+
+        /* Mobile layout adjustments */
         .block-container {{
             padding: 1rem !important;
             padding-top: 90px !important;
@@ -367,50 +380,38 @@ st.markdown(f"""
         h3 {{ font-size: 1.4rem !important; }}
         .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
         .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
-        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
-        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
     }}
+
     @media (max-width: 480px) {{
-        h1 {{ font-size: 1.8rem !important; }}
-        h2 {{ font-size: 1.5rem !important; }}
-        .glass-card {{ padding: 1.2rem !important; }}
-        .block-container {{ padding: 0.8rem !important; padding-top: 80px !important; }}
-        .mobile-sidebar-trigger {{ width: 50px; height: 50px; font-size: 24px; top: 15px; left: 15px; }}
-        .stButton > button {{ font-size: 1rem !important; }}
+        .mobile-sidebar-trigger {{ top: 18px; left: 18px; font-size: 28px; }}
+        .sidebar-close-btn {{ top: 18px; right: 18px; font-size: 28px; }}
+        .block-container {{ padding-top: 80px !important; }}
     }}
 </style>
 
-<!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
+<!-- Minimal Custom Mobile Controls -->
 <div class="mobile-sidebar-trigger">☰</div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn">×</div>
 
 <script>
-    // Desktop: Force sidebar open
-    if (window.innerWidth > 992) {{
-        const desktopInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
-                control.click();
-                clearInterval(desktopInterval);
-            }}
-        }}, 100);
-    }}
+    // Force sidebar state on load and resize
+    const enforceSidebarState = () => {{
+        const control = document.querySelector('button[data-testid="collapsedControl"]');
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (!control || !sidebar) return;
 
-    // Mobile: Force sidebar CLOSED on load
-    if (window.innerWidth <= 992) {{
-        const mobileInterval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && !sidebar.classList.contains('collapsed')) {{
-                control.click();
-                clearInterval(mobileInterval);
-            }}
-        }}, 100);
-    }}
+        if (window.innerWidth > 992) {{
+            if (sidebar.classList.contains('collapsed')) control.click();
+        }} else {{
+            if (!sidebar.classList.contains('collapsed')) control.click();
+        }}
+    }};
 
-    // Custom mobile controls functionality
+    window.addEventListener('load', enforceSidebarState);
+    window.addEventListener('resize', enforceSidebarState);
+
+    // Custom controls
     document.addEventListener('DOMContentLoaded', () => {{
         const trigger = document.querySelector('.mobile-sidebar-trigger');
         const overlay = document.querySelector('.sidebar-overlay');
@@ -420,22 +421,19 @@ st.markdown(f"""
 
         if (!control || !sidebar) return;
 
-        // Click handlers
-        if (trigger) trigger.addEventListener('click', () => control.click());
-        if (overlay) overlay.addEventListener('click', () => control.click());
-        if (closeBtn) closeBtn.addEventListener('click', () => control.click());
+        trigger?.addEventListener('click', () => control.click());
+        overlay?.addEventListener('click', () => control.click());
+        closeBtn?.addEventListener('click', () => control.click());
 
-        // Show/hide trigger based on sidebar state
-        const updateTrigger = () => {{
-            if (trigger) {{
-                trigger.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
-            }}
+        const updateUI = () => {{
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            if (trigger) trigger.style.display = isCollapsed ? 'block' : 'none';
+            if (closeBtn) closeBtn.style.display = isCollapsed ? 'none' : 'block';
         }};
 
-        updateTrigger();
+        updateUI();
 
-        // Observe sidebar class changes
-        const observer = new MutationObserver(updateTrigger);
+        const observer = new MutationObserver(updateUI);
         observer.observe(sidebar, {{ attributes: true, attributeFilter: ['class'] }});
     }});
 </script>
