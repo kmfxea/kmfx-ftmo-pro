@@ -95,7 +95,6 @@ def create_default_users():
         st.error(f"Error creating default users: {e}")
 
 create_default_users()
-
 # ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
@@ -103,61 +102,98 @@ theme = st.session_state.theme
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_color = accent_primary
+
 if theme == "dark":
     bg_color = "#0a0d14"
-    text_color = "#ffffff" # Pure white text (all main text)
-    secondary_text = "#e0e0e0" # Light gray for small/caption
+    text_color = "#ffffff"
+    secondary_text = "#e0e0e0"
     glass_bg = "transparent"
     glass_border = "1px solid rgba(255, 255, 255, 0.18)"
     input_bg = "rgba(255, 255, 255, 0.06)"
     input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
-    sidebar_bg = "transparent"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)" # Glass/near-transparent in dark mode
+    mobile_glass_bg = "rgba(255, 255, 255, 0.08)"
+    mobile_border = "rgba(255, 255, 255, 0.18)"
+    overlay_bg = "rgba(0, 0, 0, 0.55)"
+    sidebar_tint = "rgba(255, 255, 255, 0.06)"
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
     dropdown_text = "#ffffff"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#888888"
 else:
     bg_color = "#f5f8fa"
-    text_color = "#000000" # Pure black text (all main text)
-    secondary_text = "#333333" # Dark gray for small/caption
+    text_color = "#000000"
+    secondary_text = "#333333"
     glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
     input_bg = "rgba(0, 0, 0, 0.06)"
     input_border = "1px solid rgba(0, 0, 0, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
-    sidebar_bg = "transparent"
-    dropdown_popup_bg = "#ffffff" # Solid white in light mode
+    mobile_glass_bg = "rgba(0, 0, 0, 0.08)"
+    mobile_border = "rgba(0, 0, 0, 0.18)"
+    overlay_bg = "rgba(0, 0, 0, 0.35)"
+    sidebar_tint = "rgba(0, 0, 0, 0.06)"
+    dropdown_popup_bg = "#ffffff"
     dropdown_text = "#000000"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#666666"
+
+sidebar_bg = sidebar_tint  # Slight tint + blur = elegant frosted glass (still "transparent" feel)
+
 # ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    /* [Existing CSS unchanged - kept exactly as provided] */
-    /* ... (your full CSS block here - no changes made) ... */
-    /* === ADDED FIX FOR TEXT COLOR (Dark: white, Light: black) === */
-    /* Main app background + global text color */
+    /* Global elegant typography */
+    html, body, [data-testid="stAppViewContainer"], .stApp {{
+        font-family: 'Poppins', sans-serif !important;
+    }}
+
+    /* Main background */
     .stApp {{
         background-color: {bg_color};
         color: {text_color} !important;
     }}
-    /* Force main content text (covers st.write, st.markdown, titles, etc.) */
+
+    /* Centered + spacious main content (professional layout) */
+    .block-container {{
+        max-width: 1280px !important;
+        margin: 0 auto !important;
+        padding-top: 5rem !important;
+        padding-bottom: 4rem !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+    }}
+    @media (max-width: 992px) {{
+        .block-container {{
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+            padding-top: 4.5rem !important;
+        }}
+    }}
+
+    /* Force text colors */
     .main .block-container,
     .main [data-testid="stVerticalBlock"],
     .main p, .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
     .main li, .main span, .main div {{
         color: {text_color} !important;
     }}
-    /* Sidebar background (transparent as you wanted) + text color */
-    section[data-testid="stSidebar"] {{
-        background-color: {sidebar_bg};
-        color: {text_color} !important;
+    .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"] {{
+        color: {secondary_text} !important;
     }}
-    /* Force sidebar text (covers menu items, labels, etc.) */
+
+    /* Elegant frosted glass sidebar (super alive pero hindi masyadong binago) */
+    section[data-testid="stSidebar"] {{
+        background-color: {sidebar_bg} !important;
+        color: {text_color} !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-right: {glass_border};
+        position: relative !important;
+    }}
     section[data-testid="stSidebar"] .stMarkdown,
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2,
@@ -165,14 +201,8 @@ st.markdown(f"""
     section[data-testid="stSidebar"] div, section[data-testid="stSidebar"] span {{
         color: {text_color} !important;
     }}
-    /* Optional: make sure secondary/caption text uses your secondary variable if you use it elsewhere */
-    /* Example: small, caption, placeholder */
-    .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"] {{
-        color: {secondary_text} !important;
-    }}
-    /* === END OF FIX === */
 
-    /* === NEW FIX: Remove leftover white bar at the top (Streamlit header) === */
+    /* Transparent header + visible icons */
     [data-testid="stHeader"] {{
         background-color: transparent !important;
     }}
@@ -183,35 +213,103 @@ st.markdown(f"""
         color: {text_color} !important;
         opacity: 1 !important;
     }}
-    /*
-    .block-container {{
-        padding-top: 1rem !important;
-    }}
-    */
-    /* === END OF TOP HEADER FIX === */
 
-    /* === FIX: Mobile trigger (☰) and close button (×) color === */
-    .mobile-sidebar-trigger,
+    /* Elegant glass mobile trigger (☰) */
+    .mobile-sidebar-trigger {{
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 10000;
+        width: 56px;
+        height: 56px;
+        background-color: {mobile_glass_bg};
+        border: 1px solid {mobile_border};
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 600;
+        color: {text_color};
+        cursor: pointer;
+        transition: all 0.35s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }}
+    .mobile-sidebar-trigger:hover {{
+        background-color: {accent_primary};
+        color: #000000;
+        transform: scale(1.12);
+        box-shadow: 0 0 35px rgba(0, 255, 170, 0.5);
+    }}
+
+    /* Elegant glass close button (×) */
     .sidebar-close-btn {{
-        color: {text_color} !important;
-        /* Optional: slight backdrop para mas kita lalo sa transparent bg */
-        /* background-color: rgba(255, 255, 255, 0.1); */  /* dark mode */
-        /* background-color: rgba(0, 0, 0, 0.1); */      /* light mode - uncomment one if needed */
-        /* border-radius: 50%; */
-        /* padding: 10px; */
-        /* font-size: 24px; */
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 10001;
+        width: 48px;
+        height: 48px;
+        background-color: {mobile_glass_bg};
+        border: 1px solid {mobile_border};
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: {text_color};
+        cursor: pointer;
+        transition: all 0.35s ease;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
     }}
-    .mobile-sidebar-trigger:hover,
     .sidebar-close-btn:hover {{
-        color: {accent_primary} !important;
-        opacity: 0.9;
+        background-color: {accent_primary};
+        color: #000000;
+        transform: scale(1.12);
+        box-shadow: 0 0 35px rgba(0, 255, 170, 0.5);
     }}
-    /* === END OF FIX === */
+
+    /* Smooth blurred overlay (mobile only) */
+    .sidebar-overlay {{
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: {overlay_bg};
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 9998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+    }}
+
+    /* Optional: mas elegant na buttons kung meron kayong st.button */
+    .stButton > button {{
+        background-color: {accent_primary} !important;
+        color: #000000 !important;
+        border: none !important;
+        border-radius: 16px !important;
+        padding: 12px 28px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 6px 25px rgba(0, 255, 170, 0.35) !important;
+    }}
+    .stButton > button:hover {{
+        background-color: {accent_hover} !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 12px 40px rgba(0, 255, 170, 0.55) !important;
+    }}
 </style>
-<!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
+
+<!-- Custom Mobile Controls -->
 <div class="mobile-sidebar-trigger">☰</div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn">×</div>
+
 <script>
     // Desktop: Force sidebar open
     if (window.innerWidth > 992) {{
@@ -224,6 +322,7 @@ st.markdown(f"""
             }}
         }}, 100);
     }}
+
     // Mobile: Force sidebar CLOSED on load
     if (window.innerWidth <= 992) {{
         const mobileInterval = setInterval(() => {{
@@ -235,28 +334,51 @@ st.markdown(f"""
             }}
         }}, 100);
     }}
-    // Custom mobile controls functionality
+
+    // Enhanced mobile controls (smooth overlay + show/hide logic)
     document.addEventListener('DOMContentLoaded', () => {{
         const trigger = document.querySelector('.mobile-sidebar-trigger');
         const overlay = document.querySelector('.sidebar-overlay');
         const closeBtn = document.querySelector('.sidebar-close-btn');
         const control = document.querySelector('button[data-testid="collapsedControl"]');
         const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+
         if (!control || !sidebar) return;
+
         // Click handlers
         if (trigger) trigger.addEventListener('click', () => control.click());
         if (overlay) overlay.addEventListener('click', () => control.click());
         if (closeBtn) closeBtn.addEventListener('click', () => control.click());
-        // Show/hide trigger based on sidebar state
-        const updateTrigger = () => {{
+
+        // Update UI based on sidebar state + screen size
+        const updateUI = () => {{
+            const isMobile = window.innerWidth <= 992;
+
             if (trigger) {{
-                trigger.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+                trigger.style.display = (isMobile && sidebar.classList.contains('collapsed')) ? 'flex' : 'none';
+            }}
+            if (closeBtn) {{
+                closeBtn.style.display = (isMobile && !sidebar.classList.contains('collapsed')) ? 'flex' : 'none';
+            }}
+            if (overlay) {{
+                if (isMobile && !sidebar.classList.contains('collapsed')) {{
+                    overlay.style.opacity = '1';
+                    overlay.style.pointerEvents = 'auto';
+                }} else {{
+                    overlay.style.opacity = '0';
+                    overlay.style.pointerEvents = 'none';
+                }}
             }}
         }};
-        updateTrigger();
-        // Observe sidebar class changes
-        const observer = new MutationObserver(updateTrigger);
+
+        updateUI();
+
+        // Observe sidebar changes
+        const observer = new MutationObserver(updateUI);
         observer.observe(sidebar, {{ attributes: true, attributeFilter: ['class'] }});
+
+        // Update on resize
+        window.addEventListener('resize', updateUI);
     }});
 </script>
 """, unsafe_allow_html=True)
