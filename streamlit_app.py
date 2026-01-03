@@ -1417,25 +1417,63 @@ elif selected == "👤 My Profile":
         </div>
       </div>
     </div>
-
     <style>
-      .flip-card {{ background: transparent; width: 600px; height: 380px; perspective: 1000px; margin: 0 auto; }}
-      .flip-card-inner {{ position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); transform-style: preserve-3d; }}
-      .flip-card:hover .flip-card-inner, .flip-card:focus-within .flip-card-inner {{ transform: rotateY(180deg); }}
-      .flip-card-front, .flip-card-back {{ position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 20px; }}
-      .flip-card-back {{ transform: rotateY(180deg); }}
+      .flip-card {{ 
+        background: transparent; 
+        width: 600px; 
+        height: 380px; 
+        perspective: 1000px; 
+        margin: 0 auto; 
+      }}
+      .flip-card-inner {{ 
+        position: relative; 
+        width: 100%; 
+        height: 100%; 
+        text-align: center; 
+        transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+        transform-style: preserve-3d; 
+      }}
+      .flip-card:hover .flip-card-inner, 
+      .flip-card:focus-within .flip-card-inner {{ 
+        transform: rotateY(180deg); 
+      }}
+      .flip-card-front, .flip-card-back {{ 
+        position: absolute; 
+        width: 100%; 
+        height: 100%; 
+        -webkit-backface-visibility: hidden; 
+        backface-visibility: hidden; 
+        border-radius: 20px; 
+      }}
+      .flip-card-back {{ 
+        transform: rotateY(180deg); 
+      }}
+      
+      /* Mobile: Smaller card + perfect text fit */
       @media (max-width: 768px) {{
-        .flip-card {{ width: 100%; max-width: 380px; height: 300px; }}
-        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 300px !important; }}
+        .flip-card {{ 
+          width: 100%; 
+          max-width: 360px !important; 
+          height: 320px; 
+        }}
+        .flip-card-front > div, 
+        .flip-card-back > div {{ 
+          padding: 1.4rem !important; 
+          height: 320px !important; 
+        }}
         .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
-        .flip-card-front h3 {{ font-size: 1.4rem !important; }}
-        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
-        .flip-card-front h2:last-of-type {{ font-size: 2.4rem !important; }}
-        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
-        .flip-card-back div:nth-child(3) {{ font-size: 1rem !important; line-height: 1.6 !important; }}
+        .flip-card-front h3 {{ font-size: 1.2rem !important; }}
+        .flip-card-front h1 {{ font-size: 1.7rem !important; }}
+        .flip-card-front h2:last-of-type {{ font-size: 2.2rem !important; }}
+        .flip-card-front p {{ font-size: 0.9rem !important; }}
+        .flip-card-back h2 {{ font-size: 1.3rem !important; }}
+        .flip-card-back div:nth-child(3) {{ 
+          font-size: 0.95rem !important; 
+          line-height: 1.5 !important; 
+        }}
+        .flip-card-back p:last-child {{ font-size: 0.8rem !important; }}
       }}
     </style>
-
     <p style="text-align:center; opacity:0.7; margin-top:1rem; font-size:1rem;">
       Hover (desktop) or tap (mobile) the card to flip ↺
     </p>
