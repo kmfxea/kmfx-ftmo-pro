@@ -157,7 +157,6 @@ st.markdown(f"""
         transition: all 0.3s ease;
     }}
     .glass-card:hover {{ transform: translateY(-8px); }}
-
     /* Inputs Base */
     div[data-baseweb="select"] > div,
     div[data-baseweb="input"] > div,
@@ -175,7 +174,6 @@ st.markdown(f"""
     div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
         color: {dropdown_placeholder} !important;
     }}
-
     /* Dropdown Popup */
     div[data-baseweb="popover"],
     div[role="listbox"],
@@ -195,7 +193,6 @@ st.markdown(f"""
         background: {dropdown_hover_bg} !important;
         color: {dropdown_hover_text} !important;
     }}
-
     /* Buttons */
     .stButton > button {{
         background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
@@ -205,24 +202,21 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
     }}
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
-
     section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
-
-    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE via JS */
+    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
     button[data-testid="collapsedControl"] {{
         opacity: 0 !important;
         position: absolute !important;
-        left: -100px !important; /* Off-screen but still in DOM */
-        pointer-events: auto !important; /* Allow JS click */
+        left: -100px !important;
+        pointer-events: auto !important;
         z-index: -1 !important;
     }}
     button[kind="headerNoPadding"],
     button[title="View sidebar"] {{
         display: none !important;
     }}
-
     /* Desktop: Force open & fixed */
     @media (min-width: 993px) {{
         section[data-testid="stSidebar"] {{
@@ -236,15 +230,14 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-
-    /* Mobile: Clickable divider line in middle as sidebar trigger */
+    /* Mobile: Clickable glowing line */
     @media (max-width: 992px) {{
         .sidebar-trigger-line {{
             text-align: center;
             margin: 2rem 0;
             cursor: pointer;
             transition: all 0.3s ease;
-            pointer-events: all !important; /* Ensure clickable */
+            pointer-events: all !important;
         }}
         .sidebar-trigger-line hr {{
             border: none;
@@ -268,8 +261,6 @@ st.markdown(f"""
             50% {{ transform: scaleX(1.3); box-shadow: 0 0 40px rgba(0, 255, 170, 1); }}
             100% {{ transform: scaleX(1); box-shadow: 0 0 15px rgba(0, 255, 170, 0.4); }}
         }}
-
-        /* Full sidebar when open */
         section[data-testid="stSidebar"]:not(.collapsed) {{
             width: 100% !important;
             height: 100vh !important;
@@ -278,14 +269,10 @@ st.markdown(f"""
             left: 0 !important;
             z-index: 9998 !important;
         }}
-
-        /* No leftover when closed */
         section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
             margin-left: 0 !important;
             width: 100% !important;
         }}
-
-        /* Original mobile sizes */
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
@@ -301,7 +288,6 @@ st.markdown(f"""
         .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
         .flip-card-back h2 {{ font-size: 1.5rem !important; }}
     }}
-
     @media (max-width: 480px) {{
         h1 {{ font-size: 1.8rem !important; }}
         h2 {{ font-size: 1.5rem !important; }}
@@ -311,27 +297,7 @@ st.markdown(f"""
     }}
 </style>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {{
-        if (window.innerWidth > 992) return; // Mobile only
-
-        const trigger = document.querySelector('.sidebar-trigger-line');
-        if (!trigger) return;
-
-        const observer = new MutationObserver(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            if (!control) return;
-
-            trigger.onclick = () => {{
-                control.click();  // This now works because button is hidden visually but clickable
-            }};
-        }});
-
-        observer.observe(document.body, {{ childList: true, subtree: true }});
-
-        window.addEventListener('resize', () => location.reload());
-    }});
-
-    // Desktop force open
+    // Desktop: Force sidebar open
     if (window.innerWidth > 992) {{
         const interval = setInterval(() => {{
             const control = document.querySelector('button[data-testid="collapsedControl"]');
@@ -521,11 +487,13 @@ with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
 
 st.markdown("""
-<div class="sidebar-trigger-line">
+<div class="sidebar-trigger-line" onclick="(() => { 
+    const btn = document.querySelector('button[data-testid=\\"collapsedControl\\"]'); 
+    if (btn) btn.click(); 
+})();">
     <hr>
 </div>
 """, unsafe_allow_html=True)
-
 # ====================== ANNOUNCEMENT BANNER ======================
 try:
     ann_response = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute()
