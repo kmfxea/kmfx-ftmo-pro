@@ -46,10 +46,9 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
-    layout="centered"
-    # Removed initial_sidebar_state — force open with JS for reliability on Cloud/mobile
+    layout="centered",
+    initial_sidebar_state="expanded"  # Para force open sa desktop
 )
-
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
 folders = [
     "uploaded_files",
@@ -100,15 +99,13 @@ create_default_users()
 # ====================== END OF PART 1 ======================
 # Next: Copy Part 2 (Theme, Login, Sidebar) below this line
 # ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
-# ====================== FINAL PREMIUM THEME - ALL FIXES INCLUDED (2026 EDITION) ======================
+# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
-
 theme = st.session_state.theme
-
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
-accent_color = accent_primary  # Compatibility sa old code
+accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
@@ -120,7 +117,6 @@ if theme == "dark":
     input_border = "1px solid rgba(255, 255, 255, 0.2)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.7)"
     sidebar_bg = "rgba(8, 12, 20, 0.95)"
-
     dropdown_popup_bg = "#ffffff"
     dropdown_text = "#000000"
     dropdown_hover_bg = accent_primary
@@ -136,39 +132,24 @@ else:
     input_border = "1px solid rgba(0, 0, 0, 0.15)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.1)"
     sidebar_bg = "rgba(245, 248, 250, 0.95)"
-
     dropdown_popup_bg = "#ffffff"
     dropdown_text = text_color
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#777777"
 
-st.set_page_config(
-    page_title="KMFX FTMO Pro Manager",
-    page_icon="🚀",
-    layout="centered",
-    initial_sidebar_state="expanded"  # Sidebar open by default
-)
-
-st.set_page_config(
-    page_title="KMFX FTMO Pro Manager",
-    page_icon="🚀",
-    layout="centered",
-    initial_sidebar_state="expanded"  # Open by default
-)
-
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
-  
+ 
     .stApp {{ background: {bg_color}; color: {text_color}; }}
     h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
     small, caption {{ color: {secondary_text} !important; }}
- 
     .glass-card {{
         background: {glass_bg};
         backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border-radius: 24px;
         border: {glass_border};
         padding: 2rem;
@@ -177,7 +158,7 @@ st.markdown(f"""
         transition: all 0.3s ease;
     }}
     .glass-card:hover {{ transform: translateY(-8px); }}
- 
+
     /* Inputs Base */
     div[data-baseweb="select"] > div,
     div[data-baseweb="input"] > div,
@@ -188,18 +169,15 @@ st.markdown(f"""
         border-radius: 16px !important;
         color: {text_color} !important;
     }}
- 
-    /* Selected value in trigger */
     div[data-baseweb="select"] span,
     div[data-baseweb="select"] > div > div > div {{
         color: {text_color} !important;
     }}
-    /* Placeholder */
     div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
         color: {dropdown_placeholder} !important;
     }}
- 
-    /* Dropdown Popup - FINAL VISIBILITY FIX */
+
+    /* Dropdown Popup */
     div[data-baseweb="popover"],
     div[role="listbox"],
     div[data-baseweb="menu"] {{
@@ -218,7 +196,7 @@ st.markdown(f"""
         background: {dropdown_hover_bg} !important;
         color: {dropdown_hover_text} !important;
     }}
- 
+
     /* Buttons */
     .stButton > button {{
         background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
@@ -228,21 +206,35 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
     }}
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
- 
+
     section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== MOBILE/TABLET ONLY: BALLOON BUTTON IN BOTTOM MIDDLE ==================== */
-    @media (max-width: 992px) {{
-        /* Hide default arrows on mobile/tablet */
-        button[data-testid="collapsedControl"],
-        button[kind="headerNoPadding"],
-        button[title="View sidebar"] {{
-            display: none !important;
+    /* ==================== SIDEBAR FIXES ==================== */
+    button[data-testid="collapsedControl"] {{
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }}
+
+    @media (min-width: 993px) {{
+        section[data-testid="stSidebar"] {{
+            width: 320px !important;
+            min-width: 320px !important;
+            transition: none !important;
         }}
-        
-        /* Balloon button - bottom middle */
+        .main .block-container {{
+            margin-left: 340px !important;
+            max-width: calc(100% - 340px) !important;
+            padding-left: 2rem !important;
+        }}
+    }}
+
+    @media (max-width: 992px) {{
         .mobile-balloon {{
             position: fixed !important;
             bottom: 30px !important;
@@ -264,8 +256,6 @@ st.markdown(f"""
             transform: translateX(-50%) scale(1.15) !important;
             box-shadow: 0 12px 40px rgba(0, 255, 170, 0.8) !important;
         }}
-        
-        /* Pop animation */
         .mobile-balloon:active {{
             animation: pop 0.6s ease !important;
         }}
@@ -274,11 +264,10 @@ st.markdown(f"""
             50% {{ transform: translateX(-50%) scale(1.3); }}
             100% {{ transform: translateX(-50%) scale(1); }}
         }}
-        
-        /* Hamburger/X */
+
         .mobile-balloon .icon {{
             width: 36px;
-            height: 28px;
+            height: 34px;
             position: relative;
         }}
         .mobile-balloon .icon span {{
@@ -290,16 +279,15 @@ st.markdown(f"""
             position: absolute;
             transition: all 0.3s ease;
         }}
-        .mobile-balloon .icon span:nth-child(1) {{ top: 0; }}
-        .mobile-balloon .icon span:nth-child(2) {{ top: 11px; }}
-        .mobile-balloon .icon span:nth-child(3) {{ top: 22px; }}
-        
-        .mobile-balloon.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 11px; }}
+        .mobile-balloon .icon span:nth-child(1) {{ top: 6px; }}
+        .mobile-balloon .icon span:nth-child(2) {{ top: 17px; }}
+        .mobile-balloon .icon span:nth-child(3) {{ top: 28px; }}
+
+        .mobile-balloon.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 17px; }}
         .mobile-balloon.open .icon span:nth-child(2) {{ opacity: 0; }}
-        .mobile-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
-        
-        /* Sidebar full when expanded */
-        section[data-testid="stSidebar"] {{
+        .mobile-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 17px; }}
+
+        section[data-testid="stSidebar"]:not(.collapsed) {{
             width: 100% !important;
             min-width: 100% !important;
             height: 100vh !important;
@@ -307,43 +295,21 @@ st.markdown(f"""
             top: 0 !important;
             left: 0 !important;
             z-index: 9998 !important;
+            border-radius: 0 !important;
         }}
-        
-        /* Collapsed: hidden */
-        section[data-testid="stSidebar"].collapsed {{
-            width: 0 !important;
-            overflow: hidden !important;
-        }}
-        
-        /* Content full when collapsed */
+
         section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
             margin-left: 0 !important;
             width: 100% !important;
+            padding: 1rem !important;
         }}
-    }}
 
-    /* Desktop/Laptop: normal collapse (no balloon) */
-    section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 80px !important;
-        width: calc(100% - 80px) !important;
-    }}
-
-    /* Other optimizations */
-    @media (max-width: 768px) {{
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
         h3 {{ font-size: 1.4rem !important; }}
         .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
         .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
-        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
-        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
-        .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
-        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
-        .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
-        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
-        .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
-        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
     }}
 
     @media (max-width: 480px) {{
@@ -354,56 +320,55 @@ st.markdown(f"""
         .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
-
 <script>
-    // Mobile/Tablet Balloon Button + Force Sidebar Open on Load + Toggle
     document.addEventListener('DOMContentLoaded', function() {{
-        if (window.innerWidth > 992) return; // Mobile/Tablet only
-        
-        // Create balloon button
-        const balloon = document.createElement('div');
-        balloon.className = 'mobile-balloon';
-        balloon.innerHTML = `
-            <div class="icon">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
-        document.body.appendChild(balloon);
-        
-        const icon = balloon.querySelector('.icon');
-        
-        // Wait for sidebar button
+        const isDesktop = window.innerWidth > 992;
+
+        let balloon = null;
+        if (!isDesktop) {{
+            balloon = document.createElement('div');
+            balloon.className = 'mobile-balloon';
+            balloon.innerHTML = `
+                <div class="icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            document.body.appendChild(balloon);
+        }}
+
         const observer = new MutationObserver(() => {{
-            const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-            if (sidebarButton) {{
-                // Force open on load if collapsed
-                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                    sidebarButton.click();
-                    icon.classList.add('open');
+            const controlButton = document.querySelector('button[data-testid="collapsedControl"]');
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+
+            if (!controlButton || !sidebar) return;
+
+            if (isDesktop) {{
+                if (sidebar.classList.contains('collapsed')) {{
+                    controlButton.click();
                 }}
-                
-                // Click to toggle
-                balloon.addEventListener('click', function() {{
-                    sidebarButton.click();
-                    balloon.classList.add('pop');
-                    setTimeout(() => balloon.classList.remove('pop'), 600);
-                    icon.classList.toggle('open');
-                }});
-                
-                observer.disconnect();
+            }} else {{
+                if (balloon) {{
+                    balloon.onclick = function() {{
+                        controlButton.click();
+                        balloon.classList.toggle('open');
+                        balloon.classList.add('pop');
+                        setTimeout(() => balloon.classList.remove('pop'), 600);
+                    }};
+
+                    if (!sidebar.classList.contains('collapsed')) {{
+                        balloon.classList.add('open');
+                    }}
+                }}
             }}
         }});
+
         observer.observe(document.body, {{ childList: true, subtree: true }});
-    }});
-    
-    // Force sidebar open on load for desktop (backup)
-    document.addEventListener('DOMContentLoaded', function() {{
-        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
-        if (sidebarButton && document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-            sidebarButton.click();
-        }}
+
+        window.addEventListener('resize', function() {{
+            location.reload();
+        }});
     }});
 </script>
 """, unsafe_allow_html=True)
