@@ -119,6 +119,7 @@ if theme == "dark":
     text_primary = "#ffffff"
     text_muted = "#aaaaaa"
     input_bg = "rgba(30, 35, 45, 0.6)"
+    arrow_color = "#ffffff"  # White arrow in dark
 else:
     bg_color = "#f8fbff"
     card_bg = "rgba(255, 255, 255, 0.92)"
@@ -127,12 +128,12 @@ else:
     text_primary = "#0f172a"
     text_muted = "#64748b"
     input_bg = "rgba(240, 245, 255, 0.7)"
+    arrow_color = "#000000"  # Black arrow in light
 
 glass_blur = "blur(20px)"
 card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
 card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
 
-# Keep expanded for desktop native feel (Streamlit auto-handles mobile hamburger)
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
@@ -150,7 +151,7 @@ st.markdown(f"""
         color: {text_primary};
     }}
     
-    /* Full theme-adaptive text (no fixed white anywhere) */
+    /* Full adaptive text */
     h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
         color: {text_primary} !important;
     }}
@@ -158,7 +159,7 @@ st.markdown(f"""
         color: {text_muted} !important;
     }}
     
-    /* Glass Cards */
+    /* Glass Cards - more transparent feel */
     .glass-card {{
         background: {card_bg};
         backdrop-filter: {glass_blur};
@@ -197,7 +198,7 @@ st.markdown(f"""
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
     
-    /* SIDEBAR PREMIUM GLASS */
+    /* SIDEBAR - NO SHADOW AT ALL */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: {glass_blur};
@@ -205,19 +206,21 @@ st.markdown(f"""
         width: 320px !important;
         min-width: 320px !important;
         border-right: 1px solid {border_color};
-        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        box-shadow: none !important;  /* Totally removed */
         transition: all 0.3s ease;
     }}
     
-    /* Native controls visible on BOTH desktop & mobile */
+    /* Native arrow/hamburger - adaptive color */
     [data-testid="collapsedControl"] {{
-        /* Keep visible — no hide */
-        color: {text_primary} !important;
-        background: rgba(255,255,255,0.08) !important;
-        backdrop-filter: blur(10px);
+        color: {arrow_color} !important;
+        background: transparent !important;
+    }}
+    [data-testid="collapsedControl"] svg {{
+        fill: {arrow_color} !important;
+        stroke: {arrow_color} !important;
     }}
     
-    /* Desktop: Clean padding (Streamlit auto-adjusts on collapse) */
+    /* Desktop padding */
     @media (min-width: 769px) {{
         .main .block-container {{
             padding-left: 3rem !important;
@@ -226,12 +229,19 @@ st.markdown(f"""
         }}
     }}
     
-    /* Mobile: Wider sidebar + reduced shadow (cleaner) */
+    /* Mobile: Wider + smaller font for wide view */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             width: 90% !important;
-            max-width: 400px !important;  /* Wider & comfortable */
-            box-shadow: 8px 0 20px rgba(0,0,0,0.3) !important;  /* Reduced shadow */
+            max-width: 400px !important;
+        }}
+        /* Smaller font in mobile sidebar menu */
+        div[data-testid="stSidebar"] div.stRadio > div > label {{
+            font-size: 14px !important;
+            padding: 16px 20px !important;
+        }}
+        div[data-testid="stSidebar"] h3, div[data-testid="stSidebar"] p {{
+            font-size: 14px !important;
         }}
         .block-container {{
             padding-top: 80px !important;
@@ -264,7 +274,7 @@ st.markdown(f"""
         font-weight: 600;
     }}
     
-    /* Force all sidebar text */
+    /* Force sidebar text */
     section[data-testid="stSidebar"] * {{
         color: {text_primary} !important;
     }}
