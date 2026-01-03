@@ -96,12 +96,9 @@ def create_default_users():
 
 create_default_users()
 
-# ====================== END OF PART 1 ======================
-# Next: Copy Part 2 (Theme, Login, Sidebar) below this line# ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
 # ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
-
 theme = st.session_state.theme
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
@@ -109,30 +106,30 @@ accent_color = accent_primary
 
 if theme == "dark":
     bg_color = "#0a0d14"
-    text_color = "#ffffff"          # Pure white text (all main text)
-    secondary_text = "#e0e0e0"       # Light gray for small/caption
+    text_color = "#ffffff"  # Pure white text (all main text)
+    secondary_text = "#e0e0e0"  # Light gray for small/caption
     glass_bg = "transparent"
     glass_border = "1px solid rgba(255, 255, 255, 0.18)"
     input_bg = "rgba(255, 255, 255, 0.06)"
     input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"   # Glass/near-transparent in dark mode
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"  # Glass/near-transparent in dark mode
     dropdown_text = "#ffffff"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#888888"
 else:
     bg_color = "#f5f8fa"
-    text_color = "#000000"          # Pure black text (all main text)
-    secondary_text = "#333333"      # Dark gray for small/caption
+    text_color = "#000000"  # Pure black text (all main text)
+    secondary_text = "#333333"  # Dark gray for small/caption
     glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
     input_bg = "rgba(0, 0, 0, 0.06)"
     input_border = "1px solid rgba(0, 0, 0, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "#ffffff"   # Solid white in light mode
+    dropdown_popup_bg = "#ffffff"  # Solid white in light mode
     dropdown_text = "#000000"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
@@ -144,6 +141,43 @@ st.markdown(f"""
 <style>
     /* [Existing CSS unchanged - kept exactly as provided] */
     /* ... (your full CSS block here - no changes made) ... */
+
+    /* === ADDED FIX FOR TEXT COLOR (Dark: white, Light: black) === */
+    /* Main app background + global text color */
+    .stApp {{
+        background-color: {bg_color};
+        color: {text_color} !important;
+    }}
+
+    /* Force main content text (covers st.write, st.markdown, titles, etc.) */
+    .main .block-container,
+    .main [data-testid="stVerticalBlock"],
+    .main p, .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
+    .main li, .main span, .main div {{
+        color: {text_color} !important;
+    }}
+
+    /* Sidebar background (transparent as you wanted) + text color */
+    section[data-testid="stSidebar"] {{
+        background-color: {sidebar_bg};
+        color: {text_color} !important;
+    }}
+
+    /* Force sidebar text (covers menu items, labels, etc.) */
+    section[data-testid="stSidebar"] .stMarkdown,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3, section[data-testid="stSidebar"] h4,
+    section[data-testid="stSidebar"] div, section[data-testid="stSidebar"] span {{
+        color: {text_color} !important;
+    }}
+
+    /* Optional: make sure secondary/caption text uses your secondary variable if you use it elsewhere */
+    /* Example: small, caption, placeholder */
+    .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"] {{
+        color: {secondary_text} !important;
+    }}
+    /* === END OF FIX === */
 </style>
 
 <!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
@@ -197,7 +231,6 @@ st.markdown(f"""
                 trigger.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
             }}
         }};
-
         updateTrigger();
 
         // Observe sidebar class changes
