@@ -138,9 +138,11 @@ else:
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#777777"
 
+# ====================== LATEST CSS BLOCK (SIMPLE LEFT-SLIDE SIDEBAR + TOP-LEFT ARROW TRIGGER) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+    /* Core App Styles */
     html, body, [class*="css-"] {{ font-family: 'Poppins', sans-serif !important; }}
     .stApp {{ background: {bg_color}; color: {text_color}; }}
     h1, h2, h3, h4, h5, h6, p, div, span, label, li, .stMarkdown {{ color: {text_color} !important; }}
@@ -157,7 +159,8 @@ st.markdown(f"""
         transition: all 0.3s ease;
     }}
     .glass-card:hover {{ transform: translateY(-8px); }}
-    /* Inputs Base */
+
+    /* Inputs & Dropdowns */
     div[data-baseweb="select"] > div,
     div[data-baseweb="input"] > div,
     .stTextInput > div > div,
@@ -168,31 +171,23 @@ st.markdown(f"""
         color: {text_color} !important;
     }}
     div[data-baseweb="select"] span,
-    div[data-baseweb="select"] > div > div > div {{
-        color: {text_color} !important;
-    }}
-    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{
-        color: {dropdown_placeholder} !important;
-    }}
-    /* Dropdown Popup */
-    div[data-baseweb="popover"],
-    div[role="listbox"],
-    div[data-baseweb="menu"] {{
+    div[data-baseweb="select"] > div > div > div {{ color: {text_color} !important; }}
+    div[data-baseweb="select"] div[style*="color: rgb(149, 157, 168)"] {{ color: {dropdown_placeholder} !important; }}
+    div[data-baseweb="popover"], div[role="listbox"], div[data-baseweb="menu"] {{
         background: {dropdown_popup_bg} !important;
         border-radius: 16px !important;
         box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
     }}
-    div[role="option"] > div > div,
-    div[role="option"] {{
+    div[role="option"] > div > div, div[role="option"] {{
         color: {dropdown_text} !important;
         background: transparent !important;
         padding: 12px 16px !important;
     }}
-    div[role="option"]:hover,
-    div[role="option"][aria-selected="true"] {{
+    div[role="option"]:hover, div[role="option"][aria-selected="true"] {{
         background: {dropdown_hover_bg} !important;
         color: {dropdown_hover_text} !important;
     }}
+
     /* Buttons */
     .stButton > button {{
         background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
@@ -202,22 +197,20 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3);
     }}
     .stButton > button:hover {{ transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 255, 170, 0.5); }}
-    section[data-testid="stSidebar"] {{ background: {sidebar_bg}; backdrop-filter: blur(20px); width: 320px !important; border-right: {glass_border}; }}
+
+    /* Sidebar Base */
+    section[data-testid="stSidebar"] {{ 
+        background: {sidebar_bg}; 
+        backdrop-filter: blur(20px); 
+        border-right: {glass_border}; 
+    }}
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
-    #MainMenu, footer, header {{ visibility: hidden !important; }}
-    /* Hide default toggle button VISUALLY but KEEP IT CLICKABLE */
-    button[data-testid="collapsedControl"] {{
-        opacity: 0 !important;
-        position: absolute !important;
-        left: -100px !important;
-        pointer-events: auto !important;
-        z-index: -1 !important;
-    }}
-    button[kind="headerNoPadding"],
-    button[title="View sidebar"] {{
-        display: none !important;
-    }}
-    /* Desktop: Force open & fixed */
+
+    /* Hide Streamlit defaults */
+    #MainMenu, footer {{ visibility: hidden !important; }}
+    button[data-testid="collapsedControl"] {{ display: none !important; }}
+
+    /* Desktop: Fixed sidebar (perfect na, walang galaw) */
     @media (min-width: 993px) {{
         section[data-testid="stSidebar"] {{
             width: 320px !important;
@@ -230,119 +223,81 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: Floating hamburger + overlay + close button (UPDATED & ROBUST) */
+
+    /* Mobile: Simple left-slide sidebar with top-left arrow trigger */
     @media (max-width: 992px) {{
-        /* Floating Hamburger Trigger */
-        .mobile-sidebar-trigger {{
+        section[data-testid="stSidebar"] {{
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 80% !important;
+            max-width: 320px !important;
+            height: 100vh !important;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9998;
+            box-shadow: 8px 0 30px rgba(0,0,0,0.6);
+            overflow-y: auto;
+        }}
+
+        section[data-testid="stSidebar"]:not(.collapsed) {{
+            transform: translateX(0);
+        }}
+
+        /* Top-left arrow trigger */
+        .mobile-sidebar-arrow {{
             position: fixed;
-            bottom: 30px;
-            right: 20px;
+            top: 20px;
+            left: 20px;
             background: linear-gradient(135deg, {accent_primary}, {accent_hover});
             color: #000;
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 28px;
             font-weight: bold;
-            box-shadow: 0 0 30px rgba(0, 255, 170, 0.6);
-            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 255, 170, 0.5);
             z-index: 9999;
+            cursor: pointer;
             transition: all 0.3s ease;
         }}
-        .mobile-sidebar-trigger:hover {{
+        .mobile-sidebar-arrow:hover {{
             transform: scale(1.1);
-            box-shadow: 0 0 50px rgba(0, 255, 170, 0.9);
+            box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
         }}
-        .mobile-sidebar-trigger:active {{
-            transform: scale(0.95);
-        }}
-        /* Dark Overlay when sidebar open */
+
+        /* Overlay */
         .sidebar-overlay {{
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
             z-index: 9997;
+            cursor: pointer;
         }}
         section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-overlay {{
             display: block;
         }}
-        /* Close Button (X) */
-        .sidebar-close-btn {{
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            display: none;
+
+        /* Mobile content padding */
+        .block-container {{ 
+            padding: 1rem !important; 
+            padding-top: 90px !important;
         }}
-        section[data-testid="stSidebar"]:not(.collapsed) ~ .main .sidebar-close-btn {{
-            display: flex;
-        }}
-        .sidebar-close-btn:hover {{
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }}
-        /* Full sidebar when open */
-        section[data-testid="stSidebar"]:not(.collapsed) {{
-            width: 100% !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            z-index: 9998 !important;
-        }}
-        /* Original mobile sizes */
-        .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
-        h3 {{ font-size: 1.4rem !important; }}
         .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
-        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
-        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
-        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
-        .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
-        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
-        .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
-        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
-        .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
-        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
     }}
+
     @media (max-width: 480px) {{
-        h1 {{ font-size: 1.8rem !important; }}
-        h2 {{ font-size: 1.5rem !important; }}
-        .glass-card {{ padding: 1.2rem !important; }}
-        .block-container {{ padding: 0.8rem !important; }}
-        .stButton > button {{ font-size: 1rem !important; }}
+        .mobile-sidebar-arrow {{ width: 50px; height: 50px; font-size: 24px; top: 15px; left: 15px; }}
+        .block-container {{ padding-top: 80px !important; }}
     }}
 </style>
-<script>
-    // Desktop: Force sidebar open
-    if (window.innerWidth > 992) {{
-        const interval = setInterval(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-            if (control && sidebar && sidebar.classList.contains('collapsed')) {{
-                control.click();
-            }}
-        }}, 100);
-    }}
-</script>
 """, unsafe_allow_html=True)
 
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
@@ -520,6 +475,69 @@ with col1:
     st.markdown(f"<h1>{selected}</h1>", unsafe_allow_html=True)
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
+    
+    # ====================== MOBILE SIDEBAR TRIGGER (TOP LEFT ARROW - EXACTLY AS YOU WANTED) ======================
+st.markdown("""
+<!-- Mobile Sidebar Arrow Trigger + Overlay -->
+<div class="mobile-sidebar-arrow" id="mobileSidebarArrow">☰</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script>
+    const arrowBtn = document.getElementById('mobileSidebarArrow');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function updateArrowIcon() {
+        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+            arrowBtn.innerHTML = '×';
+            arrowBtn.style.fontSize = '36px';
+        } else {
+            arrowBtn.innerHTML = '☰';
+            arrowBtn.style.fontSize = '28px';
+        }
+    }
+
+    if (arrowBtn) {
+        updateArrowIcon();
+
+        arrowBtn.addEventListener('click', () => {
+            const tryToggle = () => {
+                const control = document.querySelector('button[data-testid="collapsedControl"]');
+                if (control) {
+                    control.click();
+                    setTimeout(updateArrowIcon, 350);
+                } else {
+                    setTimeout(tryToggle, 100);
+                }
+            };
+            tryToggle();
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            const tryClose = () => {
+                const control = document.querySelector('button[data-testid="collapsedControl"]');
+                const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+                if (control && sidebar && !sidebar.classList.contains('collapsed')) {
+                    control.click();
+                    setTimeout(updateArrowIcon, 350);
+                } else {
+                    setTimeout(tryClose, 100);
+                }
+            };
+            tryClose();
+        });
+    }
+
+    // Live update icon
+    const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+    if (sidebar) {
+        const observer = new MutationObserver(updateArrowIcon);
+        observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+    }
+</script>
+""", unsafe_allow_html=True)
 
 
 # ====================== ANNOUNCEMENT BANNER ======================
