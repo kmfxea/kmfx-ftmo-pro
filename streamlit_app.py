@@ -105,7 +105,7 @@ accent_hover = "#00cc88"
 accent_color = accent_primary
 
 if theme == "dark":
-    bg_color = "#0a0d14"
+    bg_color = "#000000"  # Pure black background (changed to pure black as requested)
     text_color = "#ffffff"  # Pure white text (all main text)
     secondary_text = "#e0e0e0"  # Light gray for small/caption
     glass_bg = "transparent"
@@ -114,7 +114,7 @@ if theme == "dark":
     input_border = "1px solid rgba(255, 255, 255, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"  # Glass/near-transparent in dark mode
+    dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
     dropdown_text = "#ffffff"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
@@ -122,14 +122,14 @@ if theme == "dark":
 else:
     bg_color = "#f5f8fa"
     text_color = "#000000"  # Pure black text (all main text)
-    secondary_text = "#333333"  # Dark gray for small/caption
+    secondary_text = "#333333"
     glass_bg = "transparent"
     glass_border = "1px solid rgba(0, 0, 0, 0.15)"
     input_bg = "rgba(0, 0, 0, 0.06)"
     input_border = "1px solid rgba(0, 0, 0, 0.25)"
     card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
     sidebar_bg = "transparent"
-    dropdown_popup_bg = "#ffffff"  # Solid white in light mode
+    dropdown_popup_bg = "#ffffff"
     dropdown_text = "#000000"
     dropdown_hover_bg = accent_primary
     dropdown_hover_text = "#000000"
@@ -142,14 +142,12 @@ st.markdown(f"""
     /* [Existing CSS unchanged - kept exactly as provided] */
     /* ... (your full CSS block here - no changes made) ... */
 
-    /* === ADDED FIX FOR TEXT COLOR (Dark: white, Light: black) === */
-    /* Main app background + global text color */
+    /* === PREVIOUS TEXT COLOR FIX (kept) === */
     .stApp {{
         background-color: {bg_color};
         color: {text_color} !important;
     }}
 
-    /* Force main content text (covers st.write, st.markdown, titles, etc.) */
     .main .block-container,
     .main [data-testid="stVerticalBlock"],
     .main p, .main h1, .main h2, .main h3, .main h4, .main h5, .main h6,
@@ -157,13 +155,11 @@ st.markdown(f"""
         color: {text_color} !important;
     }}
 
-    /* Sidebar background (transparent as you wanted) + text color */
     section[data-testid="stSidebar"] {{
         background-color: {sidebar_bg};
         color: {text_color} !important;
     }}
 
-    /* Force sidebar text (covers menu items, labels, etc.) */
     section[data-testid="stSidebar"] .stMarkdown,
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2,
@@ -172,12 +168,28 @@ st.markdown(f"""
         color: {text_color} !important;
     }}
 
-    /* Optional: make sure secondary/caption text uses your secondary variable if you use it elsewhere */
-    /* Example: small, caption, placeholder */
     .css-10trblm, .css-1cpxl61, [data-baseweb="typo-paragraphsmall"] {{
         color: {secondary_text} !important;
     }}
-    /* === END OF FIX === */
+    /* === END OF PREVIOUS FIX === */
+
+    /* === NEW FIX: Hide default Streamlit top header + make background uniform overall === */
+    /* Ito ang "top" na sinasabi mo – yung default Streamlit header bar na nagiging white sa dark mode */
+    /* Hide it completely para uniform na yung background (dark = pure black, light = same sa main bg) */
+    [data-testid="stHeader"] {{
+        display: none !important;
+    }}
+
+    /* Optional but recommended: hide footer din para fully clean */
+    [data-testid="stFooter"] {{
+        display: none !important;
+    }}
+
+    /* Adjust top padding ng main content pag nawala yung header (para hindi masyadong dikit sa top) */
+    .block-container {{
+        padding-top: 2rem !important;  /* Pwede mo baguhin to 1rem or 3rem depende sa gusto mo */
+    }}
+    /* === END OF NEW FIX === */
 </style>
 
 <!-- Custom Mobile Controls (Trigger, Overlay, Close) -->
