@@ -96,20 +96,21 @@ def create_default_users():
         st.error(f"Error creating default users: {e}")
 
 create_default_users()
-# ====================== FINAL ENHANCED THEME + FULL SIDEBAR CSS/JS BLOCK (2026 PRO) ======================
-# Integrated: Premium glassmorphism, high-contrast text (white in dark, deep black in light),
-# Consistent cards/inputs/buttons, hover effects, full sidebar perfection.
+# ====================== FINAL THEME + FULL SIDEBAR CSS/JS BLOCK (FIXED NameError) ======================
+# Added back: accent_color = accent_primary (for compatibility with your existing login/header markdowns)
+# Everything else enhanced: glass cards, inputs, buttons, perfect contrast, theme-aware trigger/close btn
 
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
 
-# Core accents
+# Core accents (kept your signature mint green)
 accent_primary = "#00ffaa"
 accent_hover = "#00cc88"
 accent_glow = "#00ffaa40"
 accent_secondary = "#ffd700"
+accent_color = accent_primary  # ← FIXED: Added back for your existing {accent_color} uses
 
 if theme == "dark":
     bg_color = "#0a0d14"
@@ -123,7 +124,7 @@ if theme == "dark":
     text_muted = "#aaaaaa"
     
     input_bg = "rgba(30, 35, 45, 0.6)"
-    trigger_bg = "rgba(255,255,255,0.15)"  # Subtle glass in dark
+    trigger_bg = "rgba(255,255,255,0.15)"
 else:
     bg_color = "#f8fbff"
     surface_color = "#ffffff"
@@ -131,14 +132,13 @@ else:
     sidebar_bg = "rgba(255, 255, 255, 0.95)"
     border_color = "rgba(0, 0, 0, 0.12)"
     
-    text_primary = "#0f172a"   # Deep slate for perfect readability
+    text_primary = "#0f172a"
     text_secondary = "#334155"
     text_muted = "#64748b"
     
     input_bg = "rgba(240, 245, 255, 0.7)"
-    trigger_bg = "rgba(0,0,0,0.08)"  # Subtle dark glass in light
+    trigger_bg = "rgba(0,0,0,0.08)"
 
-# Common
 glass_blur = "blur(20px)"
 card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
 card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
@@ -161,7 +161,7 @@ st.markdown(f"""
         color: {text_muted} !important;
     }}
     
-    /* Premium Glass Cards (use class='glass-card' in your markdowns) */
+    /* Premium Glass Cards */
     .glass-card {{
         background: {card_bg};
         backdrop-filter: {glass_blur};
@@ -216,7 +216,7 @@ st.markdown(f"""
         box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }}
     
-    /* HIDE NATIVE COLLAPSE ARROW (2026 compatible) */
+    /* HIDE NATIVE COLLAPSE ARROW */
     [data-testid="collapsedControl"],
     section[data-testid="stSidebar"] > div:first-child > div:first-child > button,
     section[data-testid="stSidebar"] > div:first-child > div:first-child {{
@@ -230,7 +230,7 @@ st.markdown(f"""
         margin: 0 !important;
     }}
     
-    /* Desktop & Tablet: Fixed open */
+    /* Desktop & Tablet */
     @media (min-width: 769px) {{
         section[data-testid="stSidebar"] {{
             transform: translateX(0) !important;
@@ -244,7 +244,7 @@ st.markdown(f"""
         }}
     }}
     
-    /* Mobile: Slide-in */
+    /* Mobile */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             position: fixed !important;
