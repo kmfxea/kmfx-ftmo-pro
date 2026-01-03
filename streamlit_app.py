@@ -43,13 +43,13 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
+# CHANGE THIS BACK TO "expanded" FOR DESKTOP NATIVE FEEL
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
     layout="centered",
-    initial_sidebar_state="collapsed"  # ← CRITICAL FIX: Let custom JS fully control state
+    initial_sidebar_state="expanded"  # Desktop default open, native arrow works
 )
-
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
 folders = [
     "uploaded_files",
@@ -135,13 +135,7 @@ glass_blur = "blur(20px)"
 card_shadow = "0 8px 32px rgba(0,0,0,0.15)"
 card_shadow_hover = "0 16px 50px rgba(0,255,170,0.25)"
 
-# CHANGE THIS BACK TO "expanded" FOR DESKTOP NATIVE FEEL
-st.set_page_config(
-    page_title="KMFX FTMO Pro Manager",
-    page_icon="🚀",
-    layout="centered",
-    initial_sidebar_state="expanded"  # Desktop default open, native arrow works
-)
+
 
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -206,23 +200,22 @@ st.markdown(f"""
         box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }}
     
-    /* HIDE NATIVE ARROW ONLY ON MOBILE */
+    /* Hide native arrow ONLY on mobile */
     @media (max-width: 768px) {{
         [data-testid="collapsedControl"] {{
             display: none !important;
         }}
     }}
     
-    /* Desktop: Native Streamlit behavior (arrow visible, collapsible) */
+    /* Desktop: Native Streamlit push/collapse */
     @media (min-width: 769px) {{
-        /* Streamlit handles push/collapse natively */
         .main .block-container {{
             padding-left: 3rem !important;
             padding-top: 2rem !important;
         }}
     }}
     
-    /* Mobile: Wider slide-in (90% width, max 380px) */
+    /* Mobile: Wider slide-in */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             position: fixed !important;
@@ -230,7 +223,7 @@ st.markdown(f"""
             left: 0;
             height: 100vh !important;
             width: 90% !important;
-            max-width: 380px !important;  /* WIDER as requested */
+            max-width: 380px !important;
             transform: translateX(-100%);
             box-shadow: 12px 0 40px rgba(0,0,0,0.6);
         }}
@@ -243,7 +236,7 @@ st.markdown(f"""
         }}
     }}
     
-    /* Mobile Custom Trigger */
+    /* Mobile Trigger */
     .mobile-sidebar-trigger {{
         display: none;
         position: fixed;
@@ -311,7 +304,7 @@ st.markdown(f"""
         .mobile-sidebar-trigger {{ display: flex; }}
     }}
     
-    /* Premium Menu Items */
+    /* Premium Menu */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
@@ -340,7 +333,7 @@ st.markdown(f"""
     section[data-testid="stSidebar"] * {{ color: {text_primary} !important; }}
 </style>
 
-<!-- Custom Mobile Controls -->
+<!-- Mobile Controls -->
 <div class="mobile-sidebar-trigger"><span>☰</span></div>
 <div class="sidebar-overlay"></div>
 <div class="sidebar-close-btn"><span>×</span></div>
@@ -381,7 +374,7 @@ st.markdown(f"""
         if (isMobile) {{
             elements = getElements();
             const isOpen = elements.sidebar && elements.sidebar.getAttribute('aria-expanded') === 'true';
-            if (isOpen) toggleSidebar();  // Start closed on mobile
+            if (isOpen) toggleSidebar();  // Force closed on mobile load
             updateUI();
         }}
     }};
@@ -401,8 +394,8 @@ st.markdown(f"""
 
             enforceMobile();
         }}
-        // Desktop: Do nothing - native arrow handles everything
-    };
+        // Desktop: Native arrow handles everything — no JS interference
+    }};
 
     const waitInterval = setInterval(() => {{
         elements = getElements();
