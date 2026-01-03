@@ -106,29 +106,30 @@ if "theme" not in st.session_state:
 theme = st.session_state.theme
 
 accent_primary = "#00ffaa"
-accent_hover = "#00cc88"
+accent_hover   = "#00cc88"
+accent_color   = accent_primary  # Fixed NameError + consistent accent
 
 if theme == "dark":
-    bg_color = "#0a0d14"
-    text_color = "#ffffff"
-    secondary_text = "#e0e0e0"
-    glass_bg = "transparent"
-    glass_border = "1px solid rgba(255, 255, 255, 0.18)"
-    input_bg = "rgba(255, 255, 255, 0.06)"
-    input_border = "1px solid rgba(255, 255, 255, 0.25)"
-    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
-    sidebar_bg = "rgba(10, 13, 20, 0.85)"
+    bg_color         = "#0a0d14"          # Deep dark background
+    text_color       = "#ffffff"          # White text (as requested)
+    secondary_text   = "#e0e0e0"          # Light gray for secondary
+    glass_bg         = "transparent"
+    glass_border     = "1px solid rgba(255, 255, 255, 0.18)"
+    input_bg         = "rgba(255, 255, 255, 0.06)"
+    input_border     = "1px solid rgba(255, 255, 255, 0.25)"
+    card_shadow      = "0 12px 40px rgba(0, 0, 0, 0.6)"
+    sidebar_bg       = "rgba(10, 13, 20, 0.85)"
     dropdown_popup_bg = "rgba(10, 13, 20, 0.92)"
 else:
-    bg_color = "#f5f8fa"
-    text_color = "#000000"
-    secondary_text = "#333333"
-    glass_bg = "transparent"
-    glass_border = "1px solid rgba(0, 0, 0, 0.15)"
-    input_bg = "rgba(0, 0, 0, 0.06)"
-    input_border = "1px solid rgba(0, 0, 0, 0.25)"
-    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
-    sidebar_bg = "rgba(255, 255, 255, 0.85)"
+    bg_color         = "#f5f8fa"          # Light background
+    text_color       = "#000000"          # Black text (as requested)
+    secondary_text   = "#333333"          # Dark gray for secondary
+    glass_bg         = "transparent"
+    glass_border     = "1px solid rgba(0, 0, 0, 0.15)"
+    input_bg         = "rgba(0, 0, 0, 0.06)"
+    input_border     = "1px solid rgba(0, 0, 0, 0.25)"
+    card_shadow      = "0 12px 40px rgba(0, 0, 0, 0.08)"
+    sidebar_bg       = "rgba(255, 255, 255, 0.85)"
     dropdown_popup_bg = "#ffffff"
 
 st.markdown(f"""
