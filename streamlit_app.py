@@ -43,12 +43,11 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
-# ====================== PAGE CONFIG - SIDEBAR EXPANDED BY DEFAULT ======================
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
-    layout="centered",
-    initial_sidebar_state="expanded"  # Sidebar open by default on load/login
+    layout="centered"
+    # Removed initial_sidebar_state — force open with JS for reliability on Cloud/mobile
 )
 
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
@@ -234,91 +233,72 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== UNIVERSAL BALLOON BUTTON (ALL DEVICES) - BOTTOM RIGHT (DESKTOP) / BOTTOM CENTER (MOBILE) ==================== */
-    /* Hide default arrows */
-    button[data-testid="collapsedControl"],
-    button[kind="headerNoPadding"],
-    button[title="View sidebar"] {{
-        display: none !important;
-    }}
-
-    /* Balloon button */
-    .universal-balloon {{
-        position: fixed !important;
-        z-index: 9999 !important;
-        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        box-shadow: 0 8px 30px rgba(0, 255, 170, 0.6) !important;
-        transition: all 0.3s ease !important;
-    }}
-    .universal-balloon:hover {{
-        transform: scale(1.15) !important;
-        box-shadow: 0 12px 40px rgba(0, 255, 170, 0.8) !important;
-    }}
-    
-    /* Pop animation */
-    .universal-balloon:active {{
-        animation: balloon-pop 0.6s ease !important;
-    }}
-    @keyframes balloon-pop {{
-        0% {{ transform: scale(1); }}
-        50% {{ transform: scale(1.3); }}
-        100% {{ transform: scale(1); }}
-    }}
-    
-    /* Icon */
-    .universal-balloon .icon {{
-        position: relative;
-        width: 36px;
-        height: 28px;
-    }}
-    .universal-balloon .icon span {{
-        display: block;
-        width: 100%;
-        height: 5px;
-        background: #000;
-        border-radius: 3px;
-        position: absolute;
-        transition: all 0.3s ease;
-    }}
-    .universal-balloon .icon span:nth-child(1) {{ top: 0; }}
-    .universal-balloon .icon span:nth-child(2) {{ top: 11px; }}
-    .universal-balloon .icon span:nth-child(3) {{ top: 22px; }}
-    
-    .universal-balloon.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 11px; }}
-    .universal-balloon.open .icon span:nth-child(2) {{ opacity: 0; }}
-    .universal-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
-    
-    /* Position & size */
-    .universal-balloon {{
-        bottom: 30px !important;
-        right: 30px !important; /* Bottom right on desktop/laptop/tablet */
-        width: 70px !important;
-        height: 70px !important;
-    }}
-    
-    @media (max-width: 768px) {{
-        .universal-balloon {{
+    /* ==================== MOBILE/TABLET ONLY: BALLOON BUTTON IN BOTTOM MIDDLE ==================== */
+    @media (max-width: 992px) {{
+        /* Hide default arrows on mobile/tablet */
+        button[data-testid="collapsedControl"],
+        button[kind="headerNoPadding"],
+        button[title="View sidebar"] {{
+            display: none !important;
+        }}
+        
+        /* Balloon button - bottom middle */
+        .mobile-balloon {{
+            position: fixed !important;
             bottom: 30px !important;
-            right: auto !important;
             left: 50% !important;
-            transform: translateX(-50%) !important; /* Bottom center on mobile */
+            transform: translateX(-50%) !important;
+            z-index: 9999 !important;
+            width: 70px !important;
+            height: 70px !important;
+            background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            box-shadow: 0 8px 30px rgba(0, 255, 170, 0.6) !important;
+            transition: all 0.3s ease !important;
         }}
-    }}
-    
-    @media (max-width: 480px) {{
-        .universal-balloon {{
-            width: 65px !important;
-            height: 65px !important;
+        .mobile-balloon:hover {{
+            transform: translateX(-50%) scale(1.15) !important;
+            box-shadow: 0 12px 40px rgba(0, 255, 170, 0.8) !important;
         }}
-    }}
-
-    /* Mobile sidebar */
-    @media (max-width: 768px) {{
+        
+        /* Pop animation */
+        .mobile-balloon:active {{
+            animation: pop 0.6s ease !important;
+        }}
+        @keyframes pop {{
+            0% {{ transform: translateX(-50%) scale(1); }}
+            50% {{ transform: translateX(-50%) scale(1.3); }}
+            100% {{ transform: translateX(-50%) scale(1); }}
+        }}
+        
+        /* Hamburger/X */
+        .mobile-balloon .icon {{
+            width: 36px;
+            height: 28px;
+            position: relative;
+        }}
+        .mobile-balloon .icon span {{
+            display: block;
+            width: 100%;
+            height: 5px;
+            background: #000;
+            border-radius: 3px;
+            position: absolute;
+            transition: all 0.3s ease;
+        }}
+        .mobile-balloon .icon span:nth-child(1) {{ top: 0; }}
+        .mobile-balloon .icon span:nth-child(2) {{ top: 11px; }}
+        .mobile-balloon .icon span:nth-child(3) {{ top: 22px; }}
+        
+        .mobile-balloon.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 11px; }}
+        .mobile-balloon.open .icon span:nth-child(2) {{ opacity: 0; }}
+        .mobile-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
+        
+        /* Sidebar full when expanded */
         section[data-testid="stSidebar"] {{
             width: 100% !important;
             min-width: 100% !important;
@@ -328,14 +308,24 @@ st.markdown(f"""
             left: 0 !important;
             z-index: 9998 !important;
         }}
-        section[data-testid="stSidebar"].collapsed {{ width: 0 !important; overflow: hidden !important; }}
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{ margin-left: 0 !important; width: 100% !important; }}
+        
+        /* Collapsed: hidden */
+        section[data-testid="stSidebar"].collapsed {{
+            width: 0 !important;
+            overflow: hidden !important;
+        }}
+        
+        /* Content full when collapsed */
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
+            margin-left: 0 !important;
+            width: 100% !important;
+        }}
     }}
 
-    /* Desktop collapse */
+    /* Desktop/Laptop: normal collapse (no balloon) */
     section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 0 !important;
-        width: 100% !important;
+        margin-left: 80px !important;
+        width: calc(100% - 80px) !important;
     }}
 
     /* Other optimizations */
@@ -366,11 +356,13 @@ st.markdown(f"""
 </style>
 
 <script>
-    // Universal Balloon Button (All Devices) + Pop Animation + Toggle
+    // Mobile/Tablet Balloon Button + Force Sidebar Open on Load + Toggle
     document.addEventListener('DOMContentLoaded', function() {{
-        // Create balloon
+        if (window.innerWidth > 992) return; // Mobile/Tablet only
+        
+        // Create balloon button
         const balloon = document.createElement('div');
-        balloon.className = 'universal-balloon';
+        balloon.className = 'mobile-balloon';
         balloon.innerHTML = `
             <div class="icon">
                 <span></span>
@@ -382,10 +374,17 @@ st.markdown(f"""
         
         const icon = balloon.querySelector('.icon');
         
-        // Wait for sidebar button to appear
+        // Wait for sidebar button
         const observer = new MutationObserver(() => {{
             const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
             if (sidebarButton) {{
+                // Force open on load if collapsed
+                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+                    sidebarButton.click();
+                    icon.classList.add('open');
+                }}
+                
+                // Click to toggle
                 balloon.addEventListener('click', function() {{
                     sidebarButton.click();
                     balloon.classList.add('pop');
@@ -393,17 +392,18 @@ st.markdown(f"""
                     icon.classList.toggle('open');
                 }});
                 
-                // Initial state sync
-                if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                    icon.classList.remove('open');
-                }} else {{
-                    icon.classList.add('open');
-                }}
-                
-                observer.disconnect(); // Stop observing once found
+                observer.disconnect();
             }}
         }});
         observer.observe(document.body, {{ childList: true, subtree: true }});
+    }});
+    
+    // Force sidebar open on load for desktop (backup)
+    document.addEventListener('DOMContentLoaded', function() {{
+        const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
+        if (sidebarButton && document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
+            sidebarButton.click();
+        }}
     }});
 </script>
 """, unsafe_allow_html=True)
