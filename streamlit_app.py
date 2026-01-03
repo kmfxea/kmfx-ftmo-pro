@@ -227,69 +227,96 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== FINAL: ANIMATED BALLOON POPUP BUTTON IN BOTTOM CENTER (MOBILE ONLY) ==================== */
+    /* ==================== UNIVERSAL BALLOON BUTTON (ALL DEVICES: MOBILE, TABLET, LAPTOP, DESKTOP) ==================== */
+    /* Hide default arrows */
+    button[data-testid="collapsedControl"],
+    button[kind="headerNoPadding"],
+    button[title="View sidebar"] {{
+        display: none !important;
+    }}
+
+    /* Balloon button - appears on ALL devices */
+    .universal-balloon {{
+        position: fixed !important;
+        z-index: 9999 !important;
+        background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        box-shadow: 0 8px 30px rgba(0, 255, 170, 0.6) !important;
+        transition: all 0.3s ease !important;
+    }}
+    .universal-balloon:hover {{
+        transform: scale(1.15) !important;
+        box-shadow: 0 12px 40px rgba(0, 255, 170, 0.8) !important;
+    }}
+    
+    /* Pop animation on click */
+    .universal-balloon:active {{
+        animation: balloon-pop 0.6s ease !important;
+    }}
+    @keyframes balloon-pop {{
+        0% {{ transform: scale(1); }}
+        50% {{ transform: scale(1.3); }}
+        100% {{ transform: scale(1); }}
+    }}
+    
+    /* Hamburger/X icon */
+    .universal-balloon .icon {{
+        position: relative;
+    }}
+    .universal-balloon .icon span {{
+        display: block;
+        width: 100%;
+        height: 5px;
+        background: #000;
+        border-radius: 3px;
+        position: absolute;
+        transition: all 0.3s ease;
+    }}
+    .universal-balloon .icon span:nth-child(1) {{ top: 0; }}
+    .universal-balloon .icon span:nth-child(2) {{ top: 11px; }}
+    .universal-balloon .icon span:nth-child(3) {{ top: 22px; }}
+    
+    .universal-balloon.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 11px; }}
+    .universal-balloon.open .icon span:nth-child(2) {{ opacity: 0; }}
+    .universal-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
+    
+    /* Position & size - responsive */
+    .universal-balloon {{
+        bottom: 30px !important;
+        right: 30px !important; /* Bottom right on desktop/laptop/tablet */
+        width: 70px !important;
+        height: 70px !important;
+    }}
+    .universal-balloon .icon {{
+        width: 36px;
+        height: 28px;
+    }}
+    
     @media (max-width: 768px) {{
-        /* Hide default arrows */
-        button[data-testid="collapsedControl"],
-        button[kind="headerNoPadding"],
-        button[title="View sidebar"] {{
-            display: none !important;
-        }}
-        
-        /* Balloon popup button - bottom center, animated bounce */
-        .balloon-toggle {{
-            position: fixed !important;
+        .universal-balloon {{
             bottom: 30px !important;
             left: 50% !important;
-            transform: translateX(-50%) !important;
-            z-index: 9999 !important;
+            right: auto !important;
+            transform: translateX(-50%) !important; /* Bottom center on mobile */
             width: 70px !important;
             height: 70px !important;
-            background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            box-shadow: 0 8px 25px rgba(0, 255, 170, 0.6) !important;
-            animation: balloon-bounce 2s infinite ease-in-out !important;
-            transition: all 0.3s ease !important;
         }}
-        .balloon-toggle:hover {{
-            transform: translateX(-50%) scale(1.15) !important;
-            box-shadow: 0 12px 35px rgba(0, 255, 170, 0.8) !important;
+    }}
+    
+    @media (max-width: 480px) {{
+        .universal-balloon {{
+            width: 65px !important;
+            height: 65px !important;
         }}
-        
-        @keyframes balloon-bounce {{
-            0%, 100% {{ transform: translateX(-50%) translateY(0); }}
-            50% {{ transform: translateX(-50%) translateY(-15px); }}
-        }}
-        
-        /* Menu icon inside balloon */
-        .balloon-toggle .menu-icon {{
-            width: 36px;
-            height: 28px;
-            position: relative;
-        }}
-        .balloon-toggle .menu-icon span {{
-            display: block;
-            width: 100%;
-            height: 5px;
-            background: #000;
-            border-radius: 3px;
-            position: absolute;
-            transition: all 0.3s ease;
-        }}
-        .balloon-toggle .menu-icon span:nth-child(1) {{ top: 0; }}
-        .balloon-toggle .menu-icon span:nth-child(2) {{ top: 11px; }}
-        .balloon-toggle .menu-icon span:nth-child(3) {{ top: 22px; }}
-        
-        /* X when open */
-        .balloon-toggle.open .menu-icon span:nth-child(1) {{ transform: rotate(45deg); top: 11px; }}
-        .balloon-toggle.open .menu-icon span:nth-child(2) {{ opacity: 0; }}
-        .balloon-toggle.open .menu-icon span:nth-child(3) {{ transform: rotate(-45deg); top: 11px; }}
-        
-        /* Sidebar full when expanded */
+        .universal-balloon .icon span {{ height: 4.5px; }}
+    }}
+
+    /* Sidebar behavior */
+    @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             width: 100% !important;
             min-width: 100% !important;
@@ -299,27 +326,17 @@ st.markdown(f"""
             left: 0 !important;
             z-index: 9998 !important;
         }}
-        
-        /* Collapsed: hidden */
-        section[data-testid="stSidebar"].collapsed {{
-            width: 0 !important;
-            overflow: hidden !important;
-        }}
-        
-        /* Content full when collapsed */
-        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-            margin-left: 0 !important;
-            width: 100% !important;
-        }}
+        section[data-testid="stSidebar"].collapsed {{ width: 0 !important; overflow: hidden !important; }}
+        section[data-testid="stSidebar"].collapsed ~ .main .block-container {{ margin-left: 0 !important; width: 100% !important; }}
     }}
 
-    /* Desktop: normal behavior */
+    /* Desktop collapse */
     section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
-        margin-left: 80px !important;
-        width: calc(100% - 80px) !important;
+        margin-left: 0 !important;
+        width: 100% !important;
     }}
 
-    /* Other mobile optimizations */
+    /* Other optimizations */
     @media (max-width: 768px) {{
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
@@ -347,15 +364,13 @@ st.markdown(f"""
 </style>
 
 <script>
-    // Animated Balloon Popup Button in Bottom Center (Mobile Only)
+    // Universal Balloon Button (All Devices) + Pop Animation + Toggle
     document.addEventListener('DOMContentLoaded', function() {{
-        if (window.innerWidth > 768) return; // Mobile only
-        
         // Create balloon button
         const balloon = document.createElement('div');
-        balloon.className = 'balloon-toggle';
+        balloon.className = 'universal-balloon';
         balloon.innerHTML = `
-            <div class="menu-icon">
+            <div class="icon">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -363,22 +378,24 @@ st.markdown(f"""
         `;
         document.body.appendChild(balloon);
         
-        const menuIcon = balloon.querySelector('.menu-icon');
+        const icon = balloon.querySelector('.icon');
         const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
         if (!sidebarButton) return;
         
-        // Click to toggle
+        // Click to toggle + pop
         balloon.addEventListener('click', function() {{
             sidebarButton.click();
-            menuIcon.classList.toggle('open');
+            balloon.classList.add('pop');
+            setTimeout(() => balloon.classList.remove('pop'), 600);
+            icon.classList.toggle('open');
         }});
         
-        // Sync state
+        // Sync icon state
         const observer = new MutationObserver(() => {{
             if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                menuIcon.classList.remove('open');
+                icon.classList.remove('open');
             }} else {{
-                menuIcon.classList.add('open');
+                icon.classList.add('open');
             }}
         }});
         observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
