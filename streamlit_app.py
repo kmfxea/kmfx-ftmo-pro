@@ -43,11 +43,12 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
+# ====================== PAGE CONFIG - SIDEBAR EXPANDED BY DEFAULT ======================
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
     layout="centered",
-    initial_sidebar_state="expanded"  # Sidebar open by default pag login/load
+    initial_sidebar_state="expanded"  # Sidebar open by default on load/login
 )
 
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
@@ -143,6 +144,7 @@ else:
     dropdown_hover_text = "#000000"
     dropdown_placeholder = "#777777"
 
+# ====================== FINAL PREMIUM THEME - FULLY FIXED SIDEBAR ARROW IN HEADER (ALL DEVICES) ======================
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -219,20 +221,22 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* ==================== FIXED: CUSTOM ARROW BUTTON IN HEADER (ALL DEVICES) - REMOVED DEFAULT ARROW ==================== */
-    /* Hide default collapse arrow completely */
-    button[data-testid="collapsedControl"] {{
+    /* ==================== FULL FIX: CUSTOM ARROW BUTTON IN HEADER (ALL DEVICES) - NO DEFAULT ARROW ==================== */
+    /* Hide default collapse arrow & hamburger completely */
+    button[data-testid="collapsedControl"],
+    button[kind="headerNoPadding"],
+    button[title="View sidebar"] {{
         display: none !important;
     }}
 
-    /* Custom arrow button container - fixed top-left in header area */
-    .custom-sidebar-toggle {{
+    /* Custom arrow button - fixed in header (top-left) */
+    .custom-header-arrow {{
         position: fixed !important;
         top: 12px !important;
         left: 12px !important;
         z-index: 9999 !important;
-        width: 48px !important;
-        height: 48px !important;
+        width: 50px !important;
+        height: 50px !important;
         background: rgba(0, 255, 170, 0.15) !important;
         border-radius: 50% !important;
         display: flex !important;
@@ -242,30 +246,31 @@ st.markdown(f"""
         transition: all 0.3s ease !important;
         box-shadow: 0 4px 15px rgba(0, 255, 170, 0.3) !important;
     }}
-    .custom-sidebar-toggle:hover {{
+    .custom-header-arrow:hover {{
         background: rgba(0, 255, 170, 0.3) !important;
         transform: scale(1.1) !important;
     }}
 
-    /* Arrow icon color - white in dark mode, black in light mode */
-    .custom-sidebar-toggle svg {{
-        width: 28px !important;
-        height: 28px !important;
+    /* Arrow icon - white in dark mode, black in light mode */
+    .custom-header-arrow svg {{
+        width: 32px !important;
+        height: 32px !important;
         stroke: {'#ffffff' if theme == 'dark' else '#000000'} !important;
         fill: none !important;
+        stroke-width: 3 !important;
     }}
 
     /* Mobile adjustments */
     @media (max-width: 768px) {{
-        .custom-sidebar-toggle {{
+        .custom-header-arrow {{
             top: 10px !important;
             left: 10px !important;
-            width: 45px !important;
-            height: 45px !important;
+            width: 48px !important;
+            height: 48px !important;
         }}
-        .custom-sidebar-toggle svg {{
-            width: 26px !important;
-            height: 26px !important;
+        .custom-header-arrow svg {{
+            width: 30px !important;
+            height: 30px !important;
         }}
         
         /* Sidebar full when expanded */
@@ -292,41 +297,67 @@ st.markdown(f"""
         }}
     }}
 
-    /* Desktop collapse space (no arrow needed, but content shift) */
+    /* Desktop: content full when collapsed (no margin) */
     section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
         margin-left: 0 !important;
         width: 100% !important;
+    }}
+
+    /* Other mobile optimizations (unchanged) */
+    @media (max-width: 768px) {{
+        .block-container {{ padding: 1rem !important; }}
+        h1 {{ font-size: 2rem !important; }}
+        h2 {{ font-size: 1.7rem !important; }}
+        h3 {{ font-size: 1.4rem !important; }}
+        .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
+        .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
+        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
+        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
+        .flip-card {{ width: 100% !important; max-width: 380px !important; height: 320px !important; }}
+        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem !important; height: 320px !important; }}
+        .flip-card-front h2:first-child {{ font-size: 2.4rem !important; }}
+        .flip-card-front h1 {{ font-size: 1.8rem !important; }}
+        .flip-card-front h2:nth-of-type(2) {{ font-size: 2.4rem !important; }}
+        .flip-card-back h2 {{ font-size: 1.5rem !important; }}
+    }}
+
+    @media (max-width: 480px) {{
+        h1 {{ font-size: 1.8rem !important; }}
+        h2 {{ font-size: 1.5rem !important; }}
+        .glass-card {{ padding: 1.2rem !important; }}
+        .block-container {{ padding: 0.8rem !important; }}
+        .stButton > button {{ font-size: 1rem !important; }}
     }}
 </style>
 
 <script>
     // Custom Header Arrow Button + Toggle (all devices)
     document.addEventListener('DOMContentLoaded', function() {{
-        // Create custom toggle button
-        const toggleBtn = document.createElement('div');
-        toggleBtn.className = 'custom-sidebar-toggle';
-        toggleBtn.innerHTML = `
+        // Create custom arrow button
+        const arrowBtn = document.createElement('div');
+        arrowBtn.className = 'custom-header-arrow';
+        arrowBtn.innerHTML = `
             <svg viewBox="0 0 24 24">
                 <path d="M15 18l-6-6 6-6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         `;
-        document.body.appendChild(toggleBtn);
+        document.body.appendChild(arrowBtn);
         
         const sidebarButton = document.querySelector('button[data-testid="collapsedControl"]');
         if (!sidebarButton) return;
         
         // Click to toggle
-        toggleBtn.addEventListener('click', function() {{
+        arrowBtn.addEventListener('click', function() {{
             sidebarButton.click();
         }});
         
-        // Rotate arrow based on state (180deg when open)
+        // Rotate arrow (right when collapsed, left when expanded)
         const observer = new MutationObserver(() => {{
-            const svgPath = toggleBtn.querySelector('svg path');
+            const path = arrowBtn.querySelector('svg path');
             if (document.querySelector('section[data-testid="stSidebar"].collapsed')) {{
-                svgPath.setAttribute('d', 'M15 18l-6-6 6-6'); // Right arrow (collapsed)
+                path.setAttribute('d', 'M15 18l-6-6 6-6'); // Right arrow
             }} else {{
-                svgPath.setAttribute('d', 'M9 18l6-6-6-6'); // Left arrow (expanded)
+                path.setAttribute('d', 'M9 18l6-6-6-6'); // Left arrow
             }}
         }});
         observer.observe(document.querySelector('section[data-testid="stSidebar"]'), {{ attributes: true }});
