@@ -230,7 +230,7 @@ st.markdown(f"""
             padding-left: 2rem !important;
         }}
     }}
-    /* Mobile: Top-left hamburger + smooth left slide + overlay + close button */
+    /* Mobile: Top-left 3-line trigger + smooth left slide + overlay + close button */
     @media (max-width: 992px) {{
         /* Sidebar smooth slide from left */
         section[data-testid="stSidebar"] {{
@@ -250,7 +250,7 @@ st.markdown(f"""
             transform: translateX(0);
         }}
 
-        /* Top-left Hamburger Trigger (3 lines) */
+        /* Top-left 3-line Trigger */
         .mobile-sidebar-trigger {{
             position: fixed;
             top: 20px;
@@ -275,7 +275,7 @@ st.markdown(f"""
             box-shadow: 0 10px 30px rgba(0, 255, 170, 0.7);
         }}
 
-        /* Dark Overlay when sidebar open */
+        /* Dark Overlay when open */
         .sidebar-overlay {{
             display: none;
             position: fixed;
@@ -327,6 +327,8 @@ st.markdown(f"""
         h3 {{ font-size: 1.4rem !important; }}
         .glass-card {{ padding: 1.5rem !important; margin: 1rem 0 !important; border-radius: 20px !important; }}
         .stButton > button {{ padding: 1rem !important; font-size: 1.1rem !important; width: 100% !important; }}
+        div[row-widget] > div, .stColumns > div {{ flex: 1 1 100% !important; max-width: 100% !important; margin-bottom: 1rem !important; }}
+        .stPlotlyChart, .stDataFrame, .stTable {{ width: 100% !important; }}
     }}
     @media (max-width: 480px) {{
         h1 {{ font-size: 1.8rem !important; }}
@@ -340,7 +342,7 @@ st.markdown(f"""
 <script>
     // Desktop: Force sidebar open
     if (window.innerWidth > 992) {{
-        const interval = setInterval(() => {{
+        const desktopInterval = setInterval(() => {{
             const control = document.querySelector('button[data-testid="collapsedControl"]');
             const sidebar = document.querySelector('section[data-testid="stSidebar"]');
             if (control && sidebar && sidebar.classList.contains('collapsed')) {{
@@ -349,7 +351,7 @@ st.markdown(f"""
         }}, 100);
     }}
 
-    // Mobile: Force sidebar CLOSED on load (prevents always open bug)
+    // Mobile: Force sidebar CLOSED on load (fix always open)
     if (window.innerWidth <= 992) {{
         const mobileInterval = setInterval(() => {{
             const control = document.querySelector('button[data-testid="collapsedControl"]');
@@ -539,7 +541,7 @@ with col1:
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
     
-    # ====================== MOBILE SIDEBAR TRIGGER (TOP LEFT 3-LINE + OVERLAY + CLOSE BUTTON) ======================
+    # ====================== MOBILE SIDEBAR CONTROLS (TOP LEFT 3-LINE + SMOOTH OPEN/CLOSE) ======================
 st.markdown("""
 <!-- Mobile Sidebar Controls -->
 <div class="mobile-sidebar-trigger">☰</div>
@@ -547,7 +549,6 @@ st.markdown("""
 <div class="sidebar-close-btn">×</div>
 
 <script>
-    // Robust click function
     function toggleSidebar() {
         const tryClick = () => {
             const btn = document.querySelector('button[data-testid="collapsedControl"]');
@@ -560,12 +561,12 @@ st.markdown("""
         tryClick();
     }
 
-    // Hamburger trigger
+    // 3-line button toggle
     const trigger = document.querySelector('.mobile-sidebar-trigger');
     if (trigger) {
         trigger.addEventListener('click', toggleSidebar);
         
-        // Change icon ☰ → × when open
+        // Icon change ☰ → ×
         const observer = new MutationObserver(() => {
             const sidebar = document.querySelector('section[data-testid="stSidebar"]');
             if (sidebar && !sidebar.classList.contains('collapsed')) {
@@ -576,10 +577,12 @@ st.markdown("""
                 trigger.style.fontSize = '28px';
             }
         });
-        observer.observe(document.querySelector('section[data-testid="stSidebar"]'), { attributes: true, attributeFilter: ['class'] });
-        
-        // Initial icon
         const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar) {
+            observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+        }
+        
+        // Initial state
         if (sidebar && !sidebar.classList.contains('collapsed')) {
             trigger.innerHTML = '×';
             trigger.style.fontSize = '36px';
