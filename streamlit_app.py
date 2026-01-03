@@ -232,97 +232,86 @@ st.markdown(f"""
         }}
     }}
 
-    /* Mobile ONLY */
+    /* Mobile: Toggle button BELOW welcome card (centered middle) */
     @media (max-width: 992px) {{
-        /* Custom balloon button - moves left ↔ right */
-        .mobile-balloon {{
+        .mobile-sidebar-toggle {{
             position: fixed !important;
-            top: 20px !important;
-            left: 20px !important;
+            bottom: 100px !important; /* Adjust 80-120px para exact below welcome card */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             z-index: 9999 !important;
-            width: 60px !important;
-            height: 60px !important;
+            width: 70px !important;
+            height: 70px !important;
             background: linear-gradient(135deg, {accent_primary}, {accent_hover}) !important;
-            border-radius: 16px !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border-radius: 50% !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             cursor: pointer !important;
-            box-shadow: 0 8px 30px rgba(0, 255, 170, 0.6) !important;
+            box-shadow: 0 10px 40px rgba(0, 255, 170, 0.8) !important;
+            animation: floating-pulse 3s infinite ease-in-out !important;
             transition: all 0.4s ease !important;
         }}
-        .mobile-balloon:hover {{
-            transform: scale(1.1) !important;
-            box-shadow: 0 12px 40px rgba(0, 255, 170, 0.8) !important;
+        @keyframes floating-pulse {{
+            0% {{ transform: translateX(-50%) translateY(0) scale(1); box-shadow: 0 10px 40px rgba(0, 255, 170, 0.8); }}
+            50% {{ transform: translateX(-50%) translateY(-10px) scale(1.05); box-shadow: 0 20px 50px rgba(0, 255, 170, 1); }}
+            100% {{ transform: translateX(-50%) translateY(0) scale(1); box-shadow: 0 10px 40px rgba(0, 255, 170, 0.8); }}
         }}
-        .mobile-balloon:active {{
+        .mobile-sidebar-toggle:hover {{
+            transform: translateX(-50%) scale(1.2) !important;
+            box-shadow: 0 20px 60px rgba(0, 255, 170, 1) !important;
+        }}
+        .mobile-sidebar-toggle:active {{
             animation: pop 0.6s ease !important;
         }}
         @keyframes pop {{
-            0% {{ transform: scale(1); }}
-            50% {{ transform: scale(1.2); }}
-            100% {{ transform: scale(1); }}
+            0% {{ transform: translateX(-50%) scale(1); }}
+            50% {{ transform: translateX(-50%) scale(1.4); }}
+            100% {{ transform: translateX(-50%) scale(1); }}
         }}
 
-        /* When open → move to top right */
-        .mobile-balloon.close {{
-            left: auto !important;
-            right: 20px !important;
-        }}
-
-        /* Hamburger / X icon */
-        .mobile-balloon .icon {{
-            width: 32px;
+        /* Hamburger to X */
+        .mobile-sidebar-toggle .icon {{
+            width: 36px;
             height: 28px;
             position: relative;
         }}
-        .mobile-balloon .icon span {{
+        .mobile-sidebar-toggle .icon span {{
             display: block;
             width: 100%;
-            height: 4px;
+            height: 5px;
             background: #000;
-            border-radius: 2px;
+            border-radius: 3px;
             position: absolute;
             transition: all 0.3s ease;
         }}
-        .mobile-balloon .icon span:nth-child(1) {{ top: 4px; }}
-        .mobile-balloon .icon span:nth-child(2) {{ top: 12px; }}
-        .mobile-balloon .icon span:nth-child(3) {{ top: 20px; }}
+        .mobile-sidebar-toggle .icon span:nth-child(1) {{ top: 4px; }}
+        .mobile-sidebar-toggle .icon span:nth-child(2) {{ top: 12px; }}
+        .mobile-sidebar-toggle .icon span:nth-child(3) {{ top: 20px; }}
 
-        .mobile-balloon.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 12px; }}
-        .mobile-balloon.open .icon span:nth-child(2) {{ opacity: 0; }}
-        .mobile-balloon.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 12px; }}
+        .mobile-sidebar-toggle.open .icon span:nth-child(1) {{ transform: rotate(45deg); top: 12px; }}
+        .mobile-sidebar-toggle.open .icon span:nth-child(2) {{ opacity: 0; }}
+        .mobile-sidebar-toggle.open .icon span:nth-child(3) {{ transform: rotate(-45deg); top: 12px; }}
 
-        /* Full screen sidebar when open */
+        /* Full sidebar when open */
         section[data-testid="stSidebar"]:not(.collapsed) {{
             width: 100% !important;
-            min-width: 100% !important;
             height: 100vh !important;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             z-index: 9998 !important;
-            border-radius: 0 !important;
         }}
 
-        /* ZERO leftover when collapsed */
-        section[data-testid="stSidebar"].collapsed {{
-            width: 0 !important;
-            min-width: 0 !important;
-            overflow: hidden !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }}
-        section[data-testid="stSidebar"].collapsed ~ .main,
+        /* No leftover when closed */
         section[data-testid="stSidebar"].collapsed ~ .main .block-container {{
             margin-left: 0 !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
             width: 100% !important;
-            max-width: 100% !important;
         }}
 
-        /* === Ibalik mo yung original mobile sizes (exactly gaya ng sinend mo) === */
+        /* Original mobile sizes */
         .block-container {{ padding: 1rem !important; }}
         h1 {{ font-size: 2rem !important; }}
         h2 {{ font-size: 1.7rem !important; }}
@@ -349,37 +338,33 @@ st.markdown(f"""
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', function() {{
-        if (window.innerWidth > 992) return; // Mobile ONLY
+        if (window.innerWidth > 992) return; // Mobile only
 
-        const balloon = document.createElement('div');
-        balloon.className = 'mobile-balloon';
-        balloon.innerHTML = `
+        const toggle = document.createElement('div');
+        toggle.className = 'mobile-sidebar-toggle';
+        toggle.innerHTML = `
             <div class="icon">
                 <span></span>
                 <span></span>
                 <span></span>
             </div>
         `;
-        document.body.appendChild(balloon);
+        document.body.appendChild(toggle);
 
         const observer = new MutationObserver(() => {{
-            const controlButton = document.querySelector('button[data-testid="collapsedControl"]');
+            const control = document.querySelector('button[data-testid="collapsedControl"]');
             const sidebar = document.querySelector('section[data-testid="stSidebar"]');
 
-            if (!controlButton || !sidebar) return;
+            if (!control || !sidebar) return;
 
             if (!sidebar.classList.contains('collapsed')) {{
-                balloon.classList.add('open');
-                balloon.classList.add('close');
+                toggle.classList.add('open');
             }} else {{
-                balloon.classList.remove('open');
-                balloon.classList.remove('close');
+                toggle.classList.remove('open');
             }}
 
-            balloon.onclick = function() {{
-                controlButton.click();
-                balloon.classList.add('pop');
-                setTimeout(() => balloon.classList.remove('pop'), 600);
+            toggle.onclick = () => {{
+                control.click();
             }};
         }});
 
@@ -390,7 +375,7 @@ st.markdown(f"""
 
     // Desktop force open
     if (window.innerWidth > 992) {{
-        const check = setInterval(() => {{
+        const interval = setInterval(() => {{
             const btn = document.querySelector('button[data-testid="collapsedControl"]');
             const sb = document.querySelector('section[data-testid="stSidebar"]');
             if (btn && sb && sb.classList.contains('collapsed')) {{
