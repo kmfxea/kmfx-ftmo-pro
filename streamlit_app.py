@@ -714,7 +714,7 @@ if selected == "🏠 Dashboard":
 
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree includes fixed Contributor Pool % • Editable participants sum to remaining % • Contributors funding tracked + auto pro-rata from pool • Real-time unified tree previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree includes dynamic Contributor Pool % (changes with slider) • Editable participants sum to remaining % • Contributors funding tracked + auto pro-rata from pool • Real-time unified tree previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -753,36 +753,40 @@ elif selected == "📊 FTMO Accounts":
                
                 notes = st.text_area("Notes (Optional)")
                
-                # CONTRIBUTOR POOL %
+                # CONTRIBUTOR POOL % - DYNAMIC
                 st.subheader("🌟 Contributor Pool Allocation")
-                st.info("**Fixed row in tree below • % of gross profit auto to contributors pro-rata**")
-                contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30)
+                st.info("**Dynamic fixed row in tree below • Changes live with slider • Auto pro-rata to contributors**")
+                contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30, key="contrib_slider_create")
                 remaining_pct = 100 - contributor_share_pct
-                st.info(f"Editable participants must sum exactly to {remaining_pct}%")
+                st.info(f"Editable participants default to {remaining_pct}% remaining • Must sum exactly 100% total")
                
-                # UNIFIED PARTICIPANTS TREE
+                # UNIFIED PARTICIPANTS TREE - DYNAMIC FIXED ROW
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Fixed row:** Contributor Pool • **Editable rows:** Must sum exactly 100% total")
+                st.info("**Red row:** Contributor Pool (fixed, updates with slider) • **Editable rows:** Sum to remaining %")
                
+                # Fixed row (dynamic with slider)
                 fixed_row = pd.DataFrame([{
                     "name": "Contributor Pool",
                     "role": "Funding Contributors (pro-rata)",
                     "percentage": contributor_share_pct
                 }])
                 
+                # Default editable (King Minted takes remaining, others 0)
                 default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
                 for display in registered_display:
                     default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
                 
                 editable_df = pd.DataFrame(default_editable)
                 
-                # Combine fixed + editable
+                # Combine - key includes slider value to force rerender on change
+                full_df_key = f"tree_editor_create_{contributor_share_pct}"
                 full_df = pd.concat([fixed_row, editable_df], ignore_index=True)
                 
                 edited_full = st.data_editor(
                     full_df,
                     num_rows="dynamic",
                     use_container_width=True,
+                    key=full_df_key,  # Rerender when slider changes
                     column_config={
                         "name": st.column_config.SelectboxColumn(
                             "Name *",
@@ -796,14 +800,15 @@ elif selected == "📊 FTMO Accounts":
                             max_value=100.0,
                             step=0.5
                         )
-                    },
-                    disabled=["name", "role", "percentage"] if st.session_state.get("editing_fixed", False) else ["percentage"]  # Protect fixed row
+                    }
                 )
                 
-                # Validation
+                # Validation - fixed row matches slider
                 contrib_row = edited_full[edited_full["name"] == "Contributor Pool"]
-                if len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != contributor_share_pct:
-                    st.error("Contributor Pool row cannot be edited/removed!")
+                if len(contrib_row) != 1:
+                    st.error("Contributor Pool row missing or duplicated!")
+                elif contrib_row.iloc[0]["percentage"] != contributor_share_pct:
+                    st.error(f"Contributor Pool % must stay at {contributor_share_pct}% (cannot edit)")
                 else:
                     total_sum = edited_full["percentage"].sum()
                     st.progress(total_sum / 100)
@@ -841,7 +846,12 @@ elif selected == "📊 FTMO Accounts":
                
                 # UNIFIED TREE PREVIEW
                 st.subheader("🌳 Unified Profit Tree Preview")
-                labels = ["Gross Profit"] + [f"{row['name']} ({row['percentage']:.1f}%)" for _, row in edited_full.iterrows()]
+                labels = ["Gross Profit"]
+                for _, row in edited_full.iterrows():
+                    display = row["name"]
+                    if display == "Contributor Pool":
+                        display = "Contributor Pool (pro-rata)"
+                    labels.append(f"{display} ({row['percentage']:.1f}%)")
                 values = edited_full["percentage"].tolist()
                 fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                 link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
@@ -884,7 +894,7 @@ elif selected == "📊 FTMO Accounts":
                                 "contributors": contributors_json,
                                 "contributor_share_pct": contributor_share_pct
                             }).execute()
-                            st.success("Account launched! Unified tree with contributor pool.")
+                            st.success("Account launched! Unified tree with dynamic contributor pool.")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
