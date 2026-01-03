@@ -97,48 +97,7 @@ def create_default_users():
 create_default_users()
 
 # ====================== END OF PART 1 ======================
-# Next: Copy Part 2 (Theme, Login, Sidebar) below this line
-# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
-# ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
-if "theme" not in st.session_state:
-    st.session_state.theme = "dark"
-theme = st.session_state.theme
-accent_primary = "#00ffaa"
-accent_hover = "#00cc88"
-accent_color = accent_primary
-
-if theme == "dark":
-    bg_color = "#0a0d14"
-    text_color = "#f0f4f8"
-    secondary_text = "#a0b0c0"
-    glass_bg = "transparent"                          # Pure transparent
-    glass_border = "1px solid rgba(255, 255, 255, 0.18)"  # Slightly stronger border
-    input_bg = "rgba(255, 255, 255, 0.06)"             # Very subtle for inputs
-    input_border = "1px solid rgba(255, 255, 255, 0.25)"
-    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.6)"
-    sidebar_bg = "transparent"                        # Pure transparent sidebar
-    dropdown_popup_bg = "#1a1f2e"                      # Keep solid for readability
-    dropdown_text = "#f0f4f8"
-    dropdown_hover_bg = accent_primary
-    dropdown_hover_text = "#000000"
-    dropdown_placeholder = "#666666"
-else:
-    bg_color = "#f5f8fa"
-    text_color = "#121618"
-    secondary_text = "#4a5568"
-    glass_bg = "transparent"                          # Pure transparent
-    glass_border = "1px solid rgba(0, 0, 0, 0.15)"
-    input_bg = "rgba(0, 0, 0, 0.06)"                   # Very subtle for inputs
-    input_border = "1px solid rgba(0, 0, 0, 0.25)"
-    card_shadow = "0 12px 40px rgba(0, 0, 0, 0.08)"
-    sidebar_bg = "transparent"                        # Pure transparent sidebar
-    dropdown_popup_bg = "#ffffff"
-    dropdown_text = text_color
-    dropdown_hover_bg = accent_primary
-    dropdown_hover_text = "#000000"
-    dropdown_placeholder = "#888888"
-
-# ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
+# Next: Copy Part 2 (Theme, Login, Sidebar) below this line# ====================== CUSTOM MOBILE SIDEBAR ELEMENTS + STYLES + SCRIPT ======================
 # ====================== PART 2: THEME, LOGIN, SIDEBAR, HEADER ======================
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
