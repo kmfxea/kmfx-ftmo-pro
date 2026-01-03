@@ -210,11 +210,15 @@ st.markdown(f"""
     [data-testid="stMetric"] > div > div {{ color: {accent_primary} !important; font-size: 2.5rem !important; font-weight: 700 !important; }}
     #MainMenu, footer, header {{ visibility: hidden !important; }}
 
-    /* Hide default toggle buttons */
+    /* Do NOT use display:none on control button - it breaks click() */
     button[data-testid="collapsedControl"],
     button[kind="headerNoPadding"],
     button[title="View sidebar"] {{
-        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
     }}
 
     /* Desktop: Force open & fixed */
@@ -310,16 +314,21 @@ st.markdown(f"""
         const trigger = document.querySelector('.sidebar-trigger-line');
         if (!trigger) return;
 
-        const observer = new MutationObserver(() => {{
-            const control = document.querySelector('button[data-testid="collapsedControl"]');
-            if (!control) return;
+        trigger.onclick = function() {{
+            const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+            if (!sidebar) return;
 
-            trigger.onclick = () => {{
-                control.click();
-            }};
-        }});
+            // Directly toggle the 'collapsed' class - more reliable than clicking hidden button
+            if (sidebar.classList.contains('collapsed')) {{
+                sidebar.classList.remove('collapsed');
+            }} else {{
+                sidebar.classList.add('collapsed');
+            }}
 
-        observer.observe(document.body, {{ childList: true, subtree: true }});
+            // Optional: add pop animation to line
+            trigger.classList.add('line-pop');
+            setTimeout(() => trigger.classList.remove('line-pop'), 600);
+        }};
 
         window.addEventListener('resize', () => location.reload());
     }});
@@ -327,10 +336,9 @@ st.markdown(f"""
     // Desktop force open
     if (window.innerWidth > 992) {{
         const interval = setInterval(() => {{
-            const btn = document.querySelector('button[data-testid="collapsedControl"]');
             const sb = document.querySelector('section[data-testid="stSidebar"]');
-            if (btn && sb && sb.classList.contains('collapsed')) {{
-                btn.click();
+            if (sb && sb.classList.contains('collapsed')) {{
+                sb.classList.remove('collapsed');
             }}
         }}, 100);
     }}
@@ -2587,24 +2595,24 @@ elif selected == "🔔 Notifications":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL REALTIME NOTIFICATIONS ======================
-# ====================== PART 6: WITHDRAWALS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
+# ====================== PART 6: WITHDRAWALS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME + BALANCE 0 FIX) ======================
 elif selected == "💳 Withdrawals":
     st.header("Withdrawal Management 💳")
     st.markdown("**Empire payout engine: Clients request from auto-earned balances • Require payout proof (auto-vault) • Amount limited to balance • Owner approve/pay/reject • Auto-deduct balance • Realtime sync & full transparency.**")
-    
+   
     # SAFE ROLE
     current_role = st.session_state.get("role", "guest")
-    
+   
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_withdrawals_full():
         wd_resp = supabase.table("withdrawals").select("*").order("date_requested", desc=True).execute()
         withdrawals = wd_resp.data or []
-        
+       
         users_resp = supabase.table("users").select("id, full_name, balance, role").execute()
         users = users_resp.data or []
         user_map = {u["full_name"]: {"id": u["id"], "balance": u["balance"] or 0} for u in users}
-        
+       
         # Related proofs (safe handling)
         files_resp = supabase.table("client_files").select("id, original_name, file_name, category, assigned_client, notes").execute()
         proofs = []
@@ -2612,68 +2620,80 @@ elif selected == "💳 Withdrawals":
             cat = f.get("category", "Other")
             if cat in ["Payout Proof", "Withdrawal Proof"] or "withdrawal" in f.get("notes", "").lower():
                 proofs.append(f)
-        
+       
         return withdrawals, users, user_map, proofs
-    
+   
     withdrawals, users, user_map, proofs = fetch_withdrawals_full()
-    
+   
     st.caption("🔄 Withdrawals auto-refresh every 30s for realtime status")
-    
+   
     # ====================== CLIENT VIEW: REQUEST + HISTORY ======================
     if current_role == "client":
         my_name = st.session_state.full_name
         my_balance = user_map.get(my_name, {"balance": 0})["balance"]
         my_withdrawals = [w for w in withdrawals if w["client_name"] == my_name]
-        
+       
         st.subheader(f"Your Withdrawal Requests (Available Balance: ${my_balance:,.2f})")
-        
-        # Quick Request Form
-        with st.expander("➕ Request New Withdrawal", expanded=True):
-            with st.form("wd_request_form", clear_on_submit=True):
-                amount = st.number_input("Amount (USD)", min_value=1.0, max_value=float(my_balance), step=100.0, help=f"Max: ${my_balance:,.2f}")
-                method = st.selectbox("Payout Method", ["USDT", "Bank Transfer", "Wise", "PayPal", "GCash", "Other"])
-                details = st.text_area("Payout Details (Wallet/Address/Bank Info)")
-                proof_file = st.file_uploader("Upload Payout Proof * (Required)", type=["png", "jpg", "jpeg", "pdf"], help="Screenshot of wallet, bank statement • Auto-saved to vault")
-                
-                submitted = st.form_submit_button("Submit Request for Approval", type="primary", use_container_width=True)
-                if submitted:
-                    if amount > my_balance:
-                        st.error("Amount exceeds available balance")
-                    elif not proof_file:
-                        st.error("Payout proof required")
-                    else:
-                        try:
-                            # Auto-upload proof to vault
-                            safe = "".join(c for c in proof_file.name if c.isalnum() or c in "._- ")
-                            path = f"uploaded_files/client_files/{safe}"
-                            with open(path, "wb") as f:
-                                f.write(proof_file.getbuffer())
-                            supabase.table("client_files").insert({
-                                "file_name": safe,
-                                "original_name": proof_file.name,
-                                "upload_date": datetime.date.today().isoformat(),
-                                "sent_by": my_name,
-                                "category": "Withdrawal Proof",
-                                "assigned_client": my_name,
-                                "notes": f"Proof for ${amount:,.0f} withdrawal"
-                            }).execute()
-                            
-                            # Submit request
-                            supabase.table("withdrawals").insert({
-                                "client_name": my_name,
-                                "amount": amount,
-                                "method": method,
-                                "details": details,
-                                "status": "Pending",
-                                "date_requested": datetime.date.today().isoformat()
-                            }).execute()
-                            
-                            st.success("Request submitted! Owner will review proof.")
-                            st.cache_data.clear()
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Error: {str(e)}")
-        
+       
+        # Only show request form if balance > 0 (FIXES ERROR WHEN BALANCE=0)
+        if my_balance > 0:
+            with st.expander("➕ Request New Withdrawal", expanded=True):
+                with st.form("wd_request_form", clear_on_submit=True):
+                    amount = st.number_input(
+                        "Amount (USD)",
+                        min_value=1.0,
+                        max_value=float(my_balance),
+                        step=100.0,
+                        value=min(100.0, my_balance),  # Safe default value <= max
+                        help=f"Max: ${my_balance:,.2f}"
+                    )
+                    method = st.selectbox("Payout Method", ["USDT", "Bank Transfer", "Wise", "PayPal", "GCash", "Other"])
+                    details = st.text_area("Payout Details (Wallet/Address/Bank Info)")
+                    proof_file = st.file_uploader("Upload Payout Proof * (Required)", type=["png", "jpg", "jpeg", "pdf"], help="Screenshot of wallet, bank statement • Auto-saved to vault")
+                   
+                    submitted = st.form_submit_button("Submit Request for Approval", type="primary", use_container_width=True)
+                    if submitted:
+                        if amount > my_balance:
+                            st.error("Amount exceeds available balance")
+                        elif not proof_file:
+                            st.error("Payout proof required")
+                        else:
+                            try:
+                                # Auto-upload proof to vault
+                                safe = "".join(c for c in proof_file.name if c.isalnum() or c in "._- ")
+                                path = f"uploaded_files/client_files/{safe}"
+                                with open(path, "wb") as f:
+                                    f.write(proof_file.getbuffer())
+                                supabase.table("client_files").insert({
+                                    "file_name": safe,
+                                    "original_name": proof_file.name,
+                                    "upload_date": datetime.date.today().isoformat(),
+                                    "sent_by": my_name,
+                                    "category": "Withdrawal Proof",
+                                    "assigned_client": my_name,
+                                    "notes": f"Proof for ${amount:,.0f} withdrawal"
+                                }).execute()
+                               
+                                # Submit request
+                                supabase.table("withdrawals").insert({
+                                    "client_name": my_name,
+                                    "amount": amount,
+                                    "method": method,
+                                    "details": details,
+                                    "status": "Pending",
+                                    "date_requested": datetime.date.today().isoformat()
+                                }).execute()
+                               
+                                st.success("Request submitted! Owner will review proof.")
+                                st.cache_data.clear()
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error: {str(e)}")
+        else:
+            st.info("No available balance yet • Earnings auto-accumulate from profits")
+            with st.expander("➕ Request New Withdrawal"):
+                st.info("Withdrawal requests will be available once you have earnings in your balance.")
+       
         # History
         if my_withdrawals:
             st.markdown("### Request History")
@@ -2691,16 +2711,16 @@ elif selected == "💳 Withdrawals":
                 st.divider()
         else:
             st.info("No requests yet • Earnings auto-accumulate")
-    
+   
     # ====================== OWNER/ADMIN VIEW: ALL REQUESTS + ACTIONS ======================
     else:
         st.subheader("All Empire Withdrawal Requests")
-        
+       
         if withdrawals:
             for w in withdrawals:
                 client_balance = user_map.get(w["client_name"], {"balance": 0})["balance"]
                 status_color = {"Pending": "#ffa502", "Approved": accent_color, "Paid": "#2ed573", "Rejected": "#ff4757"}.get(w["status"], "#888")
-                
+               
                 with st.container():
                     st.markdown(f"""
                     <div class='glass-card' style='padding:1.8rem; border-left:5px solid {status_color};'>
@@ -2711,9 +2731,9 @@ elif selected == "💳 Withdrawals":
                     if w["details"]:
                         with st.expander("Payout Details"):
                             st.write(w["details"])
-                    
+                   
                     # Related proofs
-                    related_proofs = [p for p in proofs if p.get("assigned_client") == w["client_name"] and 
+                    related_proofs = [p for p in proofs if p.get("assigned_client") == w["client_name"] and
                                       ("withdrawal" in p.get("notes", "").lower() or p.get("category") in ["Payout Proof", "Withdrawal Proof"])]
                     if related_proofs:
                         st.markdown("**Related Proofs:**")
@@ -2727,7 +2747,7 @@ elif selected == "💳 Withdrawals":
                                     else:
                                         with open(path, "rb") as f:
                                             st.download_button(p["original_name"], f, p["original_name"])
-                    
+                   
                     # Actions
                     if w["status"] == "Pending":
                         col_act1, col_act2 = st.columns(2)
@@ -2774,7 +2794,7 @@ elif selected == "💳 Withdrawals":
                     st.divider()
         else:
             st.info("No withdrawal requests yet")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
@@ -2786,7 +2806,7 @@ elif selected == "💳 Withdrawals":
         <h2 style="color:#ffd700;">👑 KMFX Withdrawals • Fully Automated 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL WITHDRAWALS ======================
+# ====================== END OF FINAL WITHDRAWALS (BALANCE 0 ERROR FIXED) ======================
 # ====================== PART 6: EA VERSIONS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
 elif selected == "🤖 EA Versions":
     st.header("EA Versions Management 🤖")
@@ -3433,27 +3453,27 @@ elif selected == "📜 Audit Logs":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL AUDIT LOGS ======================
-# ====================== PART 6: ADMIN MANAGEMENT PAGE (FINAL SUPER ADVANCED - WITH FULL CLIENT DETAILS & TITLE SYNC) ======================
+# ====================== PART 6: ADMIN MANAGEMENT PAGE (FINAL SUPER ADVANCED - WITH FULL CLIENT DETAILS, TITLE SYNC, EDIT + DELETE) ======================
 elif selected == "👤 Admin Management":
     st.header("Empire Team Management 👤")
-    st.markdown("**Owner-exclusive: Register team members with full details (Name, Accounts, Email, Contact, Address) & Title (Pioneer, VIP, etc.) for labeled dropdowns • Realtime balances • Search/filter • Secure delete • Full sync to FTMO participants as 'Name (Title)'**")
-    
+    st.markdown("**Owner-exclusive: Register team members with full details (Name, Accounts, Email, Contact, Address) & Title (Pioneer, VIP, etc.) for labeled dropdowns • Realtime balances • Full Edit (including password) • Secure delete • Full sync to FTMO participants as 'Name (Title)'**")
+   
     # STRICT OWNER ONLY
     current_role = st.session_state.get("role", "guest")
     if current_role != "owner":
         st.error("🔒 Team Management is OWNER-ONLY for empire security.")
         st.stop()
-    
+   
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_users_full():
         users_resp = supabase.table("users").select("*").order("created_at", desc=True).execute()
         return users_resp.data or []
-    
+   
     users = fetch_users_full()
-    
+   
     st.caption("🔄 Team auto-refresh every 30s • Full details & titles sync to dropdowns & lists")
-    
+   
     # REGISTER NEW TEAM MEMBER WITH FULL DETAILS & TITLE
     st.subheader("➕ Register New Team Member")
     with st.form("add_user_form", clear_on_submit=True):
@@ -3464,7 +3484,7 @@ elif selected == "👤 Admin Management":
         with col_u2:
             initial_pwd = st.text_input("Initial Password *", type="password")
             urole = st.selectbox("Role *", ["client", "admin"])
-        
+       
         st.markdown("### Client Details")
         col_info1, col_info2 = st.columns(2)
         with col_info1:
@@ -3473,10 +3493,10 @@ elif selected == "👤 Admin Management":
         with col_info2:
             contact_no = st.text_input("Contact No.", placeholder="e.g. 09128197085")
             address = st.text_area("Address", placeholder="e.g. Rodriguez 1, Rodriguez Dampalit, Malabon City")
-        
+       
         title = st.selectbox("Title/Label (Optional)", ["None", "Pioneer", "Distributor", "VIP", "Elite Trader", "Contributor"], help="Shows as 'Name (Title)' in dropdowns & lists")
         notes = st.text_area("Notes (Optional)")
-        
+       
         submitted = st.form_submit_button("🚀 Register & Sync Info", type="primary", use_container_width=True)
         if submitted:
             if not username.strip() or not full_name.strip() or not initial_pwd:
@@ -3502,27 +3522,27 @@ elif selected == "👤 Admin Management":
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
-    
-    # CURRENT TEAM WITH FULL INFO DISPLAY
+   
+    # CURRENT TEAM WITH FULL INFO DISPLAY + EDIT + DELETE
     st.subheader("👥 Current Empire Team (Realtime)")
     if users:
-        team = [u for u in users if u["username"] != "kingminted"]
+        team = [u for u in users if u["username"] != "kingminted"]  # Exclude owner
         
         col_search1, col_search2 = st.columns(2)
         with col_search1:
             search_user = st.text_input("Search Name/Email/Contact/Accounts")
         with col_search2:
             filter_role = st.selectbox("Filter Role", ["All", "client", "admin"])
-        
+       
         filtered_team = team
         if search_user:
-            filtered_team = [u for u in filtered_team if search_user.lower() in u["full_name"].lower() or 
-                             search_user.lower() in str(u.get("email", "")).lower() or 
-                             search_user.lower() in str(u.get("contact_no", "")).lower() or 
+            filtered_team = [u for u in filtered_team if search_user.lower() in u["full_name"].lower() or
+                             search_user.lower() in str(u.get("email", "")).lower() or
+                             search_user.lower() in str(u.get("contact_no", "")).lower() or
                              search_user.lower() in str(u.get("accounts", "")).lower()]
         if filter_role != "All":
             filtered_team = [u for u in filtered_team if u["role"] == filter_role]
-        
+       
         if filtered_team:
             for u in filtered_team:
                 title_display = f" ({u.get('title', '')})" if u.get("title") else ""
@@ -3533,32 +3553,105 @@ elif selected == "👤 Admin Management":
                     st.markdown(f"**Contact No.:** {u.get('contact_no') or 'None'}")
                     st.markdown(f"**Address:** {u.get('address') or 'None'}")
                     
-                    if st.button("🗑️ Remove from Empire", key=f"del_user_{u['id']}", type="secondary"):
-                        try:
-                            supabase.table("users").delete().eq("id", u["id"]).execute()
-                            log_action("Team Member Removed", f"{u['full_name']}{title_display}")
-                            st.success("User removed")
-                            st.cache_data.clear()
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        if st.button("✏️ Edit", key=f"edit_{u['id']}"):
+                            st.session_state.edit_user_id = u["id"]
+                            st.session_state.edit_user_data = u.copy()  # Copy to avoid reference issues
                             st.rerun()
-                        except Exception as e:
-                            st.error(f"Error: {str(e)}")
+                    with col_btn2:
+                        if st.button("🗑️ Remove from Empire", key=f"del_{u['id']}", type="secondary"):
+                            try:
+                                supabase.table("users").delete().eq("id", u["id"]).execute()
+                                log_action("Team Member Removed", f"{u['full_name']}{title_display}")
+                                st.success("User removed")
+                                st.cache_data.clear()
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error: {str(e)}")
+                    
+                    # EDIT FORM (appears when Edit clicked)
+                    if "edit_user_id" in st.session_state and st.session_state.edit_user_id == u["id"]:
+                        edit_data = st.session_state.edit_user_data
+                        with st.form(key=f"edit_form_{u['id']}", clear_on_submit=True):
+                            col_e1, col_e2 = st.columns(2)
+                            with col_e1:
+                                new_username = st.text_input("Username *", value=edit_data["username"])
+                                new_full_name = st.text_input("Full Name *", value=edit_data["full_name"])
+                            with col_e2:
+                                new_pwd = st.text_input("New Password (leave blank to keep current)", type="password")
+                                new_role = st.selectbox("Role *", ["client", "admin"], index=0 if edit_data["role"] == "client" else 1)
+                            
+                            st.markdown("### Client Details")
+                            col_einfo1, col_einfo2 = st.columns(2)
+                            with col_einfo1:
+                                new_accounts = st.text_input("Accounts (MT5 Logins)", value=edit_data.get("accounts") or "")
+                                new_email = st.text_input("Email", value=edit_data.get("email") or "")
+                            with col_einfo2:
+                                new_contact = st.text_input("Contact No.", value=edit_data.get("contact_no") or "")
+                                new_address = st.text_area("Address", value=edit_data.get("address") or "")
+                            
+                            new_title = st.selectbox("Title/Label (Optional)", ["None", "Pioneer", "Distributor", "VIP", "Elite Trader", "Contributor"],
+                                                     index=0 if not edit_data.get("title") else ["None", "Pioneer", "Distributor", "VIP", "Elite Trader", "Contributor"].index(edit_data["title"]))
+                            
+                            col_save, col_cancel = st.columns(2)
+                            with col_save:
+                                save_submitted = st.form_submit_button("💾 Save Changes", type="primary")
+                            with col_cancel:
+                                cancel_submitted = st.form_submit_button("Cancel")
+                            
+                            if cancel_submitted:
+                                if "edit_user_id" in st.session_state:
+                                    del st.session_state.edit_user_id
+                                    del st.session_state.edit_user_data
+                                st.rerun()
+                            
+                            if save_submitted:
+                                if not new_username.strip() or not new_full_name.strip():
+                                    st.error("Username and full name required")
+                                else:
+                                    try:
+                                        update_data = {
+                                            "username": new_username.strip().lower(),
+                                            "full_name": new_full_name.strip(),
+                                            "role": new_role,
+                                            "title": new_title if new_title != "None" else None,
+                                            "accounts": new_accounts.strip() or None,
+                                            "email": new_email.strip() or None,
+                                            "contact_no": new_contact.strip() or None,
+                                            "address": new_address.strip() or None
+                                        }
+                                        if new_pwd.strip():  # Only update password if provided
+                                            hashed_new = bcrypt.hashpw(new_pwd.encode(), bcrypt.gensalt()).decode()
+                                            update_data["password"] = hashed_new
+                                        
+                                        supabase.table("users").update(update_data).eq("id", u["id"]).execute()
+                                        log_action("Team Member Edited", f"{new_full_name} ({new_title if new_title != 'None' else ''})")
+                                        st.success("User updated successfully!")
+                                        if "edit_user_id" in st.session_state:
+                                            del st.session_state.edit_user_id
+                                            del st.session_state.edit_user_data
+                                        st.cache_data.clear()
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Error: {str(e)}")
         else:
             st.info("No matching team members")
     else:
         st.info("No team members yet • Register with full info for complete tracking")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Owner Team Control Center
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Full client info (accounts, email, contact, address) • Titles synced • Realtime balances • Empire team fully managed.
+            Full client info (accounts, email, contact, address) • Titles synced • Full Edit + Delete • Realtime balances • Empire team fully managed.
         </p>
         <h2 style="color:#ffd700;">👑 KMFX Team Management • Owner Exclusive 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL ADMIN MANAGEMENT WITH FULL CLIENT DETAILS ======================
+# ====================== END OF FINAL ADMIN MANAGEMENT WITH FULL EDIT + DELETE ======================
 # ====================== CLOSE MAIN CONTENT & FOOTER ======================
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("---")
