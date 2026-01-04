@@ -716,7 +716,7 @@ if selected == "🏠 Dashboard":
 
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified tree: Contributor Pool % fixed & dynamic (slider change auto-updates tree) • Editable participants auto-reset to remaining % • Contributors dropdown registered only • Auto pro-rata • Real-time previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified tree: Contributor Pool % fixed • Editable participants auto-default to remaining % on slider change • Contributors dropdown registered only • Auto pro-rata • Real-time previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -755,71 +755,67 @@ elif selected == "📊 FTMO Accounts":
                
                 notes = st.text_area("Notes (Optional)")
                
-                # CONTRIBUTOR POOL % - DYNAMIC AUTO-ADJUST
+                # CONTRIBUTOR POOL %
                 st.subheader("🌟 Contributor Pool Allocation")
-                st.info("**Slider change auto-updates tree: Fixed pool % + King Minted gets remaining %**")
+                st.info("**Slider change auto-defaults editable participants to remaining % (King Minted takes all remaining, others 0%)**")
                 contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30, key="contrib_slider_create")
                 remaining_pct = 100 - contributor_share_pct
-                st.info(f"**Live:** Editable participants must sum exactly to {remaining_pct}% (King Minted auto-defaults to this)")
+                st.info(f"**Auto-default:** Editable participants sum to {remaining_pct}% (you can edit after)")
                
-                # UNIFIED TREE - AUTO-ADJUST ON SLIDER CHANGE
+                # FIXED CONTRIBUTOR POOL DISPLAY (not in editor)
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Fixed row (red):** Contributor Pool • **Editable rows:** Auto-reset on slider change")
+                st.info("**Fixed:** Contributor Pool • **Editable below:** Auto-default on slider change")
+                st.metric("Contributor Pool (fixed, pro-rata)", f"{contributor_share_pct}%")
                
-                # Fixed row (dynamic)
-                fixed_row = pd.DataFrame([{
-                    "name": "Contributor Pool",
-                    "role": "Funding Contributors (pro-rata)",
-                    "percentage": contributor_share_pct
-                }])
+                # EDITABLE PARTICIPANTS TREE - AUTO-DEFAULT ON SLIDER
+                st.info("**Editable participants:** King Minted auto to remaining %, others 0% — edit freely")
                 
-                # Default editable - King Minted gets remaining, others 0
+                # Default editable - King Minted remaining, others 0
                 default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
                 for display in registered_display:
                     default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
                 
                 editable_df = pd.DataFrame(default_editable)
                 
-                # Key with slider for auto-reset/rerender
-                full_df_key = f"tree_editor_create_{contributor_share_pct}"
-                full_df = pd.concat([fixed_row, editable_df], ignore_index=True)
-                
-                edited_full = st.data_editor(
-                    full_df,
+                # Key with slider for auto-default/rerender
+                editable_key = f"editable_editor_create_{contributor_share_pct}"
+                edited_editable = st.data_editor(
+                    editable_df,
                     num_rows="dynamic",
                     use_container_width=True,
-                    key=full_df_key,
+                    key=editable_key,
                     column_config={
-                        "name": st.column_config.SelectboxColumn("Name *", options=["Contributor Pool"] + participant_options, required=True),
+                        "name": st.column_config.SelectboxColumn("Name *", options=participant_options, required=True),
                         "role": st.column_config.TextColumn("Role"),
                         "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
-                    },
-                    disabled=["name", "role", "percentage"]  # Protect fixed row
+                    }
                 )
                 
-                # Validation
-                contrib_row = edited_full.iloc[0]
-                if edited_full.iloc[0]["name"] != "Contributor Pool" or edited_full.iloc[0]["percentage"] != contributor_share_pct:
-                    st.error("Contributor Pool row protected — cannot edit!")
-                    st.stop()
+                # Full tree for validation/preview (fixed + edited)
+                full_for_val = pd.DataFrame([{
+                    "name": "Contributor Pool",
+                    "role": "Funding Contributors (pro-rata)",
+                    "percentage": contributor_share_pct
+                }])
+                full_for_val = pd.concat([full_for_val, edited_editable], ignore_index=True)
                 
-                total_sum = edited_full["percentage"].sum()
+                total_sum = full_for_val["percentage"].sum()
                 st.progress(total_sum / 100)
                 if abs(total_sum - 100.0) > 0.1:
-                    st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
+                    st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%) — adjust editable rows")
                     st.stop()
                 else:
                     st.success("✅ Perfect 100% unified tree")
                 
                 # Manual names
                 manual_inputs = []
-                for idx, row in edited_full.iterrows():
+                for idx, row in edited_editable.iterrows():
                     if row["name"] == "Manual Payout (Temporary)":
                         custom_name = st.text_input(f"Custom Name for Manual Row {idx+1}", key=f"manual_create_{idx}")
                         if custom_name:
                             manual_inputs.append((idx, custom_name))
                
-                # CONTRIBUTORS TREE - REGISTERED DROPDOWN
+                # CONTRIBUTORS TREE
                 st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
                 st.info("Dropdown from registered clients only • Auto pro-rata from pool")
                 
@@ -830,11 +826,7 @@ elif selected == "📊 FTMO Accounts":
                     use_container_width=True,
                     key="contrib_editor_create",
                     column_config={
-                        "name": st.column_config.SelectboxColumn(
-                            "Contributor Name *",
-                            options=registered_display,
-                            required=True
-                        ),
+                        "name": st.column_config.SelectboxColumn("Contributor Name *", options=registered_display, required=True),
                         "units": st.column_config.NumberColumn("Units Funded", min_value=0.0, step=0.5),
                         "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0)
                     }
@@ -844,15 +836,15 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                
-                # PREVIEW
+                # UNIFIED PREVIEW
                 st.subheader("🌳 Unified Profit Tree Preview")
                 labels = ["Gross Profit"]
-                for _, row in edited_full.iterrows():
-                    display = row["name"]
-                    if display == "Contributor Pool":
-                        display = "Contributor Pool (pro-rata)"
-                    labels.append(f"{display} ({row['percentage']:.1f}%)")
-                values = edited_full["percentage"].tolist()
+                # Fixed
+                labels.append(f"Contributor Pool (pro-rata) ({contributor_share_pct:.1f}%)")
+                # Editable
+                for _, row in edited_editable.iterrows():
+                    labels.append(f"{row['name']} ({row['percentage']:.1f}%)")
+                values = [contributor_share_pct] + edited_editable["percentage"].tolist()
                 fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                 link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                 st.plotly_chart(fig, use_container_width=True)
@@ -862,10 +854,15 @@ elif selected == "📊 FTMO Accounts":
                     if not name.strip():
                         st.error("Account name required")
                     else:
-                        final_part = []
-                        for row in edited_full.to_dict(orient="records"):
+                        # Final participants (fixed + edited)
+                        final_part = [{
+                            "name": "Contributor Pool",
+                            "role": "Funding Contributors (pro-rata)",
+                            "percentage": contributor_share_pct
+                        }]
+                        for row in edited_editable.to_dict(orient="records"):
                             display = row["name"]
-                            actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
+                            actual_name = full_name_to_display.get(display, display)
                             final_part.append({
                                 "name": actual_name,
                                 "role": row["role"],
@@ -873,7 +870,7 @@ elif selected == "📊 FTMO Accounts":
                             })
                        
                         for row_idx, custom in manual_inputs:
-                            final_part[row_idx]["name"] = custom
+                            final_part[row_idx + 1]["name"] = custom  # +1 for fixed row
                        
                         contributors_json = []
                         for row in edited_contrib.to_dict(orient="records"):
