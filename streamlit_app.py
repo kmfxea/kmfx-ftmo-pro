@@ -716,7 +716,7 @@ if selected == "🏠 Dashboard":
 
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree includes Contributor Pool row (edit % freely) • All rows editable — must sum exactly 100% • Contributors dropdown registered only • Auto pro-rata from Contributor Pool % • Real-time unified tree previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree (add 'Contributor Pool' row) • Edit all % freely • Must sum exactly 100% • Contributors dropdown registered only • Auto pro-rata from Contributor Pool % • Real-time unified tree previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -755,11 +755,11 @@ elif selected == "📊 FTMO Accounts":
                
                 notes = st.text_area("Notes (Optional)")
                
-                # UNIFIED PARTICIPANTS TREE - CONTRIBUTOR POOL AS ROW
+                # UNIFIED TREE
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Include 'Contributor Pool' row** • Edit % freely • Total must be exactly 100% • Contributor Pool % auto pro-rata to contributors")
+                st.info("**Add 'Contributor Pool' row** • Edit all % freely • Must sum exactly 100% • Contributor Pool % auto pro-rata to contributors")
                 
-                # Default tree (Contributor Pool 30%, King Minted 70%, others 0)
+                # Default tree (Contributor Pool 30%, King Minted 70%)
                 default_rows = [
                     {"name": "Contributor Pool", "role": "Funding Contributors (pro-rata)", "percentage": 30.0},
                     {"name": "King Minted", "role": "Founder/Owner", "percentage": 70.0}
@@ -775,11 +775,7 @@ elif selected == "📊 FTMO Accounts":
                     use_container_width=True,
                     key="participants_editor_create",
                     column_config={
-                        "name": st.column_config.SelectboxColumn(
-                            "Name *",
-                            options=participant_options,
-                            required=True
-                        ),
+                        "name": st.column_config.SelectboxColumn("Name *", options=participant_options, required=True),
                         "role": st.column_config.TextColumn("Role"),
                         "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
                     }
@@ -788,18 +784,22 @@ elif selected == "📊 FTMO Accounts":
                 # Validation
                 total_sum = edited_tree["percentage"].sum()
                 st.progress(total_sum / 100)
-                if abs(total_sum - 100.0) > 0.1:
+                
+                contrib_rows = edited_tree[edited_tree["name"] == "Contributor Pool"]
+                if len(contrib_rows) == 0:
+                    st.error("Must add 'Contributor Pool' row!")
+                elif len(contrib_rows) > 1:
+                    st.error("Only one 'Contributor Pool' row allowed!")
+                elif abs(total_sum - 100.0) > 0.1:
                     st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
-                    st.stop()
                 else:
                     st.success("✅ Perfect 100% unified tree")
+                    contributor_share_pct = contrib_rows.iloc[0]["percentage"] if len(contrib_rows) == 1 else 0
                 
-                # Check Contributor Pool row exists
-                contrib_rows = edited_tree[edited_tree["name"] == "Contributor Pool"]
-                if len(contrib_rows) != 1:
-                    st.error("Must have exactly one 'Contributor Pool' row")
+                # Stop if invalid
+                if len(contrib_rows) != 1 or abs(total_sum - 100.0) > 0.1:
+                    st.warning("Fix errors above before submitting")
                     st.stop()
-                contributor_share_pct = contrib_rows.iloc[0]["percentage"]
                 
                 # Manual names
                 manual_inputs = []
@@ -811,7 +811,7 @@ elif selected == "📊 FTMO Accounts":
                
                 # CONTRIBUTORS TREE
                 st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
-                st.info("Dropdown from registered clients only • Auto pro-rata from Contributor Pool % above")
+                st.info("Dropdown from registered clients only • Auto pro-rata from Contributor Pool row above")
                 
                 contrib_df = pd.DataFrame(columns=["name", "units", "php_per_unit"])
                 edited_contrib = st.data_editor(
@@ -820,11 +820,7 @@ elif selected == "📊 FTMO Accounts":
                     use_container_width=True,
                     key="contrib_editor_create",
                     column_config={
-                        "name": st.column_config.SelectboxColumn(
-                            "Contributor Name *",
-                            options=registered_display,
-                            required=True
-                        ),
+                        "name": st.column_config.SelectboxColumn("Contributor Name *", options=registered_display, required=True),
                         "units": st.column_config.NumberColumn("Units Funded", min_value=0.0, step=0.5),
                         "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0)
                     }
@@ -834,7 +830,7 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                
-                # UNIFIED PREVIEW
+                # PREVIEW
                 st.subheader("🌳 Unified Profit Tree Preview")
                 labels = ["Gross Profit"]
                 for _, row in edited_tree.iterrows():
@@ -850,36 +846,32 @@ elif selected == "📊 FTMO Accounts":
                 submitted = st.form_submit_button("🚀 Launch Account", type="primary", use_container_width=True)
                 if submitted:
                     if not name.strip():
-                        st.error("Account name required")
-                    elif abs(total_sum - 100.0) > 0.1:
-                        st.error("Total % not 100%")
-                    elif len(contrib_rows) != 1:
-                        st.error("Must have exactly one 'Contributor Pool' row")
+                        st.error("Account name required!")
                     else:
-                        final_part = []
-                        for row in edited_tree.to_dict(orient="records"):
-                            display = row["name"]
-                            actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
-                            final_part.append({
-                                "name": actual_name,
-                                "role": row["role"],
-                                "percentage": row["percentage"]
-                            })
-                       
-                        for row_idx, custom in manual_inputs:
-                            final_part[row_idx]["name"] = custom
-                       
-                        contributors_json = []
-                        for row in edited_contrib.to_dict(orient="records"):
-                            display = row["name"]
-                            actual_name = full_name_to_display.get(display, display)
-                            contributors_json.append({
-                                "name": actual_name,
-                                "units": row["units"],
-                                "php_per_unit": row["php_per_unit"]
-                            })
-                       
                         try:
+                            final_part = []
+                            for row in edited_tree.to_dict(orient="records"):
+                                display = row["name"]
+                                actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
+                                final_part.append({
+                                    "name": actual_name,
+                                    "role": row["role"],
+                                    "percentage": row["percentage"]
+                                })
+                           
+                            for row_idx, custom in manual_inputs:
+                                final_part[row_idx]["name"] = custom
+                           
+                            contributors_json = []
+                            for row in edited_contrib.to_dict(orient="records"):
+                                display = row["name"]
+                                actual_name = full_name_to_display.get(display, display)
+                                contributors_json.append({
+                                    "name": actual_name,
+                                    "units": row["units"],
+                                    "php_per_unit": row["php_per_unit"]
+                                })
+                           
                             supabase.table("ftmo_accounts").insert({
                                 "name": name.strip(),
                                 "ftmo_id": ftmo_id or None,
@@ -892,13 +884,15 @@ elif selected == "📊 FTMO Accounts":
                                 "contributors": contributors_json,
                                 "contributor_share_pct": contributor_share_pct
                             }).execute()
-                            st.success("Account launched! Unified tree ready.")
+                            st.success("Account launched successfully! 🎉")
+                            st.balloons()
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Supabase error: {str(e)}")
+                            st.error(f"Failed to launch account: {str(e)}")
+                            st.info("Check: Unique name? All fields valid? Fix & submit again.")
        
-        # LIVE ACCOUNTS LIST & EDIT (similar unified tree with Contributor Pool row)
+        # LIVE ACCOUNTS LIST & EDIT
         st.subheader("Live Empire Accounts")
         if accounts:
             for acc in accounts:
@@ -961,21 +955,11 @@ elif selected == "📊 FTMO Accounts":
                         st.subheader("🌳 Unified Profit Distribution Tree (%)")
                         st.info("**Include 'Contributor Pool' row** • Edit all % freely • Total must be exactly 100%")
                         
-                        # Load current tree (ensure Contributor Pool row)
-                        current_part = pd.DataFrame(cur["participants"])
-                        if "Contributor Pool" not in current_part["name"].values:
-                            # Add if missing (rare)
-                            current_part = pd.concat([pd.DataFrame([{
-                                "name": "Contributor Pool",
-                                "role": "Funding Contributors (pro-rata)",
-                                "percentage": 30.0
-                            }]), current_part], ignore_index=True)
-                        
                         edited_tree = st.data_editor(
-                            current_part,
+                            pd.DataFrame(cur["participants"]),
                             num_rows="dynamic",
                             use_container_width=True,
-                            key=f"tree_editor_edit_{eid}",
+                            key=f"participants_editor_edit_{eid}",
                             column_config={
                                 "name": st.column_config.SelectboxColumn("Name *", options=participant_options, required=True),
                                 "role": st.column_config.TextColumn("Role"),
@@ -1044,35 +1028,31 @@ elif selected == "📊 FTMO Accounts":
                             if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                                 if not new_name.strip():
                                     st.error("Account name required")
-                                elif abs(total_sum - 100.0) > 0.1:
-                                    st.error("Total % not 100%")
-                                elif len(contrib_rows) != 1:
-                                    st.error("Must have exactly one 'Contributor Pool' row")
                                 else:
-                                    final_part = []
-                                    for row in edited_tree.to_dict(orient="records"):
-                                        display = row["name"]
-                                        actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
-                                        final_part.append({
-                                            "name": actual_name,
-                                            "role": row["role"],
-                                            "percentage": row["percentage"]
-                                        })
-                                   
-                                    for row_idx, custom in manual_inputs:
-                                        final_part[row_idx]["name"] = custom
-                                   
-                                    contributors_json = []
-                                    for row in edited_contrib.to_dict(orient="records"):
-                                        display = row["name"]
-                                        actual_name = full_name_to_display.get(display, display)
-                                        contributors_json.append({
-                                            "name": actual_name,
-                                            "units": row["units"],
-                                            "php_per_unit": row["php_per_unit"]
-                                        })
-                                   
                                     try:
+                                        final_part = []
+                                        for row in edited_tree.to_dict(orient="records"):
+                                            display = row["name"]
+                                            actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
+                                            final_part.append({
+                                                "name": actual_name,
+                                                "role": row["role"],
+                                                "percentage": row["percentage"]
+                                            })
+                                       
+                                        for row_idx, custom in manual_inputs:
+                                            final_part[row_idx]["name"] = custom
+                                       
+                                        contributors_json = []
+                                        for row in edited_contrib.to_dict(orient="records"):
+                                            display = row["name"]
+                                            actual_name = full_name_to_display.get(display, display)
+                                            contributors_json.append({
+                                                "name": actual_name,
+                                                "units": row["units"],
+                                                "php_per_unit": row["php_per_unit"]
+                                            })
+                                       
                                         supabase.table("ftmo_accounts").update({
                                             "name": new_name.strip(),
                                             "ftmo_id": new_ftmo_id or None,
@@ -1084,13 +1064,13 @@ elif selected == "📊 FTMO Accounts":
                                             "contributors": contributors_json,
                                             "contributor_share_pct": contributor_share_pct
                                         }).eq("id", eid).execute()
-                                        st.success("Account updated! Unified tree saved.")
+                                        st.success("Account updated successfully! 🎉")
                                         del st.session_state.edit_acc_id
                                         del st.session_state.edit_acc_data
                                         st.cache_data.clear()
                                         st.rerun()
                                     except Exception as e:
-                                        st.error(f"Error: {str(e)}")
+                                        st.error(f"Failed to update account: {str(e)}")
                         with col_cancel:
                             if st.form_submit_button("Cancel", use_container_width=True):
                                 del st.session_state.edit_acc_id
