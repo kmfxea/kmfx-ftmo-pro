@@ -1301,13 +1301,17 @@ elif selected == "💰 Profit Sharing":
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
+    import re  # For robust name cleaning
    
     @st.cache_data(ttl=60)
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
         users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
-        user_map = {u["full_name"].strip().lower(): u for u in users}
-        email_map = {u["full_name"].strip().lower(): u.get("email") for u in users if u.get("email")}
+        # Robust map: clean name (strip title in (), lower, strip)
+        def clean_name(name):
+            return re.sub(r"\s*\([^)]*\)", "", name).strip().lower()
+        user_map = {clean_name(u["full_name"]): u for u in users}
+        email_map = {clean_name(u["full_name"]): u.get("email") for u in users if u.get("email")}
         return accounts, user_map, email_map
    
     accounts, user_map, email_map = fetch_profit_data()
@@ -1362,7 +1366,7 @@ elif selected == "💰 Profit Sharing":
                     funded = c.get("units", 0) * c.get("php_per_unit", 0)
                     share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
                     display = c["name"]
-                    user_key = c["name"].strip().lower()
+                    user_key = re.sub(r"\s*\([^)]*\)", "", c["name"]).strip().lower()
                     user = user_map.get(user_key)
                     if user and user.get("title"):
                         display += f" ({user['title']})"
@@ -1378,7 +1382,7 @@ elif selected == "💰 Profit Sharing":
                 is_gf = "growth fund" in row["name"].lower()
                 if is_gf:
                     gf_add += share
-                user_key = row["name"].strip().lower()
+                user_key = re.sub(r"\s*\([^)]*\)", "", row["name"]).strip().lower()
                 if user_key not in user_map and not is_gf:
                     manual.append(row["name"])
                 
@@ -1458,6 +1462,7 @@ elif selected == "💰 Profit Sharing":
                 participant_pool = gross_profit - contributor_pool
                 units = gross_profit / unit_value
                 
+                # Record profit
                 profit_resp = supabase.table("profits").insert({
                     "account_id": acc_id,
                     "gross_profit": gross_profit,
@@ -1471,6 +1476,7 @@ elif selected == "💰 Profit Sharing":
                 }).execute()
                 profit_id = profit_resp.data[0]["id"]
                 
+                # Distributions & auto-balance (robust match)
                 distributions = []
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
                 if total_funded_php > 0 and contributor_share_pct > 0:
@@ -1486,7 +1492,7 @@ elif selected == "💰 Profit Sharing":
                             "is_growth_fund": False
                         })
                         
-                        user_key = c["name"].strip().lower()
+                        user_key = re.sub(r"\s*\([^)]*\)", "", c["name"]).strip().lower()
                         user = user_map.get(user_key)
                         if user:
                             new_bal = (user["balance"] or 0) + share
@@ -1496,7 +1502,7 @@ elif selected == "💰 Profit Sharing":
                 
                 for _, row in edited_part.iterrows():
                     if row["name"] == "Contributor Pool":
-                        continue  # Skip — not a participant
+                        continue
                     share = participant_pool * (row["percentage"] / 100)
                     is_gf = "growth fund" in row["name"].lower()
                     distributions.append({
@@ -1509,7 +1515,7 @@ elif selected == "💰 Profit Sharing":
                     })
                     
                     if not is_gf:
-                        user_key = row["name"].strip().lower()
+                        user_key = re.sub(r"\s*\([^)]*\)", "", row["name"]).strip().lower()
                         user = user_map.get(user_key)
                         if user:
                             new_bal = (user["balance"] or 0) + share
