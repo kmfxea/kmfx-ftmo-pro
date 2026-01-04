@@ -1301,15 +1301,14 @@ elif selected == "💰 Profit Sharing":
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
-    import re
+    import re  # For ultra-robust name cleaning
    
-    # GLOBAL CLEAN NAME FUNCTION (ultra-robust)
+    # GLOBAL CLEAN NAME FUNCTION (keeps title without space before (, lower case)
     def clean_name(name):
-        # Strip title in ()
-        name = re.sub(r"\s*\([^)]*\)", "", name)
-        # Strip extra spaces
-        name = " ".join(name.split())
-        return name.strip().lower()
+        # Remove spaces before (
+        name = re.sub(r"\s*\(", "(", name)
+        # Lower case
+        return name.lower()
    
     @st.cache_data(ttl=60)
     def fetch_profit_data():
