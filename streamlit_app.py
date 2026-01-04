@@ -2238,26 +2238,23 @@ elif selected == "📁 File Vault":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL FILE VAULT ======================
-# ====================== PART 5: ANNOUNCEMENTS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
+# ====================== ANNOUNCEMENTS PAGE - FULL FINAL LATEST (NO NOTIFICATION SPAM) ======================
+
 elif selected == "📢 Announcements":
     st.header("Empire Announcements 📢")
-    st.markdown("**Central realtime communication: Broadcast updates, auto-post profits/withdrawals/licenses • Rich images/attachments • Likes ❤️ • Threaded comments 💬 • Pinning 📌 • Category filters • Push notifications • Full team engagement & transparency.**")
-    
-    # SAFE ROLE
+    st.markdown("**Central realtime communication: Broadcast updates • Rich images/attachments • Likes ❤️ • Threaded comments 💬 • Pinning 📌 • Category filters • Full team engagement & transparency.**")
+   
     current_role = st.session_state.get("role", "guest")
-    
-    # FULL REALTIME CACHE (short ttl for live engagement)
+   
     @st.cache_data(ttl=15)
     def fetch_announcements_realtime():
         ann_resp = supabase.table("announcements").select("*").order("date", desc=True).execute()
         announcements = ann_resp.data or []
-        
-        # Attachments
+       
         for ann in announcements:
             att_resp = supabase.table("announcement_files").select("original_name, file_name").eq("announcement_id", ann["id"]).execute()
             ann["attachments"] = att_resp.data or []
-        
-        # Threaded comments (flat for simplicity, sorted newest)
+       
         try:
             comm_resp = supabase.table("announcement_comments").select("*").order("timestamp", desc=True).execute()
             comments_map = {}
@@ -2271,14 +2268,14 @@ elif selected == "📢 Announcements":
         except:
             for ann in announcements:
                 ann["comments"] = []
-        
+       
         return announcements
-    
+   
     announcements = fetch_announcements_realtime()
-    
+   
     st.caption("🔄 Feed auto-refresh every 15s • Likes & comments realtime")
-    
-    # ====================== POST NEW (OWNER/ADMIN) ======================
+   
+    # POST NEW (OWNER/ADMIN)
     if current_role in ["owner", "admin"]:
         with st.expander("➕ Broadcast New Announcement", expanded=True):
             with st.form("ann_form", clear_on_submit=True):
@@ -2287,9 +2284,8 @@ elif selected == "📢 Announcements":
                 message = st.text_area("Message *", height=150)
                 attachments = st.file_uploader("Attachments (Images/Proofs - Full Preview)", accept_multiple_files=True)
                 pin = st.checkbox("📌 Pin to Top")
-                notify = st.checkbox("🔔 Send Push Notification to Clients", value=True)
-                
-                submitted = st.form_submit_button("📢 Post & Sync", type="primary", use_container_width=True)
+               
+                submitted = st.form_submit_button("📢 Post Announcement", type="primary", use_container_width=True)
                 if submitted:
                     if not title.strip() or not message.strip():
                         st.error("Title and message required")
@@ -2305,7 +2301,7 @@ elif selected == "📢 Announcements":
                                 "pinned": pin
                             }).execute()
                             ann_id = resp.data[0]["id"]
-                            
+                           
                             for file in attachments or []:
                                 safe = "".join(c for c in file.name if c.isalnum() or c in "._- ")
                                 path = f"uploaded_files/announcements/{safe}"
@@ -2316,35 +2312,22 @@ elif selected == "📢 Announcements":
                                     "file_name": safe,
                                     "original_name": file.name
                                 }).execute()
-                            
-                            if notify:
-                                clients = supabase.table("users").select("full_name").eq("role", "client").execute().data
-                                for c in clients:
-                                    supabase.table("notifications").insert({
-                                        "client_name": c["full_name"],
-                                        "title": title.strip(),
-                                        "message": message.strip(),
-                                        "date": datetime.date.today().isoformat(),
-                                        "category": category,
-                                        "read": 0
-                                    }).execute()
-                            
-                            st.success("Announcement posted realtime!")
+                           
+                            st.success("Announcement posted realtime! (Visible to all in feed)")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-    
-    # ====================== FILTER & SEARCH ======================
+   
+    # FILTER & SEARCH
     st.subheader("📻 Live Empire Feed")
     categories = sorted(set(a.get("category", "General") for a in announcements))
     filter_cat = st.selectbox("Category Filter", ["All"] + categories)
-    
+   
     filtered = [a for a in announcements if filter_cat == "All" or a.get("category") == filter_cat]
-    # Pinned top
     filtered = sorted(filtered, key=lambda x: (not x.get("pinned", False), x["date"]), reverse=True)
-    
-    # ====================== REALTIME RICH FEED ======================
+   
+    # REALTIME RICH FEED
     if filtered:
         for ann in filtered:
             pinned = " 📌 PINNED" if ann.get("pinned") else ""
@@ -2352,8 +2335,7 @@ elif selected == "📢 Announcements":
                 st.markdown(f"<h3 style='color:{accent_color};'>{ann['title']}{pinned}</h3>", unsafe_allow_html=True)
                 st.caption(f"{ann.get('category', 'General')} • by {ann['posted_by']} • {ann['date']}")
                 st.markdown(ann['message'])
-                
-                # FULL IMAGE PREVIEWS
+               
                 images = [att for att in ann["attachments"] if att["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
                 if images:
                     img_cols = st.columns(min(len(images), 4))
@@ -2362,8 +2344,7 @@ elif selected == "📢 Announcements":
                         if os.path.exists(path):
                             with img_cols[idx % 4]:
                                 st.image(path, use_container_width=True)
-                
-                # Other attachments
+               
                 non_images = [att for att in ann["attachments"] if not att["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
                 if non_images:
                     st.markdown("**Files:**")
@@ -2372,8 +2353,7 @@ elif selected == "📢 Announcements":
                         if os.path.exists(path):
                             with open(path, "rb") as f:
                                 st.download_button(att['original_name'], f, att['original_name'])
-                
-                # REALTIME LIKES
+               
                 if st.button(f"❤️ {ann['likes']}", key=f"like_{ann['id']}"):
                     try:
                         supabase.table("announcements").update({"likes": ann["likes"] + 1}).eq("id", ann["id"]).execute()
@@ -2381,14 +2361,13 @@ elif selected == "📢 Announcements":
                         st.rerun()
                     except:
                         pass
-                
-                # REALTIME COMMENTS
+               
                 with st.expander(f"💬 Comments ({len(ann.get('comments', []))}) • Realtime", expanded=False):
                     for c in ann.get("comments", []):
                         st.markdown(f"**{c['user_name']}** • {c['timestamp'][:16].replace('T', ' ')}")
                         st.markdown(c['message'])
                         st.divider()
-                    
+                   
                     with st.form(key=f"comment_{ann['id']}"):
                         comment = st.text_area("Add comment...", height=80, label_visibility="collapsed")
                         if st.form_submit_button("Post"):
@@ -2405,8 +2384,7 @@ elif selected == "📢 Announcements":
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
-                
-                # Admin controls
+               
                 if current_role in ["owner", "admin"]:
                     col_admin = st.columns(3)
                     with col_admin[0]:
@@ -2428,7 +2406,7 @@ elif selected == "📢 Announcements":
                 st.divider()
     else:
         st.info("No announcements yet • First post activates realtime feed")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
