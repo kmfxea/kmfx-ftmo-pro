@@ -1301,13 +1301,13 @@ elif selected == "💰 Profit Sharing":
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
-    import re  # For robust name cleaning
+    import re  # For ultra-robust name cleaning
    
     @st.cache_data(ttl=60)
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
         users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
-        # Robust map: clean name (strip title in (), lower, strip)
+        # Ultra-robust map: strip title in (), lower, strip spaces
         def clean_name(name):
             return re.sub(r"\s*\([^)]*\)", "", name).strip().lower()
         user_map = {clean_name(u["full_name"]): u for u in users}
@@ -1377,7 +1377,7 @@ elif selected == "💰 Profit Sharing":
             manual = []
             for _, row in edited_part.iterrows():
                 if row["name"] == "Contributor Pool":
-                    continue  # Skip — not a participant getting share
+                    continue
                 share = participant_pool * (row["percentage"] / 100)
                 is_gf = "growth fund" in row["name"].lower()
                 if is_gf:
@@ -1462,7 +1462,6 @@ elif selected == "💰 Profit Sharing":
                 participant_pool = gross_profit - contributor_pool
                 units = gross_profit / unit_value
                 
-                # Record profit
                 profit_resp = supabase.table("profits").insert({
                     "account_id": acc_id,
                     "gross_profit": gross_profit,
@@ -1476,9 +1475,9 @@ elif selected == "💰 Profit Sharing":
                 }).execute()
                 profit_id = profit_resp.data[0]["id"]
                 
-                # Distributions & auto-balance (robust match)
                 distributions = []
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
+                updated = []
                 if total_funded_php > 0 and contributor_share_pct > 0:
                     for c in contributors:
                         funded = c.get("units", 0) * c.get("php_per_unit", 0)
@@ -1497,6 +1496,7 @@ elif selected == "💰 Profit Sharing":
                         if user:
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
+                            updated.append(f"{c['name']} +${share:,.2f} (contributor)")
                         else:
                             st.warning(f"Contributor '{c['name']}' not found — balance not updated")
                 
@@ -1520,6 +1520,7 @@ elif selected == "💰 Profit Sharing":
                         if user:
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
+                            updated.append(f"{row['name']} +${share:,.2f} (participant)")
                         else:
                             st.warning(f"Participant '{row['name']}' not found — balance not updated")
                 
@@ -1615,7 +1616,7 @@ elif selected == "💰 Profit Sharing":
                     st.warning("Email not sent — add EMAIL_SENDER & EMAIL_PASSWORD in .env for auto-email")
                     st.info("Copy the breakdown above for manual email")
                 
-                st.success("Profit recorded & fully auto-distributed! Balances updated correctly.")
+                st.success(f"Profit recorded & distributed! Updated balances: {', '.join(updated) or 'None'}")
                 st.cache_data.clear()
                 st.rerun()
 # ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH PASSWORD CHANGE + FORGOT PASSWORD REQUEST) ======================
