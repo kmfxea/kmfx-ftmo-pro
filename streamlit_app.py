@@ -716,7 +716,7 @@ if selected == "🏠 Dashboard":
 
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree with dynamic Contributor Pool % • Editable participants sum to remaining % • Contributors dropdown from registered clients only • Auto pro-rata from pool • Real-time unified tree previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified tree: Contributor Pool % fixed & dynamic (slider change auto-updates tree) • Editable participants auto-reset to remaining % • Contributors dropdown registered only • Auto pro-rata • Real-time previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -755,32 +755,32 @@ elif selected == "📊 FTMO Accounts":
                
                 notes = st.text_area("Notes (Optional)")
                
-                # CONTRIBUTOR POOL %
+                # CONTRIBUTOR POOL % - DYNAMIC AUTO-ADJUST
                 st.subheader("🌟 Contributor Pool Allocation")
-                st.info("**Dynamic fixed row in tree below • Changes live with slider • Auto pro-rata to registered contributors**")
+                st.info("**Slider change auto-updates tree: Fixed pool % + King Minted gets remaining %**")
                 contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30, key="contrib_slider_create")
                 remaining_pct = 100 - contributor_share_pct
-                st.info(f"Editable participants default to {remaining_pct}% remaining • Must sum exactly 100% total")
+                st.info(f"**Live:** Editable participants must sum exactly to {remaining_pct}% (King Minted auto-defaults to this)")
                
-                # UNIFIED PARTICIPANTS TREE
+                # UNIFIED TREE - AUTO-ADJUST ON SLIDER CHANGE
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Red row:** Contributor Pool (fixed & protected) • **Editable rows:** Sum to remaining %")
+                st.info("**Fixed row (red):** Contributor Pool • **Editable rows:** Auto-reset on slider change")
                
-                # Fixed row
+                # Fixed row (dynamic)
                 fixed_row = pd.DataFrame([{
                     "name": "Contributor Pool",
                     "role": "Funding Contributors (pro-rata)",
                     "percentage": contributor_share_pct
                 }])
                 
-                # Default editable
+                # Default editable - King Minted gets remaining, others 0
                 default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
                 for display in registered_display:
                     default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
                 
                 editable_df = pd.DataFrame(default_editable)
                 
-                # Combine with key for rerender
+                # Key with slider for auto-reset/rerender
                 full_df_key = f"tree_editor_create_{contributor_share_pct}"
                 full_df = pd.concat([fixed_row, editable_df], ignore_index=True)
                 
@@ -790,27 +790,23 @@ elif selected == "📊 FTMO Accounts":
                     use_container_width=True,
                     key=full_df_key,
                     column_config={
-                        "name": st.column_config.SelectboxColumn(
-                            "Name *",
-                            options=["Contributor Pool"] + participant_options,
-                            required=True
-                        ),
+                        "name": st.column_config.SelectboxColumn("Name *", options=["Contributor Pool"] + participant_options, required=True),
                         "role": st.column_config.TextColumn("Role"),
                         "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
                     },
-                    disabled=["name", "role", "percentage"]  # Protect fixed row completely
+                    disabled=["name", "role", "percentage"]  # Protect fixed row
                 )
                 
-                # Strict validation
-                contrib_row = edited_full.iloc[0]  # First row is fixed
+                # Validation
+                contrib_row = edited_full.iloc[0]
                 if edited_full.iloc[0]["name"] != "Contributor Pool" or edited_full.iloc[0]["percentage"] != contributor_share_pct:
-                    st.error("Contributor Pool row is protected — cannot edit name or %!")
+                    st.error("Contributor Pool row protected — cannot edit!")
                     st.stop()
                 
                 total_sum = edited_full["percentage"].sum()
                 st.progress(total_sum / 100)
                 if abs(total_sum - 100.0) > 0.1:
-                    st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%) — adjust editable rows")
+                    st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
                     st.stop()
                 else:
                     st.success("✅ Perfect 100% unified tree")
@@ -823,9 +819,9 @@ elif selected == "📊 FTMO Accounts":
                         if custom_name:
                             manual_inputs.append((idx, custom_name))
                
-                # CONTRIBUTORS TREE - REGISTERED DROPDOWN ONLY
+                # CONTRIBUTORS TREE - REGISTERED DROPDOWN
                 st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
-                st.info("Dropdown from registered clients only • Auto pro-rata from Contributor Pool")
+                st.info("Dropdown from registered clients only • Auto pro-rata from pool")
                 
                 contrib_df = pd.DataFrame(columns=["name", "units", "php_per_unit"])
                 edited_contrib = st.data_editor(
@@ -840,7 +836,7 @@ elif selected == "📊 FTMO Accounts":
                             required=True
                         ),
                         "units": st.column_config.NumberColumn("Units Funded", min_value=0.0, step=0.5),
-                        "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0, help="Recommended: 1000")
+                        "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0)
                     }
                 )
                 
@@ -848,7 +844,7 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                
-                # UNIFIED PREVIEW
+                # PREVIEW
                 st.subheader("🌳 Unified Profit Tree Preview")
                 labels = ["Gross Profit"]
                 for _, row in edited_full.iterrows():
@@ -902,11 +898,11 @@ elif selected == "📊 FTMO Accounts":
                                 "contributors": contributors_json,
                                 "contributor_share_pct": contributor_share_pct
                             }).execute()
-                            st.success("Account launched! Unified tree with registered contributors.")
+                            st.success("Account launched! Tree auto-adjusted.")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Supabase error: {str(e)}")
+                            st.error(f"Error: {str(e)}")
        
         # LIVE ACCOUNTS LIST & EDIT
         st.subheader("Live Empire Accounts")
