@@ -1307,9 +1307,13 @@ elif selected == "💰 Profit Sharing":
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
         users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
-        # Ultra-robust map: strip title in (), lower, strip spaces
+        # Ultra-robust map: strip title, extra spaces, lower
         def clean_name(name):
-            return re.sub(r"\s*\([^)]*\)", "", name).strip().lower()
+            # Strip title in ()
+            name = re.sub(r"\s*\([^)]*\)", "", name)
+            # Strip extra spaces
+            name = " ".join(name.split())
+            return name.strip().lower()
         user_map = {clean_name(u["full_name"]): u for u in users}
         email_map = {clean_name(u["full_name"]): u.get("email") for u in users if u.get("email")}
         return accounts, user_map, email_map
@@ -1366,7 +1370,7 @@ elif selected == "💰 Profit Sharing":
                     funded = c.get("units", 0) * c.get("php_per_unit", 0)
                     share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
                     display = c["name"]
-                    user_key = re.sub(r"\s*\([^)]*\)", "", c["name"]).strip().lower()
+                    user_key = clean_name(c["name"])
                     user = user_map.get(user_key)
                     if user and user.get("title"):
                         display += f" ({user['title']})"
@@ -1382,7 +1386,7 @@ elif selected == "💰 Profit Sharing":
                 is_gf = "growth fund" in row["name"].lower()
                 if is_gf:
                     gf_add += share
-                user_key = re.sub(r"\s*\([^)]*\)", "", row["name"]).strip().lower()
+                user_key = clean_name(row["name"])
                 if user_key not in user_map and not is_gf:
                     manual.append(row["name"])
                 
@@ -1491,14 +1495,14 @@ elif selected == "💰 Profit Sharing":
                             "is_growth_fund": False
                         })
                         
-                        user_key = re.sub(r"\s*\([^)]*\)", "", c["name"]).strip().lower()
+                        user_key = clean_name(c["name"])
                         user = user_map.get(user_key)
                         if user:
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
                             updated.append(f"{c['name']} +${share:,.2f} (contributor)")
                         else:
-                            st.warning(f"Contributor '{c['name']}' not found — balance not updated")
+                            st.warning(f"Contributor '{c['name']}' not found (key: '{user_key}') — balance not updated")
                 
                 for _, row in edited_part.iterrows():
                     if row["name"] == "Contributor Pool":
@@ -1515,14 +1519,14 @@ elif selected == "💰 Profit Sharing":
                     })
                     
                     if not is_gf:
-                        user_key = re.sub(r"\s*\([^)]*\)", "", row["name"]).strip().lower()
+                        user_key = clean_name(row["name"])
                         user = user_map.get(user_key)
                         if user:
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
                             updated.append(f"{row['name']} +${share:,.2f} (participant)")
                         else:
-                            st.warning(f"Participant '{row['name']}' not found — balance not updated")
+                            st.warning(f"Participant '{row['name']}' not found (key: '{user_key}') — balance not updated")
                 
                 supabase.table("profit_distributions").insert(distributions).execute()
                 
@@ -1536,7 +1540,7 @@ elif selected == "💰 Profit Sharing":
                         "recorded_by": st.session_state.full_name
                     }).execute()
                 
-                # GENERATE & AUTO-SEND EMAIL BREAKDOWN
+                # Email & success
                 date_str = record_date.strftime("%B %d, %Y")
                 html_breakdown = f"""
                 <html>
@@ -1578,17 +1582,15 @@ elif selected == "💰 Profit Sharing":
                 </html>
                 """
                 
-                # Show breakdown in app
                 st.subheader("Profit Distribution Breakdown (Auto-Sent via Email)")
                 st.markdown(html_breakdown, unsafe_allow_html=True)
                 
-                # Auto-send emails
                 sender_email = os.getenv("EMAIL_SENDER")
                 sender_password = os.getenv("EMAIL_PASSWORD")
                 if sender_email and sender_password:
                     involved = set()
                     for c in contrib_preview:
-                        name = c["Name"].split(" (")[0]  # Strip title
+                        name = c["Name"].split(" (")[0]
                         involved.add(name.strip().lower())
                     for p in part_preview:
                         name = p["Name"].split(" (")[0]
