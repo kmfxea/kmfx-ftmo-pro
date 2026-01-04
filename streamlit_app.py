@@ -712,9 +712,11 @@ if selected == "🏠 Dashboard":
 # Contributors funding tracked + auto pro-rata from pool in Profit Sharing
 # Full create/edit/live list/client view
 
+# Ready for production — elite & clean!
+
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree includes dynamic Contributor Pool % • Editable participants sum to remaining % • Contributors dropdown from registered clients only • Auto pro-rata from pool • Real-time unified tree previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree with dynamic Contributor Pool % • Editable participants sum to remaining % • Contributors dropdown from registered clients only • Auto pro-rata from pool • Real-time unified tree previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -755,27 +757,30 @@ elif selected == "📊 FTMO Accounts":
                
                 # CONTRIBUTOR POOL %
                 st.subheader("🌟 Contributor Pool Allocation")
-                st.info("**Dynamic fixed row in tree below • Changes live with slider • Auto pro-rata to contributors**")
+                st.info("**Dynamic fixed row in tree below • Changes live with slider • Auto pro-rata to registered contributors**")
                 contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30, key="contrib_slider_create")
                 remaining_pct = 100 - contributor_share_pct
                 st.info(f"Editable participants default to {remaining_pct}% remaining • Must sum exactly 100% total")
                
                 # UNIFIED PARTICIPANTS TREE
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Red row:** Contributor Pool (fixed, updates with slider) • **Editable rows:** Sum to remaining %")
+                st.info("**Red row:** Contributor Pool (fixed & protected) • **Editable rows:** Sum to remaining %")
                
+                # Fixed row
                 fixed_row = pd.DataFrame([{
                     "name": "Contributor Pool",
                     "role": "Funding Contributors (pro-rata)",
                     "percentage": contributor_share_pct
                 }])
                 
+                # Default editable
                 default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
                 for display in registered_display:
                     default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
                 
                 editable_df = pd.DataFrame(default_editable)
                 
+                # Combine with key for rerender
                 full_df_key = f"tree_editor_create_{contributor_share_pct}"
                 full_df = pd.concat([fixed_row, editable_df], ignore_index=True)
                 
@@ -791,26 +796,26 @@ elif selected == "📊 FTMO Accounts":
                             required=True
                         ),
                         "role": st.column_config.TextColumn("Role"),
-                        "percentage": st.column_config.NumberColumn(
-                            "% *",
-                            min_value=0.0,
-                            max_value=100.0,
-                            step=0.5
-                        )
-                    }
+                        "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
+                    },
+                    disabled=["name", "role", "percentage"]  # Protect fixed row completely
                 )
                 
-                contrib_row = edited_full[edited_full["name"] == "Contributor Pool"]
-                if len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != contributor_share_pct:
-                    st.error(f"Contributor Pool % must stay at {contributor_share_pct}% (cannot edit)")
+                # Strict validation
+                contrib_row = edited_full.iloc[0]  # First row is fixed
+                if edited_full.iloc[0]["name"] != "Contributor Pool" or edited_full.iloc[0]["percentage"] != contributor_share_pct:
+                    st.error("Contributor Pool row is protected — cannot edit name or %!")
+                    st.stop()
+                
+                total_sum = edited_full["percentage"].sum()
+                st.progress(total_sum / 100)
+                if abs(total_sum - 100.0) > 0.1:
+                    st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%) — adjust editable rows")
+                    st.stop()
                 else:
-                    total_sum = edited_full["percentage"].sum()
-                    st.progress(total_sum / 100)
-                    if abs(total_sum - 100.0) > 0.1:
-                        st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
-                    else:
-                        st.success("✅ Perfect 100% unified tree")
-               
+                    st.success("✅ Perfect 100% unified tree")
+                
+                # Manual names
                 manual_inputs = []
                 for idx, row in edited_full.iterrows():
                     if row["name"] == "Manual Payout (Temporary)":
@@ -818,10 +823,10 @@ elif selected == "📊 FTMO Accounts":
                         if custom_name:
                             manual_inputs.append((idx, custom_name))
                
-                # CONTRIBUTORS TREE - DROPDOWN FROM REGISTERED
+                # CONTRIBUTORS TREE - REGISTERED DROPDOWN ONLY
                 st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
-                st.info("Dropdown from registered clients only • Auto pro-rata from Contributor Pool above")
-               
+                st.info("Dropdown from registered clients only • Auto pro-rata from Contributor Pool")
+                
                 contrib_df = pd.DataFrame(columns=["name", "units", "php_per_unit"])
                 edited_contrib = st.data_editor(
                     contrib_df,
@@ -831,19 +836,19 @@ elif selected == "📊 FTMO Accounts":
                     column_config={
                         "name": st.column_config.SelectboxColumn(
                             "Contributor Name *",
-                            options=registered_display,  # Registered clients only
+                            options=registered_display,
                             required=True
                         ),
                         "units": st.column_config.NumberColumn("Units Funded", min_value=0.0, step=0.5),
                         "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0, help="Recommended: 1000")
                     }
                 )
-               
+                
                 if not edited_contrib.empty:
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                
-                # UNIFIED TREE PREVIEW
+                # UNIFIED PREVIEW
                 st.subheader("🌳 Unified Profit Tree Preview")
                 labels = ["Gross Profit"]
                 for _, row in edited_full.iterrows():
@@ -860,10 +865,6 @@ elif selected == "📊 FTMO Accounts":
                 if submitted:
                     if not name.strip():
                         st.error("Account name required")
-                    elif abs(total_sum - 100.0) > 0.1:
-                        st.error("Total must be exactly 100%")
-                    elif len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != contributor_share_pct:
-                        st.error("Contributor Pool row invalid")
                     else:
                         final_part = []
                         for row in edited_full.to_dict(orient="records"):
@@ -905,9 +906,9 @@ elif selected == "📊 FTMO Accounts":
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Error: {str(e)}")
+                            st.error(f"Supabase error: {str(e)}")
        
-        # LIVE ACCOUNTS LIST & EDIT (similar changes for contributors dropdown)
+        # LIVE ACCOUNTS LIST & EDIT
         st.subheader("Live Empire Accounts")
         if accounts:
             for acc in accounts:
@@ -949,7 +950,7 @@ elif selected == "📊 FTMO Accounts":
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
            
-            # EDIT FORM - same dynamic + contributors dropdown
+            # EDIT FORM
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -993,19 +994,22 @@ elif selected == "📊 FTMO Accounts":
                                 "name": st.column_config.SelectboxColumn("Name *", options=["Contributor Pool"] + participant_options, required=True),
                                 "role": st.column_config.TextColumn("Role"),
                                 "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
-                            }
+                            },
+                            disabled=["name", "role", "percentage"]
                         )
                         
-                        contrib_row = edited_full[edited_full["name"] == "Contributor Pool"]
-                        if len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != new_contrib_pct:
-                            st.error(f"Contributor Pool % must stay at {new_contrib_pct}% (cannot edit)")
+                        contrib_row = edited_full.iloc[0]
+                        if edited_full.iloc[0]["name"] != "Contributor Pool" or edited_full.iloc[0]["percentage"] != new_contrib_pct:
+                            st.error("Contributor Pool row is protected — cannot edit!")
+                            st.stop()
+                        
+                        total_sum = edited_full["percentage"].sum()
+                        st.progress(total_sum / 100)
+                        if abs(total_sum - 100.0) > 0.1:
+                            st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
+                            st.stop()
                         else:
-                            total_sum = edited_full["percentage"].sum()
-                            st.progress(total_sum / 100)
-                            if abs(total_sum - 100.0) > 0.1:
-                                st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
-                            else:
-                                st.success("✅ Perfect 100% unified tree")
+                            st.success("✅ Perfect 100% unified tree")
                         
                         manual_inputs = []
                         for idx, row in edited_full.iterrows():
@@ -1058,10 +1062,6 @@ elif selected == "📊 FTMO Accounts":
                             if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                                 if not new_name.strip():
                                     st.error("Account name required")
-                                elif abs(total_sum - 100.0) > 0.1:
-                                    st.error("Total must be exactly 100%")
-                                elif len(contrib_row) != 1 or contrib_row.iloc[0]["percentage"] != new_contrib_pct:
-                                    st.error("Contributor Pool row invalid")
                                 else:
                                     final_part = []
                                     for row in edited_full.to_dict(orient="records"):
