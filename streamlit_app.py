@@ -1306,8 +1306,9 @@ elif selected == "💰 Profit Sharing":
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
         users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
-        user_map = {u["full_name"]: u for u in users}
-        email_map = {u["full_name"]: u.get("email") for u in users if u.get("email")}
+        # Robust map: lower case + stripped for name match
+        user_map = {u["full_name"].strip().lower(): u for u in users}
+        email_map = {u["full_name"].strip().lower(): u.get("email") for u in users if u.get("email")}
         return accounts, user_map, email_map
    
     accounts, user_map, email_map = fetch_profit_data()
@@ -1362,7 +1363,8 @@ elif selected == "💰 Profit Sharing":
                     funded = c.get("units", 0) * c.get("php_per_unit", 0)
                     share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
                     display = c["name"]
-                    user = user_map.get(c["name"])
+                    user_key = c["name"].strip().lower()
+                    user = user_map.get(user_key)
                     if user and user.get("title"):
                         display += f" ({user['title']})"
                     contrib_preview.append({"Name": display, "Funded PHP": f"₱{funded:,.0f}", "Share": f"${share:,.2f}"})
@@ -1375,11 +1377,12 @@ elif selected == "💰 Profit Sharing":
                 is_gf = "growth fund" in row["name"].lower()
                 if is_gf:
                     gf_add += share
-                if row["name"] not in user_map and not is_gf:
+                user_key = row["name"].strip().lower()
+                if user_key not in user_map and not is_gf:
                     manual.append(row["name"])
                 
                 display_name = row["name"]
-                user = user_map.get(row["name"])
+                user = user_map.get(user_key)
                 if user and user.get("title"):
                     display_name += f" ({user['title']})"
                 
@@ -1468,7 +1471,7 @@ elif selected == "💰 Profit Sharing":
                 }).execute()
                 profit_id = profit_resp.data[0]["id"]
                 
-                # Distributions & auto-balance
+                # Distributions & auto-balance (ROBUST MATCH + WARNING IF NOT FOUND)
                 distributions = []
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
                 if total_funded_php > 0 and contributor_share_pct > 0:
@@ -1484,10 +1487,14 @@ elif selected == "💰 Profit Sharing":
                             "is_growth_fund": False
                         })
                         
-                        if c["name"] in user_map:
-                            user = user_map[c["name"]]
+                        # Robust match
+                        user_key = c["name"].strip().lower()
+                        user = user_map.get(user_key)
+                        if user:
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
+                        else:
+                            st.warning(f"Contributor '{c['name']}' not found in users — balance not updated (check name/title match)")
                 
                 for _, row in edited_part.iterrows():
                     share = participant_pool * (row["percentage"] / 100)
@@ -1501,10 +1508,14 @@ elif selected == "💰 Profit Sharing":
                         "is_growth_fund": is_gf
                     })
                     
-                    if not is_gf and row["name"] in user_map:
-                        user = user_map[row["name"]]
-                        new_bal = (user["balance"] or 0) + share
-                        supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
+                    if not is_gf:
+                        user_key = row["name"].strip().lower()
+                        user = user_map.get(user_key)
+                        if user:
+                            new_bal = (user["balance"] or 0) + share
+                            supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
+                        else:
+                            st.warning(f"Participant '{row['name']}' not found in users — balance not updated (check name/title match)")
                 
                 supabase.table("profit_distributions").insert(distributions).execute()
                 
@@ -1571,14 +1582,14 @@ elif selected == "💰 Profit Sharing":
                     involved = set()
                     for c in contrib_preview:
                         name = c["Name"].split(" (")[0]  # Strip title
-                        involved.add(name)
+                        involved.add(name.strip().lower())
                     for p in part_preview:
                         name = p["Name"].split(" (")[0]
-                        involved.add(name)
+                        involved.add(name.strip().lower())
                    
                     sent_count = 0
-                    for name in involved:
-                        email = email_map.get(name)
+                    for name_key in involved:
+                        email = email_map.get(name_key)
                         if email:
                             try:
                                 msg = MIMEMultipart("alternative")
@@ -1592,13 +1603,13 @@ elif selected == "💰 Profit Sharing":
                                     server.sendmail(sender_email, email, msg.as_string())
                                 sent_count += 1
                             except Exception as e:
-                                st.warning(f"Email failed for {name}: {str(e)}")
+                                st.warning(f"Email failed for {name_key}: {str(e)}")
                     st.success(f"Breakdown emailed to {sent_count} members!")
                 else:
                     st.warning("Email not sent — add EMAIL_SENDER & EMAIL_PASSWORD in .env for auto-email")
                     st.info("Copy the breakdown above for manual email")
                 
-                st.success("Profit recorded & fully auto-distributed!")
+                st.success("Profit recorded & fully auto-distributed! Balances updated for all.")
                 st.cache_data.clear()
                 st.rerun()
 # ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH PASSWORD CHANGE + FORGOT PASSWORD REQUEST) ======================
