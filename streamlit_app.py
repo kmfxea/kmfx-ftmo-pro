@@ -1291,25 +1291,27 @@ elif selected == "📊 FTMO Accounts":
 elif selected == "💰 Profit Sharing":
     st.header("Profit Sharing & Auto-Distribution 💰")
     st.markdown("**Empire scaling engine: Input FTMO withdrawable profit → Auto-split & distribute • Auto-email breakdown to all involved for transparency • Realtime preview • Instant sync.**")
-   
+  
     current_role = st.session_state.get("role", "guest")
-   
+  
     if current_role not in ["owner", "admin"]:
         st.warning("Profit recording is owner/admin only.")
         st.stop()
-   
+  
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
-    import re  # For ultra-robust name cleaning
-   
-    # GLOBAL CLEAN NAME FUNCTION (keeps title without space before (, lower case)
+    import re  # Ensure re is imported (already used elsewhere, but safe)
+
+    # FIXED CLEAN NAME FUNCTION - STRIPS TITLES COMPLETELY FOR PERFECT MATCHING
     def clean_name(name):
-        # Remove spaces before (
-        name = re.sub(r"\s*\(", "(", name)
-        # Lower case
-        return name.lower()
-   
+        # Remove anything inside parentheses (titles, notes, etc.)
+        name = re.sub(r"\s*\(.*?\)", "", name)
+        # Normalize spaces
+        name = re.sub(r"\s+", " ", name)
+        # Strip and lowercase
+        return name.strip().lower()
+  
     @st.cache_data(ttl=60)
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
@@ -1317,12 +1319,12 @@ elif selected == "💰 Profit Sharing":
         user_map = {clean_name(u["full_name"]): u for u in users}
         email_map = {clean_name(u["full_name"]): u.get("email") for u in users if u.get("email")}
         return accounts, user_map, email_map
-   
+  
     accounts, user_map, email_map = fetch_profit_data()
     if not accounts:
         st.info("No accounts yet.")
         st.stop()
-   
+  
     account_options = {f"{a['name']} • Phase: {a['current_phase']} • Equity: ${a['current_equity'] or 0:,.0f} • Contributor Pool: {a.get('contributor_share_pct', 0)}%": a for a in accounts}
     selected_key = st.selectbox("Select Account", list(account_options.keys()))
     acc = account_options[selected_key]
@@ -1332,16 +1334,16 @@ elif selected == "💰 Profit Sharing":
     participants = acc.get("participants", [])
     contributors = acc.get("contributors", [])
     contributor_share_pct = acc.get("contributor_share_pct", 0)
-   
-    st.info(f"**Recording for:** {acc_name} | Contributor Pool: {contributor_share_pct}%")
-   
+  
+    st.info(f"**Recording for:** {acc_name} | Stored Contributor Pool: {contributor_share_pct}% (can override below)")
+  
     with st.form("profit_form", clear_on_submit=True):
         col1, col2 = st.columns([2, 1])
         with col1:
             gross_profit = st.number_input("FTMO Gross Profit Received (USD) *", min_value=0.01, step=500.0)
         with col2:
             record_date = st.date_input("Record Date", datetime.date.today())
-       
+      
         part_df = pd.DataFrame(participants or [{"name": "King Minted", "role": "Founder", "percentage": 100.0}])
         edited_part = st.data_editor(part_df, num_rows="dynamic", use_container_width=True,
             column_config={
@@ -1350,34 +1352,39 @@ elif selected == "💰 Profit Sharing":
                 "percentage": st.column_config.NumberColumn("%", min_value=0.0, max_value=100.0, step=0.5)
             }
         )
-       
+      
         current_sum = edited_part["percentage"].sum()
         st.progress(min(current_sum / 100, 1.0))
-       
-        # Preview always
-        contributor_pool = gross_profit * (contributor_share_pct / 100)
-        participant_pool = gross_profit - contributor_pool
-        units = gross_profit / unit_value if gross_profit > 0 else 0
-        
-        total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
+        if abs(current_sum - 100.0) > 0.1:
+            st.error(f"Total must be exactly 100% (current: {current_sum:.1f}%)")
+        else:
+            st.success("✅ Perfect 100% tree")
+      
+        # DIRECT CALCULATION PREVIEWS (all % direct from gross)
         contrib_preview = []
-        if total_funded_php > 0 and contributor_share_pct > 0:
-            for c in contributors:
-                funded = c.get("units", 0) * c.get("php_per_unit", 0)
-                share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
-                display = c["name"]
-                user_key = clean_name(c["name"])
-                user = user_map.get(user_key)
-                if user and user.get("title"):
-                    display += f" ({user['title']})"
-                contrib_preview.append({"Name": display, "Funded PHP": f"₱{funded:,.0f}", "Share": f"${share:,.2f}"})
-        
+        total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
+        contributor_pool = 0.0
+        contrib_rows = edited_part[edited_part["name"] == "Contributor Pool"]
+        if len(contrib_rows) == 1:
+            contributor_pct = contrib_rows.iloc[0]["percentage"]
+            contributor_pool = gross_profit * (contributor_pct / 100)
+            if total_funded_php > 0 and contributor_pct > 0:
+                for c in contributors:
+                    funded = c.get("units", 0) * c.get("php_per_unit", 0)
+                    share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
+                    display = c["name"]
+                    user_key = clean_name(c["name"])
+                    user = user_map.get(user_key)
+                    if user and user.get("title"):
+                        display += f" ({user['title']})"
+                    contrib_preview.append({"Name": display, "Funded PHP": f"₱{funded:,.0f}", "Share": f"${share:,.2f}"})
+      
         part_preview = []
         gf_add = 0.0
         for _, row in edited_part.iterrows():
             if row["name"] == "Contributor Pool":
                 continue
-            share = participant_pool * (row["percentage"] / 100)
+            share = gross_profit * (row["percentage"] / 100)  # DIRECT from gross
             is_gf = "growth fund" in row["name"].lower()
             if is_gf:
                 gf_add += share
@@ -1389,30 +1396,34 @@ elif selected == "💰 Profit Sharing":
                 display_name += f" ({user['title']})"
             
             part_preview.append({"Name": display_name, "%": f"{row['percentage']:.1f}", "Share": f"${share:,.2f}"})
-        
+      
         col_prev1, col_prev2 = st.columns(2)
         with col_prev1:
-            st.subheader("Contributor Pool Preview")
+            st.subheader("Contributor Pool Preview (Pro-rata)")
             if contrib_preview:
                 st.dataframe(pd.DataFrame(contrib_preview), use_container_width=True, hide_index=True)
             else:
                 st.info("No contributors or 0% pool")
         with col_prev2:
-            st.subheader("Participants Preview")
+            st.subheader("Participants Preview (Direct %)")
             st.dataframe(pd.DataFrame(part_preview), use_container_width=True, hide_index=True)
-        
+      
+        units = gross_profit / unit_value if gross_profit > 0 else 0
+      
         col_p1, col_p2, col_p3 = st.columns(3)
         col_p1.metric("Gross Profit", f"${gross_profit:,.2f}")
-        col_p2.metric("Contributor Pool", f"${contributor_pool:,.2f}")
+        col_p2.metric("Contributor Pool Total", f"${contributor_pool:,.2f}")
         col_p3.metric("Units Generated", f"{units:.2f}")
-        
-        # Sankey preview
-        labels = ["Gross Profit"]
+      
+        # Sankey preview - direct branches
+        labels = ["Gross Profit $"+f"{gross_profit:,.0f}"]
         values = []
         source = []
         target = []
         idx = 1
-        if contributor_share_pct > 0 and total_funded_php > 0:
+        
+        # Contributor branch
+        if contributor_pool > 0 and contrib_preview:
             labels.append("Contributor Pool")
             values.append(contributor_pool)
             source.append(0)
@@ -1421,40 +1432,42 @@ elif selected == "💰 Profit Sharing":
             idx += 1
             for c in contrib_preview:
                 labels.append(c["Name"])
-                values.append(float(c["Share"].replace("$","").replace(",","")))
+                share_val = float(c["Share"].replace("$","").replace(",",""))
+                values.append(share_val)
                 source.append(contrib_start)
                 target.append(idx)
                 idx += 1
-        labels.append("Participants Pool")
-        values.append(participant_pool)
-        source.append(0)
-        target.append(idx)
-        part_start = idx
-        idx += 1
+        
+        # Direct participant branches
         for p in part_preview:
             labels.append(p["Name"])
-            values.append(float(p["Share"].replace("$","").replace(",","")))
-            source.append(part_start)
+            share_val = float(p["Share"].replace("$","").replace(",",""))
+            values.append(share_val)
+            source.append(0)
             target.append(idx)
             idx += 1
         
         fig = go.Figure(data=[go.Sankey(
-            node=dict(pad=20, thickness=30, label=labels, color=["#00ffaa"] + ["#ffd700"]*len(contrib_preview) + ["#ff6b6b"] + [accent_primary]*len(part_preview)),
+            node=dict(pad=20, thickness=30, label=labels, color=["#00ffaa"] + ["#ffd700"]*len(contrib_preview) + [accent_primary]*len(part_preview)),
             link=dict(source=source, target=target, value=values)
         )])
-        fig.update_layout(title_text="Realtime Split & Distribution Flow", height=600)
+        fig.update_layout(title_text="Realtime Direct Distribution Flow", height=600)
         st.plotly_chart(fig, use_container_width=True)
-       
+      
         submitted = st.form_submit_button("🚀 Record Profit & Execute Auto-Distribution", type="primary", use_container_width=True)
-       
+      
         if submitted:
             if gross_profit <= 0:
                 st.error("Gross profit > 0 required")
             elif abs(current_sum - 100.0) > 0.1:
                 st.error(f"Exactly 100% required (current: {current_sum:.1f}%)")
             else:
-                contributor_pool = gross_profit * (contributor_share_pct / 100)
-                participant_pool = gross_profit - contributor_pool
+                # Recalculate for execution
+                contributor_pool = 0.0
+                if len(contrib_rows) == 1:
+                    contributor_pct = contrib_rows.iloc[0]["percentage"]
+                    contributor_pool = gross_profit * (contributor_pct / 100)
+                
                 units = gross_profit / unit_value
                 
                 profit_resp = supabase.table("profits").insert({
@@ -1464,24 +1477,26 @@ elif selected == "💰 Profit Sharing":
                     "trader_share": gross_profit,
                     "your_share": gross_profit,
                     "units_generated": units,
-                    "growth_fund_add": gf_add if 'gf_add' in locals() else 0.0,
-                    "contributor_share_pct": contributor_share_pct,
+                    "growth_fund_add": gf_add,
+                    "contributor_share_pct": contributor_pct if len(contrib_rows) == 1 else 0,
                     "timestamp": datetime.datetime.now().isoformat()
                 }).execute()
                 profit_id = profit_resp.data[0]["id"]
                 
                 distributions = []
-                total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
                 updated = []
-                if total_funded_php > 0 and contributor_share_pct > 0:
+                
+                # Contributor pro-rata distributions & balances
+                if contributor_pool > 0 and total_funded_php > 0:
                     for c in contributors:
                         funded = c.get("units", 0) * c.get("php_per_unit", 0)
                         share = contributor_pool * (funded / total_funded_php)
+                        pro_rata_pct = (funded / total_funded_php) * 100 if total_funded_php > 0 else 0
                         distributions.append({
                             "profit_id": profit_id,
                             "participant_name": c["name"],
                             "participant_role": "Contributor",
-                            "percentage": round((funded / total_funded_php) * 100, 2),
+                            "percentage": round(pro_rata_pct, 2),
                             "share_amount": share,
                             "is_growth_fund": False
                         })
@@ -1492,13 +1507,12 @@ elif selected == "💰 Profit Sharing":
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
                             updated.append(f"{c['name']} +${share:,.2f} (contributor)")
-                        else:
-                            st.warning(f"Contributor '{c['name']}' not found (key: '{user_key}') — balance not updated")
                 
+                # Participant direct distributions & balances
                 for _, row in edited_part.iterrows():
                     if row["name"] == "Contributor Pool":
                         continue
-                    share = participant_pool * (row["percentage"] / 100)
+                    share = gross_profit * (row["percentage"] / 100)  # DIRECT
                     is_gf = "growth fund" in row["name"].lower()
                     distributions.append({
                         "profit_id": profit_id,
@@ -1516,8 +1530,6 @@ elif selected == "💰 Profit Sharing":
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
                             updated.append(f"{row['name']} +${share:,.2f} (participant)")
-                        else:
-                            st.warning(f"Participant '{row['name']}' not found (key: '{user_key}') — balance not updated")
                 
                 supabase.table("profit_distributions").insert(distributions).execute()
                 
@@ -1531,7 +1543,7 @@ elif selected == "💰 Profit Sharing":
                         "recorded_by": st.session_state.full_name
                     }).execute()
                 
-                # Email & success
+                # FIXED HTML BREAKDOWN - NO CONTRIBUTOR POOL IN PARTICIPANTS TABLE
                 date_str = record_date.strftime("%B %d, %Y")
                 html_breakdown = f"""
                 <html>
@@ -1540,10 +1552,9 @@ elif selected == "💰 Profit Sharing":
                         <h1 style="color: #00ffaa; text-align: center;">🚀 KMFX Profit Distribution Report</h1>
                         <h2 style="text-align: center;">Account: {acc_name} • Date: {date_str}</h2>
                         <p style="font-size: 1.2rem; text-align: center;">Gross Profit Received: <strong>${gross_profit:,.2f}</strong></p>
-                        <p style="font-size: 1.2rem; text-align: center;">Contributor Pool ({contributor_share_pct}%): <strong>${contributor_pool:,.2f}</strong></p>
-                        <p style="font-size: 1.2rem; text-align: center;">Participants Pool ({100 - contributor_share_pct}%): <strong>${participant_pool:,.2f}</strong></p>
+                        <p style="font-size: 1.2rem; text-align: center;">Contributor Pool ({contributor_pct if len(contrib_rows)==1 else 0:.1f}%): <strong>${contributor_pool:,.2f}</strong></p>
                         <p style="font-size: 1.2rem; text-align: center;">Units Generated: <strong>{units:.2f}</strong></p>
-                        
+                       
                         <h3>Contributor Pool Breakdown (Pro-rata Funded PHP)</h3>
                         <table style="width:100%; border-collapse: collapse;">
                             <tr style="background: #00ffaa; color: black;">
@@ -1551,10 +1562,10 @@ elif selected == "💰 Profit Sharing":
                                 <th style="padding: 12px; border: 1px solid #ddd;">Funded PHP</th>
                                 <th style="padding: 12px; border: 1px solid #ddd;">Share</th>
                             </tr>
-                            {''.join(f'<tr><td style="padding: 12px; border: 1px solid #ddd;">{c["Name"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{c["Funded PHP"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{c["Share"]}</td></tr>' for c in contrib_preview)}
+                            {''.join(f'<tr><td style="padding: 12px; border: 1px solid #ddd;">{c["Name"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{c["Funded PHP"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{c["Share"]}</td></tr>' for c in contrib_preview) or '<tr><td colspan="3" style="padding: 12px; text-align: center;">No contributors or 0% pool</td></tr>'}
                         </table>
-                        
-                        <h3>Participants Breakdown</h3>
+                       
+                        <h3>Participants Breakdown (Direct % of Gross)</h3>
                         <table style="width:100%; border-collapse: collapse;">
                             <tr style="background: #ffd700; color: black;">
                                 <th style="padding: 12px; border: 1px solid #ddd;">Name</th>
@@ -1563,7 +1574,7 @@ elif selected == "💰 Profit Sharing":
                             </tr>
                             {''.join(f'<tr><td style="padding: 12px; border: 1px solid #ddd;">{p["Name"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{p["%"]}%</td><td style="padding: 12px; border: 1px solid #ddd;">{p["Share"]}</td></tr>' for p in part_preview)}
                         </table>
-                        
+                       
                         <p style="margin-top: 30px; text-align: center; font-size: 1.1rem;">
                             Thank you for being part of the KMFX Empire • Built by Faith, Shared for Generations 👑<br>
                             Questions? Contact owner.
@@ -1581,12 +1592,12 @@ elif selected == "💰 Profit Sharing":
                 if sender_email and sender_password:
                     involved = set()
                     for c in contrib_preview:
-                        name = c["Name"].split(" (")[0]
-                        involved.add(name.strip().lower())
+                        name = c["Name"].split(" (")[0].strip().lower()
+                        involved.add(name)
                     for p in part_preview:
-                        name = p["Name"].split(" (")[0]
-                        involved.add(name.strip().lower())
-                   
+                        name = p["Name"].split(" (")[0].strip().lower()
+                        involved.add(name)
+                  
                     sent_count = 0
                     for name_key in involved:
                         email = email_map.get(name_key)
@@ -1597,7 +1608,7 @@ elif selected == "💰 Profit Sharing":
                                 msg["To"] = email
                                 msg["Subject"] = f"KMFX Profit Distribution - {acc_name} {date_str}"
                                 msg.attach(MIMEText(html_breakdown, "html"))
-                                
+                               
                                 with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
                                     server.login(sender_email, sender_password)
                                     server.sendmail(sender_email, email, msg.as_string())
