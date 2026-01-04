@@ -716,7 +716,7 @@ if selected == "🏠 Dashboard":
 
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified participants tree (add 'Contributor Pool' row) • Edit all % freely • Must sum exactly 100% • Contributors dropdown registered only • Auto pro-rata from Contributor Pool % • Real-time unified tree previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified profit tree (include 'Contributor Pool' row) • Edit all % freely • Must sum exactly 100% • Contributors dropdown registered only • Auto pro-rata from Contributor Pool % • Real-time previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -755,11 +755,9 @@ elif selected == "📊 FTMO Accounts":
                
                 notes = st.text_area("Notes (Optional)")
                
-                # UNIFIED TREE
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Add 'Contributor Pool' row** • Edit all % freely • Must sum exactly 100% • Contributor Pool % auto pro-rata to contributors")
+                st.info("**Include 'Contributor Pool' row** • Edit all % freely • Total must be exactly 100% • Contributor Pool % auto pro-rata to contributors")
                 
-                # Default tree (Contributor Pool 30%, King Minted 70%)
                 default_rows = [
                     {"name": "Contributor Pool", "role": "Funding Contributors (pro-rata)", "percentage": 30.0},
                     {"name": "King Minted", "role": "Founder/Owner", "percentage": 70.0}
@@ -781,27 +779,21 @@ elif selected == "📊 FTMO Accounts":
                     }
                 )
                 
-                # Validation
                 total_sum = edited_tree["percentage"].sum()
                 st.progress(total_sum / 100)
                 
                 contrib_rows = edited_tree[edited_tree["name"] == "Contributor Pool"]
-                if len(contrib_rows) == 0:
-                    st.error("Must add 'Contributor Pool' row!")
-                elif len(contrib_rows) > 1:
-                    st.error("Only one 'Contributor Pool' row allowed!")
-                elif abs(total_sum - 100.0) > 0.1:
+                if len(contrib_rows) != 1:
+                    st.error("Must have exactly one 'Contributor Pool' row")
+                    st.stop()
+                contributor_share_pct = contrib_rows.iloc[0]["percentage"]
+                
+                if abs(total_sum - 100.0) > 0.1:
                     st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
+                    st.stop()
                 else:
                     st.success("✅ Perfect 100% unified tree")
-                    contributor_share_pct = contrib_rows.iloc[0]["percentage"] if len(contrib_rows) == 1 else 0
                 
-                # Stop if invalid
-                if len(contrib_rows) != 1 or abs(total_sum - 100.0) > 0.1:
-                    st.warning("Fix errors above before submitting")
-                    st.stop()
-                
-                # Manual names
                 manual_inputs = []
                 for idx, row in edited_tree.iterrows():
                     if row["name"] == "Manual Payout (Temporary)":
@@ -809,7 +801,6 @@ elif selected == "📊 FTMO Accounts":
                         if custom_name:
                             manual_inputs.append((idx, custom_name))
                
-                # CONTRIBUTORS TREE
                 st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
                 st.info("Dropdown from registered clients only • Auto pro-rata from Contributor Pool row above")
                 
@@ -830,23 +821,34 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                
-                # PREVIEW
-                st.subheader("🌳 Unified Profit Tree Preview")
-                labels = ["Gross Profit"]
-                for _, row in edited_tree.iterrows():
-                    display = row["name"]
-                    if display == "Contributor Pool":
-                        display = "Contributor Pool (pro-rata)"
-                    labels.append(f"{display} ({row['percentage']:.1f}%)")
-                values = edited_tree["percentage"].tolist()
-                fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                st.plotly_chart(fig, use_container_width=True)
+                tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
+                with tab_prev1:
+                    labels = ["Gross Profit"]
+                    for _, row in edited_tree.iterrows():
+                        display = row["name"]
+                        if display == "Contributor Pool":
+                            display = "Contributor Pool (pro-rata)"
+                        labels.append(f"{display} ({row['percentage']:.1f}%)")
+                    values = edited_tree["percentage"].tolist()
+                    fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                    link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                    fig.update_layout(font=dict(color="black"))  # Black text in tree
+                    st.plotly_chart(fig, use_container_width=True)
+                with tab_prev2:
+                    if not edited_contrib.empty:
+                        valid = edited_contrib.dropna(subset=["units", "php_per_unit"])
+                        if not valid.empty:
+                            labels = ["Funded (PHP)"] + [f"{row['name']} ({row['units']} units @ ₱{row['php_per_unit']:,.0f}/unit)" for _, row in valid.iterrows()]
+                            values = (valid["units"] * valid["php_per_unit"]).tolist()
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                            fig.update_layout(font=dict(color="black"))  # Black text in tree
+                            st.plotly_chart(fig, use_container_width=True)
                
                 submitted = st.form_submit_button("🚀 Launch Account", type="primary", use_container_width=True)
                 if submitted:
                     if not name.strip():
-                        st.error("Account name required!")
+                        st.error("Account name required")
                     else:
                         try:
                             final_part = []
@@ -890,16 +892,15 @@ elif selected == "📊 FTMO Accounts":
                             st.rerun()
                         except Exception as e:
                             st.error(f"Failed to launch account: {str(e)}")
-                            st.info("Check: Unique name? All fields valid? Fix & submit again.")
        
-        # LIVE ACCOUNTS LIST & EDIT
+        # LIVE ACCOUNTS LIST - WITH CONTRIBUTORS TREE TAB
         st.subheader("Live Empire Accounts")
         if accounts:
             for acc in accounts:
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in acc.get("contributors", []))
                 contrib_pct = next((p["percentage"] for p in acc.get("participants", []) if p["name"] == "Contributor Pool"), 0)
                 with st.expander(f"🌟 {acc['name']} • {acc['current_phase']} • Equity ${acc.get('current_equity', 0):,.0f} • Funded ₱{total_funded_php:,.0f} • Contributor Pool: {contrib_pct:.1f}%", expanded=False):
-                    tab1 = st.tabs(["Unified Profit Tree"])[0]
+                    tab1, tab2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                     with tab1:
                         participants = acc.get("participants", [])
                         if participants:
@@ -915,7 +916,19 @@ elif selected == "📊 FTMO Accounts":
                             values = [p["percentage"] for p in participants]
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                            fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
+                    with tab2:
+                        contributors = acc.get("contributors", [])
+                        if contributors:
+                            labels = ["Funded (PHP)"] + [f"{c['name']} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)" for c in contributors]
+                            values = [c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors]
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                            fig.update_layout(font=dict(color="black"))
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("No contributors yet")
                    
                     if current_role in ["owner", "admin"]:
                         col_e1, col_e2 = st.columns(2)
@@ -934,7 +947,7 @@ elif selected == "📊 FTMO Accounts":
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
            
-            # EDIT FORM
+            # EDIT FORM - same as create with tabs
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -1011,17 +1024,29 @@ elif selected == "📊 FTMO Accounts":
                             total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                             st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                         
-                        st.subheader("🌳 Unified Profit Tree Preview")
-                        labels = ["Gross Profit"]
-                        for _, row in edited_tree.iterrows():
-                            display = row["name"]
-                            if display == "Contributor Pool":
-                                display = "Contributor Pool (pro-rata)"
-                            labels.append(f"{display} ({row['percentage']:.1f}%)")
-                        values = edited_tree["percentage"].tolist()
-                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
-                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                        st.plotly_chart(fig, use_container_width=True)
+                        tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
+                        with tab_prev1:
+                            labels = ["Gross Profit"]
+                            for _, row in edited_tree.iterrows():
+                                display = row["name"]
+                                if display == "Contributor Pool":
+                                    display = "Contributor Pool (pro-rata)"
+                                labels.append(f"{display} ({row['percentage']:.1f}%)")
+                            values = edited_tree["percentage"].tolist()
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                            fig.update_layout(font=dict(color="black"))
+                            st.plotly_chart(fig, use_container_width=True)
+                        with tab_prev2:
+                            if not edited_contrib.empty:
+                                valid = edited_contrib.dropna(subset=["units", "php_per_unit"])
+                                if not valid.empty:
+                                    labels = ["Funded (PHP)"] + [f"{row['name']} ({row['units']} units @ ₱{row['php_per_unit']:,.0f}/unit)" for _, row in valid.iterrows()]
+                                    values = (valid["units"] * valid["php_per_unit"]).tolist()
+                                    fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                                    link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                                    fig.update_layout(font=dict(color="black"))
+                                    st.plotly_chart(fig, use_container_width=True)
                         
                         col_save, col_cancel = st.columns(2)
                         with col_save:
@@ -1064,13 +1089,13 @@ elif selected == "📊 FTMO Accounts":
                                             "contributors": contributors_json,
                                             "contributor_share_pct": contributor_share_pct
                                         }).eq("id", eid).execute()
-                                        st.success("Account updated successfully! 🎉")
+                                        st.success("Account updated! 🎉")
                                         del st.session_state.edit_acc_id
                                         del st.session_state.edit_acc_data
                                         st.cache_data.clear()
                                         st.rerun()
                                     except Exception as e:
-                                        st.error(f"Failed to update account: {str(e)}")
+                                        st.error(f"Error: {str(e)}")
                         with col_cancel:
                             if st.form_submit_button("Cancel", use_container_width=True):
                                 del st.session_state.edit_acc_id
@@ -1079,7 +1104,7 @@ elif selected == "📊 FTMO Accounts":
         else:
             st.info("No accounts yet")
    
-    # CLIENT VIEW
+    # CLIENT VIEW - with contributors tree tab
     else:
         my_name = st.session_state.full_name
         my_accounts = [a for a in accounts if any(p["name"] == my_name for p in a.get("participants", []))]
@@ -1090,7 +1115,7 @@ elif selected == "📊 FTMO Accounts":
                 my_funded_php = sum(c["units"] * c["php_per_unit"] for c in acc.get("contributors", []) if c["name"] == my_name)
                 with st.expander(f"🌟 {acc['name']} • Your Share: {my_pct:.1f}% • Your Funded ₱{my_funded_php:,.0f}", expanded=True):
                     st.markdown(f"**Phase:** {acc['current_phase']} • **Equity:** ${acc.get('current_equity', 0):,.0f}")
-                    tab1 = st.tabs(["Unified Profit Tree"])[0]
+                    tab1, tab2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                     with tab1:
                         participants = acc.get("participants", [])
                         if participants:
@@ -1106,7 +1131,19 @@ elif selected == "📊 FTMO Accounts":
                             values = [p["percentage"] for p in participants]
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                            fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
+                    with tab2:
+                        contributors = acc.get("contributors", [])
+                        if contributors:
+                            labels = ["Funded (PHP)"] + [f"{c['name']} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)" for c in contributors]
+                            values = [c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors]
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                            fig.update_layout(font=dict(color="black"))
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("No contributors yet")
         else:
             st.info("No participation yet • Owner will assign")
        
@@ -1114,7 +1151,7 @@ elif selected == "📊 FTMO Accounts":
         for acc in accounts:
             total_funded_php = sum(c["units"] * c["php_per_unit"] for c in acc.get("contributors", []))
             with st.expander(f"{acc['name']} • {acc['current_phase']} • Equity ${acc.get('current_equity', 0):,.0f} • Funded ₱{total_funded_php:,.0f}"):
-                tab1 = st.tabs(["Unified Profit Tree"])[0]
+                tab1, tab2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                 with tab1:
                     participants = acc.get("participants", [])
                     if participants:
@@ -1130,7 +1167,19 @@ elif selected == "📊 FTMO Accounts":
                         values = [p["percentage"] for p in participants]
                         fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                         link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                        fig.update_layout(font=dict(color="black"))
                         st.plotly_chart(fig, use_container_width=True)
+                with tab2:
+                    contributors = acc.get("contributors", [])
+                    if contributors:
+                        labels = ["Funded (PHP)"] + [f"{c['name']} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)" for c in contributors]
+                        values = [c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors]
+                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
+                        fig.update_layout(font=dict(color="black"))
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("No contributors yet")
    
     if not accounts:
         st.info("No accounts in empire yet")
