@@ -43,12 +43,11 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
-# CHANGE THIS BACK TO "expanded" FOR DESKTOP NATIVE FEEL
 st.set_page_config(
     page_title="KMFX FTMO Pro Manager",
     page_icon="🚀",
     layout="centered",
-    initial_sidebar_state="expanded"  # Desktop default open, native arrow works
+    initial_sidebar_state="collapsed"  # CHANGE TO "collapsed"
 )
 # ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
 folders = [
