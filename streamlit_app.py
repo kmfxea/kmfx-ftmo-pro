@@ -193,20 +193,30 @@ st.markdown(f"""
     .glass-card h2 {{ font-size: 1.6rem !important; }}
     .glass-card h3 {{ font-size: 1.4rem !important; }}
    
-    /* Inputs - PURE WHITE BACKGROUND (removed grey) */
+    /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT (fixed for both modes, especially License Generator) */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
-    .stSelectbox > div > div > div input,
+    .stSelectbox > div > div > div,
+    .stSelectbox > div > div > div > div,
+    .stSelectbox > div > div input,
     .stTextInput > div > div,
-    .stTextArea > div > div,
-    .stSelectbox > div > div > div > div {{
-        background: #ffffff !important;
-        color: #000000 !important; /* Black text for readability */
+    .stTextArea > div > div {{
+        background: #ffffff !important; /* Pure white background */
+        color: #000000 !important; /* Black text */
         border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
    
-    /* Placeholder text - light grey for contrast */
+    /* Selectbox dropdown text & background - black text on white */
+    .stSelectbox [data-baseweb="select"] div[role="listbox"] div {{
+        background: #ffffff !important;
+        color: #000000 !important;
+    }}
+    .stSelectbox [data-baseweb="select"] div[role="listbox"] div:hover {{
+        background: #f0f0f0 !important;
+    }}
+   
+    /* Placeholder - light grey */
     ::placeholder {{
         color: #888888 !important;
         opacity: 1 !important;
