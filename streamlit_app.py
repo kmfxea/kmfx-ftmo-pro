@@ -1303,17 +1303,18 @@ elif selected == "💰 Profit Sharing":
     from email.mime.multipart import MIMEMultipart
     import re  # For ultra-robust name cleaning
    
+    # GLOBAL CLEAN NAME FUNCTION
+    def clean_name(name):
+        # Strip title in ()
+        name = re.sub(r"\s*\([^)]*\)", "", name)
+        # Strip extra spaces
+        name = " ".join(name.split())
+        return name.strip().lower()
+   
     @st.cache_data(ttl=60)
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
         users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
-        # Ultra-robust map: strip title, extra spaces, lower
-        def clean_name(name):
-            # Strip title in ()
-            name = re.sub(r"\s*\([^)]*\)", "", name)
-            # Strip extra spaces
-            name = " ".join(name.split())
-            return name.strip().lower()
         user_map = {clean_name(u["full_name"]): u for u in users}
         email_map = {clean_name(u["full_name"]): u.get("email") for u in users if u.get("email")}
         return accounts, user_map, email_map
@@ -1353,106 +1354,97 @@ elif selected == "💰 Profit Sharing":
        
         current_sum = edited_part["percentage"].sum()
         st.progress(min(current_sum / 100, 1.0))
-        if abs(current_sum - 100.0) > 0.1:
-            st.error(f"Exactly 100% required (current: {current_sum:.1f}%)")
-        else:
-            st.success("✅ Perfect 100%")
        
-        if gross_profit > 0 and abs(current_sum - 100.0) <= 0.1:
-            contributor_pool = gross_profit * (contributor_share_pct / 100)
-            participant_pool = gross_profit - contributor_pool
-            units = gross_profit / unit_value
-            
-            total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
-            contrib_preview = []
-            if total_funded_php > 0 and contributor_share_pct > 0:
-                for c in contributors:
-                    funded = c.get("units", 0) * c.get("php_per_unit", 0)
-                    share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
-                    display = c["name"]
-                    user_key = clean_name(c["name"])
-                    user = user_map.get(user_key)
-                    if user and user.get("title"):
-                        display += f" ({user['title']})"
-                    contrib_preview.append({"Name": display, "Funded PHP": f"₱{funded:,.0f}", "Share": f"${share:,.2f}"})
-            
-            part_preview = []
-            gf_add = 0.0
-            manual = []
-            for _, row in edited_part.iterrows():
-                if row["name"] == "Contributor Pool":
-                    continue
-                share = participant_pool * (row["percentage"] / 100)
-                is_gf = "growth fund" in row["name"].lower()
-                if is_gf:
-                    gf_add += share
-                user_key = clean_name(row["name"])
-                if user_key not in user_map and not is_gf:
-                    manual.append(row["name"])
-                
-                display_name = row["name"]
+        # Preview always (even if invalid %)
+        contributor_pool = gross_profit * (contributor_share_pct / 100)
+        participant_pool = gross_profit - contributor_pool
+        units = gross_profit / unit_value if gross_profit > 0 else 0
+        
+        total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
+        contrib_preview = []
+        if total_funded_php > 0 and contributor_share_pct > 0:
+            for c in contributors:
+                funded = c.get("units", 0) * c.get("php_per_unit", 0)
+                share = contributor_pool * (funded / total_funded_php) if total_funded_php > 0 else 0
+                display = c["name"]
+                user_key = clean_name(c["name"])
                 user = user_map.get(user_key)
                 if user and user.get("title"):
-                    display_name += f" ({user['title']})"
-                
-                part_preview.append({"Name": display_name, "%": f"{row['percentage']:.1f}", "Share": f"${share:,.2f}"})
+                    display += f" ({user['title']})"
+                contrib_preview.append({"Name": display, "Funded PHP": f"₱{funded:,.0f}", "Share": f"${share:,.2f}"})
+        
+        part_preview = []
+        gf_add = 0.0
+        for _, row in edited_part.iterrows():
+            if row["name"] == "Contributor Pool":
+                continue
+            share = participant_pool * (row["percentage"] / 100)
+            is_gf = "growth fund" in row["name"].lower()
+            if is_gf:
+                gf_add += share
             
-            col_prev1, col_prev2 = st.columns(2)
-            with col_prev1:
-                st.subheader("Contributor Pool Preview")
-                if contrib_preview:
-                    st.dataframe(pd.DataFrame(contrib_preview), use_container_width=True, hide_index=True)
-                else:
-                    st.info("No contributors or 0% pool")
-            with col_prev2:
-                st.subheader("Participants Preview")
-                st.dataframe(pd.DataFrame(part_preview), use_container_width=True, hide_index=True)
+            display_name = row["name"]
+            user_key = clean_name(row["name"])
+            user = user_map.get(user_key)
+            if user and user.get("title"):
+                display_name += f" ({user['title']})"
             
-            col_p1, col_p2, col_p3 = st.columns(3)
-            col_p1.metric("Gross Profit", f"${gross_profit:,.2f}")
-            col_p2.metric("Contributor Pool", f"${contributor_pool:,.2f}")
-            col_p3.metric("Units Generated", f"{units:.2f}")
-            
-            if manual:
-                st.warning(f"Manual payout needed: {', '.join(manual)}")
-            
-            labels = ["Gross Profit"]
-            values = []
-            source = []
-            target = []
-            idx = 1
-            if contributor_share_pct > 0 and total_funded_php > 0:
-                labels.append("Contributor Pool")
-                values.append(contributor_pool)
-                source.append(0)
-                target.append(idx)
-                contrib_start = idx
-                idx += 1
-                for c in contrib_preview:
-                    labels.append(c["Name"])
-                    values.append(float(c["Share"].replace("$","").replace(",","")))
-                    source.append(contrib_start)
-                    target.append(idx)
-                    idx += 1
-            labels.append("Participants Pool")
-            values.append(participant_pool)
+            part_preview.append({"Name": display_name, "%": f"{row['percentage']:.1f}", "Share": f"${share:,.2f}"})
+        
+        col_prev1, col_prev2 = st.columns(2)
+        with col_prev1:
+            st.subheader("Contributor Pool Preview")
+            if contrib_preview:
+                st.dataframe(pd.DataFrame(contrib_preview), use_container_width=True, hide_index=True)
+            else:
+                st.info("No contributors or 0% pool")
+        with col_prev2:
+            st.subheader("Participants Preview")
+            st.dataframe(pd.DataFrame(part_preview), use_container_width=True, hide_index=True)
+        
+        col_p1, col_p2, col_p3 = st.columns(3)
+        col_p1.metric("Gross Profit", f"${gross_profit:,.2f}")
+        col_p2.metric("Contributor Pool", f"${contributor_pool:,.2f}")
+        col_p3.metric("Units Generated", f"{units:.2f}")
+        
+        # Sankey preview
+        labels = ["Gross Profit"]
+        values = []
+        source = []
+        target = []
+        idx = 1
+        if contributor_share_pct > 0 and total_funded_php > 0:
+            labels.append("Contributor Pool")
+            values.append(contributor_pool)
             source.append(0)
             target.append(idx)
-            part_start = idx
+            contrib_start = idx
             idx += 1
-            for p in part_preview:
-                labels.append(p["Name"])
-                values.append(float(p["Share"].replace("$","").replace(",","")))
-                source.append(part_start)
+            for c in contrib_preview:
+                labels.append(c["Name"])
+                values.append(float(c["Share"].replace("$","").replace(",","")))
+                source.append(contrib_start)
                 target.append(idx)
                 idx += 1
-            
-            fig = go.Figure(data=[go.Sankey(
-                node=dict(pad=20, thickness=30, label=labels, color=["#00ffaa"] + ["#ffd700"]*len(contrib_preview) + ["#ff6b6b"] + [accent_primary]*len(part_preview)),
-                link=dict(source=source, target=target, value=values)
-            )])
-            fig.update_layout(title_text="Realtime Split & Distribution Flow", height=600)
-            st.plotly_chart(fig, use_container_width=True)
+        labels.append("Participants Pool")
+        values.append(participant_pool)
+        source.append(0)
+        target.append(idx)
+        part_start = idx
+        idx += 1
+        for p in part_preview:
+            labels.append(p["Name"])
+            values.append(float(p["Share"].replace("$","").replace(",","")))
+            source.append(part_start)
+            target.append(idx)
+            idx += 1
+        
+        fig = go.Figure(data=[go.Sankey(
+            node=dict(pad=20, thickness=30, label=labels, color=["#00ffaa"] + ["#ffd700"]*len(contrib_preview) + ["#ff6b6b"] + [accent_primary]*len(part_preview)),
+            link=dict(source=source, target=target, value=values)
+        )])
+        fig.update_layout(title_text="Realtime Split & Distribution Flow", height=600)
+        st.plotly_chart(fig, use_container_width=True)
        
         submitted = st.form_submit_button("🚀 Record Profit & Execute Auto-Distribution", type="primary", use_container_width=True)
        
@@ -1460,7 +1452,7 @@ elif selected == "💰 Profit Sharing":
             if gross_profit <= 0:
                 st.error("Gross profit > 0 required")
             elif abs(current_sum - 100.0) > 0.1:
-                st.error("Exactly 100% required")
+                st.error(f"Exactly 100% required (current: {current_sum:.1f}%)")
             else:
                 contributor_pool = gross_profit * (contributor_share_pct / 100)
                 participant_pool = gross_profit - contributor_pool
