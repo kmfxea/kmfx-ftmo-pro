@@ -1301,9 +1301,9 @@ elif selected == "💰 Profit Sharing":
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
-    import re  # For ultra-robust name cleaning
+    import re
    
-    # GLOBAL CLEAN NAME FUNCTION
+    # GLOBAL CLEAN NAME FUNCTION (ultra-robust)
     def clean_name(name):
         # Strip title in ()
         name = re.sub(r"\s*\([^)]*\)", "", name)
@@ -1355,7 +1355,7 @@ elif selected == "💰 Profit Sharing":
         current_sum = edited_part["percentage"].sum()
         st.progress(min(current_sum / 100, 1.0))
        
-        # Preview always (even if invalid %)
+        # Preview always
         contributor_pool = gross_profit * (contributor_share_pct / 100)
         participant_pool = gross_profit - contributor_pool
         units = gross_profit / unit_value if gross_profit > 0 else 0
