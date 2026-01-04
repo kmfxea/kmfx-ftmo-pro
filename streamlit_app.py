@@ -1306,7 +1306,6 @@ elif selected == "💰 Profit Sharing":
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
         users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
-        # Robust map: lower case + stripped for name match
         user_map = {u["full_name"].strip().lower(): u for u in users}
         email_map = {u["full_name"].strip().lower(): u.get("email") for u in users if u.get("email")}
         return accounts, user_map, email_map
@@ -1373,6 +1372,8 @@ elif selected == "💰 Profit Sharing":
             gf_add = 0.0
             manual = []
             for _, row in edited_part.iterrows():
+                if row["name"] == "Contributor Pool":
+                    continue  # Skip — not a participant getting share
                 share = participant_pool * (row["percentage"] / 100)
                 is_gf = "growth fund" in row["name"].lower()
                 if is_gf:
@@ -1457,7 +1458,6 @@ elif selected == "💰 Profit Sharing":
                 participant_pool = gross_profit - contributor_pool
                 units = gross_profit / unit_value
                 
-                # Record profit
                 profit_resp = supabase.table("profits").insert({
                     "account_id": acc_id,
                     "gross_profit": gross_profit,
@@ -1471,7 +1471,6 @@ elif selected == "💰 Profit Sharing":
                 }).execute()
                 profit_id = profit_resp.data[0]["id"]
                 
-                # Distributions & auto-balance (ROBUST MATCH + WARNING IF NOT FOUND)
                 distributions = []
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
                 if total_funded_php > 0 and contributor_share_pct > 0:
@@ -1487,16 +1486,17 @@ elif selected == "💰 Profit Sharing":
                             "is_growth_fund": False
                         })
                         
-                        # Robust match
                         user_key = c["name"].strip().lower()
                         user = user_map.get(user_key)
                         if user:
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
                         else:
-                            st.warning(f"Contributor '{c['name']}' not found in users — balance not updated (check name/title match)")
+                            st.warning(f"Contributor '{c['name']}' not found — balance not updated")
                 
                 for _, row in edited_part.iterrows():
+                    if row["name"] == "Contributor Pool":
+                        continue  # Skip — not a participant
                     share = participant_pool * (row["percentage"] / 100)
                     is_gf = "growth fund" in row["name"].lower()
                     distributions.append({
@@ -1515,7 +1515,7 @@ elif selected == "💰 Profit Sharing":
                             new_bal = (user["balance"] or 0) + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user["id"]).execute()
                         else:
-                            st.warning(f"Participant '{row['name']}' not found in users — balance not updated (check name/title match)")
+                            st.warning(f"Participant '{row['name']}' not found — balance not updated")
                 
                 supabase.table("profit_distributions").insert(distributions).execute()
                 
@@ -1609,7 +1609,7 @@ elif selected == "💰 Profit Sharing":
                     st.warning("Email not sent — add EMAIL_SENDER & EMAIL_PASSWORD in .env for auto-email")
                     st.info("Copy the breakdown above for manual email")
                 
-                st.success("Profit recorded & fully auto-distributed! Balances updated for all.")
+                st.success("Profit recorded & fully auto-distributed! Balances updated correctly.")
                 st.cache_data.clear()
                 st.rerun()
 # ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH PASSWORD CHANGE + FORGOT PASSWORD REQUEST) ======================
