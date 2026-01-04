@@ -837,14 +837,12 @@ elif selected == "📊 FTMO Accounts":
                 contrib_rows = edited_tree[edited_tree["name"] == "Contributor Pool"]
                 if len(contrib_rows) != 1:
                     st.error("Must have exactly one 'Contributor Pool' row")
-                    st.stop()
-                contributor_share_pct = contrib_rows.iloc[0]["percentage"]
-                
-                if abs(total_sum - 100.0) > 0.1:
+                elif abs(total_sum - 100.0) > 0.1:
                     st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
-                    st.stop()
                 else:
                     st.success("✅ Perfect 100% unified tree")
+                
+                contributor_share_pct = contrib_rows.iloc[0]["percentage"] if len(contrib_rows) == 1 else 0
                 
                 manual_inputs = []
                 for idx, row in edited_tree.iterrows():
@@ -901,6 +899,10 @@ elif selected == "📊 FTMO Accounts":
                 if submitted:
                     if not name.strip():
                         st.error("Account name required")
+                    elif len(contrib_rows) != 1:
+                        st.error("Must have exactly one 'Contributor Pool' row")
+                    elif abs(total_sum - 100.0) > 0.1:
+                        st.error("Total % not 100%")
                     else:
                         try:
                             final_part = []
@@ -1047,14 +1049,12 @@ elif selected == "📊 FTMO Accounts":
                         contrib_rows = edited_tree[edited_tree["name"] == "Contributor Pool"]
                         if len(contrib_rows) != 1:
                             st.error("Must have exactly one 'Contributor Pool' row")
-                            st.stop()
                         contributor_share_pct = contrib_rows.iloc[0]["percentage"]
                         
                         total_sum = edited_tree["percentage"].sum()
                         st.progress(total_sum / 100)
                         if abs(total_sum - 100.0) > 0.1:
                             st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
-                            st.stop()
                         else:
                             st.success("✅ Perfect 100% unified tree")
                         
@@ -1117,6 +1117,10 @@ elif selected == "📊 FTMO Accounts":
                             if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                                 if not new_name.strip():
                                     st.error("Account name required")
+                                elif len(contrib_rows) != 1:
+                                    st.error("Must have exactly one 'Contributor Pool' row")
+                                elif abs(total_sum - 100.0) > 0.1:
+                                    st.error("Total % not 100%")
                                 else:
                                     try:
                                         final_part = []
