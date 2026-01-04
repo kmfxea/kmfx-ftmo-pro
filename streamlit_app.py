@@ -155,7 +155,7 @@ st.markdown(f"""
         background: {bg_color};
         color: {text_primary};
     }}
-   
+  
     /* Adaptive text */
     h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
         color: {text_primary} !important;
@@ -163,7 +163,7 @@ st.markdown(f"""
     small, caption, .caption {{
         color: {text_muted} !important;
     }}
-   
+  
     /* Medium glass cards - reduced padding for medium size */
     .glass-card {{
         background: {card_bg};
@@ -180,7 +180,7 @@ st.markdown(f"""
         transform: translateY(-4px);
         border-color: {accent_primary};
     }}
-   
+  
     /* Smaller font inside cards */
     .glass-card h1, .glass-card h2, .glass-card h3,
     .glass-card h4, .glass-card p, .glass-card div,
@@ -191,7 +191,7 @@ st.markdown(f"""
     .glass-card h1 {{ font-size: 1.8rem !important; }}
     .glass-card h2 {{ font-size: 1.6rem !important; }}
     .glass-card h3 {{ font-size: 1.4rem !important; }}
-   
+  
     /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT (ultimate fix for selectbox dropdown too) */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
@@ -205,14 +205,14 @@ st.markdown(f"""
         border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
-   
+  
     /* Selectbox selected value - black text */
     .stSelectbox > div > div > div > div[role="button"] > div,
     .stSelectbox > div > div > div > div > div:first-child {{
         color: #000000 !important;
         background: #ffffff !important;
     }}
-   
+  
     /* Selectbox dropdown menu - white background, black text, hover dark grey */
     [data-baseweb="select"] > div[role="listbox"] > div,
     [data-baseweb="select"] div[role="option"] {{
@@ -224,18 +224,18 @@ st.markdown(f"""
         background: #e0e0e0 !important;
         color: #000000 !important;
     }}
-   
+  
     /* Selectbox arrow - black */
     .stSelectbox [data-baseweb="select"] svg {{
         fill: #000000 !important;
     }}
-   
+  
     /* Placeholder - medium grey */
     ::placeholder {{
         color: #666666 !important;
         opacity: 1 !important;
     }}
-   
+  
     /* Buttons */
     button[kind="primary"] {{
         background: {accent_primary} !important;
@@ -247,7 +247,7 @@ st.markdown(f"""
         background: {accent_hover} !important;
         box-shadow: 0 10px 30px {accent_glow} !important;
     }}
-   
+  
     /* TOP HEADER BLEND */
     header[data-testid="stHeader"] {{
         background-color: {bg_color} !important;
@@ -258,7 +258,7 @@ st.markdown(f"""
         color: {text_primary} !important;
         background: transparent !important;
     }}
-   
+  
     /* SIDEBAR - NO SHADOW */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
@@ -270,7 +270,7 @@ st.markdown(f"""
         box-shadow: none !important;
         transition: all 0.3s ease;
     }}
-   
+  
     /* RED arrow/hamburger */
     [data-testid="collapsedControl"] {{
         color: #ff4757 !important;
@@ -280,7 +280,7 @@ st.markdown(f"""
         fill: #ff4757 !important;
         stroke: #ff4757 !important;
     }}
-   
+  
     /* Desktop */
     @media (min-width: 769px) {{
         .main .block-container {{
@@ -289,7 +289,7 @@ st.markdown(f"""
             transition: all 0.3s ease !important;
         }}
     }}
-   
+  
     /* Mobile: Wider + looser */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
@@ -313,7 +313,7 @@ st.markdown(f"""
             padding-top: 80px !important;
         }}
     }}
-   
+  
     /* Premium Menu */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
@@ -339,11 +339,11 @@ st.markdown(f"""
         box-shadow: 0 10px 30px rgba(0,255,170,0.4);
         font-weight: 600;
     }}
-   
+  
     section[data-testid="stSidebar"] * {{
         color: {text_primary} !important;
     }}
-   
+  
     /* Force black text for category names, captions, small text — visible in both modes */
     small,
     .caption,
@@ -355,12 +355,48 @@ st.markdown(f"""
         color: black !important;
         opacity: 1 !important;
     }}
-   
+  
     /* For Plotly Sankey trees (category labels in previews) - force black text */
     svg text {{
         fill: black !important;
         color: black !important;
     }}
+
+    /* ===== NEW FIX: SIDEBAR COLLAPSE (ARROW ONLY ON ALL PHONES) ===== */
+    /* Force sidebar fully hidden when collapsed — only arrow visible */
+    section[data-testid="stSidebar"][aria-expanded="false"] {{
+        width: 0 !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }}
+
+    /* Position collapse arrow properly (visible & centered when closed) */
+    [data-testid="collapsedControl"] {{
+        position: fixed !important;
+        left: 0 !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 9999 !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0 12px 12px 0 !important;
+        padding: 20px 8px !important;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
+    }}
+
+    /* Mobile specific — ensure arrow only when closed */
+    @media (max-width: 768px) {{
+        section[data-testid="stSidebar"][aria-expanded="false"] > div:first-child {{
+            display: none !important;
+        }}
+        [data-testid="collapsedControl"] {{
+            top: 50% !important;
+            left: 0 !important;
+            padding: 24px 10px !important;
+        }}
+    }}
+    /* ===== END OF SIDEBAR FIX ===== */
 </style>
 """, unsafe_allow_html=True)
 # ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
