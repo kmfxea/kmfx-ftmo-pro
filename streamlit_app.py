@@ -716,7 +716,7 @@ if selected == "🏠 Dashboard":
 
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified tree: Contributor Pool % fixed • Editable participants auto-default to remaining % on slider change • Contributors dropdown registered only • Auto pro-rata • Real-time previews • Full validation • Instant sync.**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified tree with dynamic Contributor Pool % • Editable participants auto-default on slider change • Contributors dropdown registered only • Auto pro-rata • Real-time previews • Full validation • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -757,27 +757,25 @@ elif selected == "📊 FTMO Accounts":
                
                 # CONTRIBUTOR POOL %
                 st.subheader("🌟 Contributor Pool Allocation")
-                st.info("**Slider change auto-defaults editable participants to remaining % (King Minted takes all remaining, others 0%)**")
+                st.info("**Slider change auto-defaults editable participants (King Minted takes remaining %, others 0%)**")
                 contributor_share_pct = st.slider("Contributor Pool %", 0, 100, 30, key="contrib_slider_create")
                 remaining_pct = 100 - contributor_share_pct
-                st.info(f"**Auto-default:** Editable participants sum to {remaining_pct}% (you can edit after)")
+                st.info(f"**Auto-default:** Editable participants sum to {remaining_pct}% — edit freely")
                
-                # FIXED CONTRIBUTOR POOL DISPLAY (not in editor)
-                st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                st.info("**Fixed:** Contributor Pool • **Editable below:** Auto-default on slider change")
+                # FIXED POOL DISPLAY
                 st.metric("Contributor Pool (fixed, pro-rata)", f"{contributor_share_pct}%")
                
-                # EDITABLE PARTICIPANTS TREE - AUTO-DEFAULT ON SLIDER
-                st.info("**Editable participants:** King Minted auto to remaining %, others 0% — edit freely")
+                # EDITABLE PARTICIPANTS TREE
+                st.subheader("🌳 Editable Participants Tree (Remaining %)")
+                st.info("**Auto-default on slider change** • Distribute remaining % freely")
                 
-                # Default editable - King Minted remaining, others 0
+                # Default editable
                 default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
                 for display in registered_display:
                     default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
                 
                 editable_df = pd.DataFrame(default_editable)
                 
-                # Key with slider for auto-default/rerender
                 editable_key = f"editable_editor_create_{contributor_share_pct}"
                 edited_editable = st.data_editor(
                     editable_df,
@@ -791,18 +789,13 @@ elif selected == "📊 FTMO Accounts":
                     }
                 )
                 
-                # Full tree for validation/preview (fixed + edited)
-                full_for_val = pd.DataFrame([{
-                    "name": "Contributor Pool",
-                    "role": "Funding Contributors (pro-rata)",
-                    "percentage": contributor_share_pct
-                }])
-                full_for_val = pd.concat([full_for_val, edited_editable], ignore_index=True)
-                
-                total_sum = full_for_val["percentage"].sum()
+                # Validation
+                editable_sum = edited_editable["percentage"].sum()
+                total_sum = editable_sum + contributor_share_pct
                 st.progress(total_sum / 100)
                 if abs(total_sum - 100.0) > 0.1:
-                    st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%) — adjust editable rows")
+                    st.error(f"⚠️ Total must be exactly 100% (current: {total_sum:.1f}%) — editable sum {editable_sum:.1f}% (need {remaining_pct}%)")
+                    st.info("Adjust percentages in editable tree above, then submit again.")
                     st.stop()
                 else:
                     st.success("✅ Perfect 100% unified tree")
@@ -838,13 +831,11 @@ elif selected == "📊 FTMO Accounts":
                
                 # UNIFIED PREVIEW
                 st.subheader("🌳 Unified Profit Tree Preview")
-                labels = ["Gross Profit"]
-                # Fixed
-                labels.append(f"Contributor Pool (pro-rata) ({contributor_share_pct:.1f}%)")
-                # Editable
+                labels = ["Gross Profit", f"Contributor Pool (pro-rata) ({contributor_share_pct:.1f}%)"]
+                values = [contributor_share_pct]
                 for _, row in edited_editable.iterrows():
                     labels.append(f"{row['name']} ({row['percentage']:.1f}%)")
-                values = [contributor_share_pct] + edited_editable["percentage"].tolist()
+                    values.append(row["percentage"])
                 fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                 link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                 st.plotly_chart(fig, use_container_width=True)
@@ -852,37 +843,39 @@ elif selected == "📊 FTMO Accounts":
                 submitted = st.form_submit_button("🚀 Launch Account", type="primary", use_container_width=True)
                 if submitted:
                     if not name.strip():
-                        st.error("Account name required")
+                        st.error("⚠️ Account name required — fill it in!")
+                    elif abs(total_sum - 100.0) > 0.1:
+                        st.error("⚠️ Total % not 100% — fix editable tree above!")
                     else:
-                        # Final participants (fixed + edited)
-                        final_part = [{
-                            "name": "Contributor Pool",
-                            "role": "Funding Contributors (pro-rata)",
-                            "percentage": contributor_share_pct
-                        }]
-                        for row in edited_editable.to_dict(orient="records"):
-                            display = row["name"]
-                            actual_name = full_name_to_display.get(display, display)
-                            final_part.append({
-                                "name": actual_name,
-                                "role": row["role"],
-                                "percentage": row["percentage"]
-                            })
-                       
-                        for row_idx, custom in manual_inputs:
-                            final_part[row_idx + 1]["name"] = custom  # +1 for fixed row
-                       
-                        contributors_json = []
-                        for row in edited_contrib.to_dict(orient="records"):
-                            display = row["name"]
-                            actual_name = full_name_to_display.get(display, display)
-                            contributors_json.append({
-                                "name": actual_name,
-                                "units": row["units"],
-                                "php_per_unit": row["php_per_unit"]
-                            })
-                       
                         try:
+                            # Final participants
+                            final_part = [{
+                                "name": "Contributor Pool",
+                                "role": "Funding Contributors (pro-rata)",
+                                "percentage": contributor_share_pct
+                            }]
+                            for row in edited_editable.to_dict(orient="records"):
+                                display = row["name"]
+                                actual_name = full_name_to_display.get(display, display)
+                                final_part.append({
+                                    "name": actual_name,
+                                    "role": row["role"],
+                                    "percentage": row["percentage"]
+                                })
+                           
+                            for row_idx, custom in manual_inputs:
+                                final_part[row_idx + 1]["name"] = custom  # +1 for fixed row
+                           
+                            contributors_json = []
+                            for row in edited_contrib.to_dict(orient="records"):
+                                display = row["name"]
+                                actual_name = full_name_to_display.get(display, display)
+                                contributors_json.append({
+                                    "name": actual_name,
+                                    "units": row["units"],
+                                    "php_per_unit": row["php_per_unit"]
+                                })
+                           
                             supabase.table("ftmo_accounts").insert({
                                 "name": name.strip(),
                                 "ftmo_id": ftmo_id or None,
@@ -895,13 +888,15 @@ elif selected == "📊 FTMO Accounts":
                                 "contributors": contributors_json,
                                 "contributor_share_pct": contributor_share_pct
                             }).execute()
-                            st.success("Account launched! Tree auto-adjusted.")
+                            st.success("Account launched successfully! 🎉")
+                            st.balloons()
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Error: {str(e)}")
+                            st.error(f"⚠️ Failed to create account: {str(e)}")
+                            st.info("Common issues: Duplicate name? Invalid data? Check Supabase logs for details. Fix & submit again.")
        
-        # LIVE ACCOUNTS LIST & EDIT
+        # LIVE ACCOUNTS LIST & EDIT (similar logic)
         st.subheader("Live Empire Accounts")
         if accounts:
             for acc in accounts:
@@ -941,9 +936,9 @@ elif selected == "📊 FTMO Accounts":
                                     st.cache_data.clear()
                                     st.rerun()
                                 except Exception as e:
-                                    st.error(f"Error: {str(e)}")
+                                    st.error(f"Error deleting: {str(e)}")
            
-            # EDIT FORM
+            # EDIT FORM (mirror create with same logic)
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -963,40 +958,42 @@ elif selected == "📊 FTMO Accounts":
                        
                         new_contrib_pct = st.slider("Contributor Pool %", 0, 100, cur.get("contributor_share_pct", 30), key=f"contrib_slider_edit_{eid}")
                         remaining_pct = 100 - new_contrib_pct
-                        st.info(f"Editable participants must sum exactly to {remaining_pct}%")
+                        st.info(f"**Auto-default:** Editable participants sum to {remaining_pct}%")
                        
-                        st.subheader("🌳 Unified Profit Distribution Tree (%)")
-                        fixed_row = pd.DataFrame([{
-                            "name": "Contributor Pool",
-                            "role": "Funding Contributors (pro-rata)",
-                            "percentage": new_contrib_pct
-                        }])
+                        st.metric("Contributor Pool (fixed, pro-rata)", f"{new_contrib_pct}%")
+                       
+                        st.subheader("🌳 Editable Participants Tree (Remaining %)")
+                        default_editable = [{"name": "King Minted", "role": "Founder/Owner", "percentage": remaining_pct}]
+                        for display in registered_display:
+                            default_editable.append({"name": full_name_to_display[display], "role": "Team Member", "percentage": 0.0})
                         
-                        current_part = pd.DataFrame(cur["participants"])
-                        current_part = current_part[current_part["name"] != "Contributor Pool"]
+                        # Load existing editable (exclude fixed)
+                        current_editable = []
+                        for p in cur["participants"]:
+                            if p["name"] != "Contributor Pool":
+                                current_editable.append(p)
                         
-                        full_df = pd.concat([fixed_row, current_part], ignore_index=True)
+                        # Use current if exist, else default
+                        if current_editable:
+                            editable_df = pd.DataFrame(current_editable)
+                        else:
+                            editable_df = pd.DataFrame(default_editable)
                         
-                        full_df_key = f"tree_editor_edit_{eid}_{new_contrib_pct}"
-                        edited_full = st.data_editor(
-                            full_df,
+                        editable_key = f"editable_editor_edit_{eid}_{new_contrib_pct}"
+                        edited_editable = st.data_editor(
+                            editable_df,
                             num_rows="dynamic",
                             use_container_width=True,
-                            key=full_df_key,
+                            key=editable_key,
                             column_config={
-                                "name": st.column_config.SelectboxColumn("Name *", options=["Contributor Pool"] + participant_options, required=True),
+                                "name": st.column_config.SelectboxColumn("Name *", options=participant_options, required=True),
                                 "role": st.column_config.TextColumn("Role"),
                                 "percentage": st.column_config.NumberColumn("% *", min_value=0.0, max_value=100.0, step=0.5)
-                            },
-                            disabled=["name", "role", "percentage"]
+                            }
                         )
                         
-                        contrib_row = edited_full.iloc[0]
-                        if edited_full.iloc[0]["name"] != "Contributor Pool" or edited_full.iloc[0]["percentage"] != new_contrib_pct:
-                            st.error("Contributor Pool row is protected — cannot edit!")
-                            st.stop()
-                        
-                        total_sum = edited_full["percentage"].sum()
+                        editable_sum = edited_editable["percentage"].sum()
+                        total_sum = editable_sum + new_contrib_pct
                         st.progress(total_sum / 100)
                         if abs(total_sum - 100.0) > 0.1:
                             st.error(f"Total must be exactly 100% (current: {total_sum:.1f}%)")
@@ -1005,15 +1002,13 @@ elif selected == "📊 FTMO Accounts":
                             st.success("✅ Perfect 100% unified tree")
                         
                         manual_inputs = []
-                        for idx, row in edited_full.iterrows():
+                        for idx, row in edited_editable.iterrows():
                             if row["name"] == "Manual Payout (Temporary)":
                                 custom_name = st.text_input(f"Custom Name for Manual Row {idx+1}", key=f"manual_edit_{eid}_{idx}")
                                 if custom_name:
                                     manual_inputs.append((idx, custom_name))
                         
                         st.subheader("🌳 Contributors Tree - Funding (PHP Units)")
-                        st.info("Dropdown from registered clients only • Auto pro-rata from pool")
-                        
                         contrib_df = pd.DataFrame([
                             {"name": full_name_to_display.get(c["name"], c["name"]), "units": c.get("units", 0), "php_per_unit": c.get("php_per_unit", 1000)}
                             for c in cur.get("contributors", [])
@@ -1024,11 +1019,7 @@ elif selected == "📊 FTMO Accounts":
                             use_container_width=True,
                             key=f"contrib_editor_edit_{eid}",
                             column_config={
-                                "name": st.column_config.SelectboxColumn(
-                                    "Contributor Name *",
-                                    options=registered_display,
-                                    required=True
-                                ),
+                                "name": st.column_config.SelectboxColumn("Contributor Name *", options=registered_display, required=True),
                                 "units": st.column_config.NumberColumn("Units Funded", min_value=0.0, step=0.5),
                                 "php_per_unit": st.column_config.NumberColumn("PHP per Unit", min_value=100.0, step=100.0)
                             }
@@ -1039,13 +1030,11 @@ elif selected == "📊 FTMO Accounts":
                             st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                         
                         st.subheader("🌳 Unified Profit Tree Preview")
-                        labels = ["Gross Profit"]
-                        for _, row in edited_full.iterrows():
-                            display = row["name"]
-                            if display == "Contributor Pool":
-                                display = "Contributor Pool (pro-rata)"
-                            labels.append(f"{display} ({row['percentage']:.1f}%)")
-                        values = edited_full["percentage"].tolist()
+                        labels = ["Gross Profit", f"Contributor Pool (pro-rata) ({new_contrib_pct:.1f}%)"]
+                        values = [new_contrib_pct]
+                        for _, row in edited_editable.iterrows():
+                            labels.append(f"{row['name']} ({row['percentage']:.1f}%)")
+                            values.append(row["percentage"])
                         fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                         link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                         st.plotly_chart(fig, use_container_width=True)
@@ -1055,31 +1044,37 @@ elif selected == "📊 FTMO Accounts":
                             if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                                 if not new_name.strip():
                                     st.error("Account name required")
+                                elif abs(total_sum - 100.0) > 0.1:
+                                    st.error("Total % not 100%")
                                 else:
-                                    final_part = []
-                                    for row in edited_full.to_dict(orient="records"):
-                                        display = row["name"]
-                                        actual_name = "Contributor Pool" if display == "Contributor Pool" else full_name_to_display.get(display, display)
-                                        final_part.append({
-                                            "name": actual_name,
-                                            "role": row["role"],
-                                            "percentage": row["percentage"]
-                                        })
-                                   
-                                    for row_idx, custom in manual_inputs:
-                                        final_part[row_idx]["name"] = custom
-                                   
-                                    contributors_json = []
-                                    for row in edited_contrib.to_dict(orient="records"):
-                                        display = row["name"]
-                                        actual_name = full_name_to_display.get(display, display)
-                                        contributors_json.append({
-                                            "name": actual_name,
-                                            "units": row["units"],
-                                            "php_per_unit": row["php_per_unit"]
-                                        })
-                                   
                                     try:
+                                        final_part = [{
+                                            "name": "Contributor Pool",
+                                            "role": "Funding Contributors (pro-rata)",
+                                            "percentage": new_contrib_pct
+                                        }]
+                                        for row in edited_editable.to_dict(orient="records"):
+                                            display = row["name"]
+                                            actual_name = full_name_to_display.get(display, display)
+                                            final_part.append({
+                                                "name": actual_name,
+                                                "role": row["role"],
+                                                "percentage": row["percentage"]
+                                            })
+                                       
+                                        for row_idx, custom in manual_inputs:
+                                            final_part[row_idx + 1]["name"] = custom
+                                       
+                                        contributors_json = []
+                                        for row in edited_contrib.to_dict(orient="records"):
+                                            display = row["name"]
+                                            actual_name = full_name_to_display.get(display, display)
+                                            contributors_json.append({
+                                                "name": actual_name,
+                                                "units": row["units"],
+                                                "php_per_unit": row["php_per_unit"]
+                                            })
+                                       
                                         supabase.table("ftmo_accounts").update({
                                             "name": new_name.strip(),
                                             "ftmo_id": new_ftmo_id or None,
@@ -1091,13 +1086,14 @@ elif selected == "📊 FTMO Accounts":
                                             "contributors": contributors_json,
                                             "contributor_share_pct": new_contrib_pct
                                         }).eq("id", eid).execute()
-                                        st.success("Account updated! Registered contributors only.")
+                                        st.success("Account updated successfully! 🎉")
                                         del st.session_state.edit_acc_id
                                         del st.session_state.edit_acc_data
                                         st.cache_data.clear()
                                         st.rerun()
                                     except Exception as e:
-                                        st.error(f"Error: {str(e)}")
+                                        st.error(f"Failed to update account: {str(e)}")
+                                        st.info("Check data & try again.")
                         with col_cancel:
                             if st.form_submit_button("Cancel", use_container_width=True):
                                 del st.session_state.edit_acc_id
