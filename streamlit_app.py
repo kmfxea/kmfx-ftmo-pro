@@ -193,7 +193,7 @@ st.markdown(f"""
     .glass-card h2 {{ font-size: 1.6rem !important; }}
     .glass-card h3 {{ font-size: 1.4rem !important; }}
    
-    /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT (fixed for License Generator & all selectboxes) */
+    /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT (ultimate fix for selectbox dropdown too) */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stSelectbox > div > div > div,
@@ -201,30 +201,39 @@ st.markdown(f"""
     .stSelectbox > div > div input,
     .stTextInput > div > div,
     .stTextArea > div > div {{
-        background: #ffffff !important; /* Pure white background */
-        color: #000000 !important; /* Black text */
+        background: #ffffff !important;
+        color: #000000 !important;
         border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
    
     /* Selectbox selected value - black text */
-    .stSelectbox > div > div > div > div[role="button"] > div {{
+    .stSelectbox > div > div > div > div[role="button"] > div,
+    .stSelectbox > div > div > div > div > div:first-child {{
         color: #000000 !important;
+        background: #ffffff !important;
     }}
    
-    /* Selectbox dropdown menu - white background, black text, hover grey */
-    [data-baseweb="select"] > div[role="listbox"] > div {{
+    /* Selectbox dropdown menu - white background, black text, hover dark grey */
+    [data-baseweb="select"] > div[role="listbox"] > div,
+    [data-baseweb="select"] div[role="option"] {{
         background: #ffffff !important;
         color: #000000 !important;
     }}
-    [data-baseweb="select"] > div[role="listbox"] > div:hover {{
-        background: #f0f0f0 !important;
+    [data-baseweb="select"] div[role="option"]:hover,
+    [data-baseweb="select"] div[role="option"][aria-selected="true"] {{
+        background: #e0e0e0 !important;
         color: #000000 !important;
     }}
    
-    /* Placeholder - light grey */
+    /* Selectbox arrow - black */
+    .stSelectbox [data-baseweb="select"] svg {{
+        fill: #000000 !important;
+    }}
+   
+    /* Placeholder - medium grey */
     ::placeholder {{
-        color: #888888 !important;
+        color: #666666 !important;
         opacity: 1 !important;
     }}
    
