@@ -2440,24 +2440,20 @@ elif selected == "📢 Announcements":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL REALTIME ANNOUNCEMENTS ======================
-# ====================== PART 6: MESSAGES PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME FIXED) ======================
 elif selected == "💬 Messages":
     st.header("Private Messages 💬")
     st.markdown("**Secure realtime 1:1 empire communication • Threaded chats • File attachments with previews • Search • Auto-system messages (profit shares, withdrawal updates, license grants) • Balance context • Instant sync & clean UI.**")
-    
-    # SAFE ROLE
+   
     current_role = st.session_state.get("role", "guest")
-    
-    # FULL REALTIME CACHE
+   
     @st.cache_data(ttl=15)
     def fetch_messages_full():
         users_resp = supabase.table("users").select("id, full_name, role, balance").execute()
         users = users_resp.data or []
-        
+       
         msg_resp = supabase.table("messages").select("*").order("timestamp").execute()
         messages = msg_resp.data or []
-        
-        # Group by conversation
+       
         convos = {}
         for m in messages:
             if current_role in ["owner", "admin"]:
@@ -2467,43 +2463,40 @@ elif selected == "💬 Messages":
             if partner not in convos:
                 convos[partner] = []
             convos[partner].append(m)
-        
+       
         return users, messages, convos
-    
+   
     all_users, all_messages, conversations = fetch_messages_full()
-    
+   
     clients = [u for u in all_users if u["role"] == "client"]
-    
+   
     st.caption("🔄 Messages auto-refresh every 15s • Realtime chat")
-    
-    # Admin/Owner: Select client
+   
     if current_role in ["owner", "admin"]:
         if not clients:
             st.info("No clients yet • Private messaging activates with team members")
             st.stop()
-        
+       
         client_options = {f"{c['full_name']} (Balance: ${c['balance'] or 0:,.2f})": c["full_name"] for c in clients}
-        selected_client = st.selectbox("Select Team Member for Private Chat", list(client_options.keys()))
-        partner_name = client_options[selected_client]
+        selected_key = st.selectbox("Select Team Member for Private Chat", list(client_options.keys()))
+        partner_name = client_options[selected_key]
         partner_balance = next((c["balance"] or 0 for c in clients if c["full_name"] == partner_name), 0)
-        
+       
         st.info(f"**Private chat with:** {partner_name} | Current Balance: ${partner_balance:,.2f}")
-        
+       
         convo = conversations.get(partner_name, [])
     else:
-        # Client: Fixed to admin
         partner_name = "KMFX Admin"
-        convo = [m for m in all_messages if 
-                 m.get("to_client") == st.session_state.full_name or 
+        convo = [m for m in all_messages if
+                 m.get("to_client") == st.session_state.full_name or
                  m.get("from_client") == st.session_state.full_name]
         st.info("**Private channel with KMFX Admin** • Updates on shares, withdrawals, licenses")
-    
-    # ====================== REALTIME CONVERSATION DISPLAY (CLEAN & FIXED HTML) ======================
+   
+    # REALTIME CONVERSATION DISPLAY
     if convo:
-        # Search
         search_msg = st.text_input("Search messages")
         display_convo = [m for m in convo if search_msg.lower() in m["message"].lower()] if search_msg else convo
-        
+       
         chat_container = st.container()
         with chat_container:
             for msg in display_convo:
@@ -2512,13 +2505,12 @@ elif selected == "💬 Messages":
                     (current_role == "client" and msg.get("from_client") == st.session_state.full_name)
                 )
                 align = "flex-end" if is_from_me else "flex-start"
-                bg = accent_color if is_from_me else glass_bg
-                text_c = "#000" if is_from_me else text_color
+                bg = accent_primary if is_from_me else card_bg  # FIXED: card_bg (glass) for other bubbles
+                text_c = "#000000" if is_from_me else text_primary  # Black text if from me, theme if other
                 
                 sender = msg.get("from_admin") or msg.get("from_client") or "System"
                 time = msg["timestamp"][:16].replace("T", " ")
                 
-                # Clean markdown - fixed raw HTML display
                 st.markdown(
                     f"<div style='display:flex; justify-content:{align}; margin:1rem 0;'>"
                     f"<div style='background:{bg}; padding:1.2rem 1.6rem; border-radius:20px; max-width:75%; box-shadow: {card_shadow};'>"
@@ -2529,26 +2521,25 @@ elif selected == "💬 Messages":
                     f"</div>",
                     unsafe_allow_html=True
                 )
-        
+       
         st.caption(f"{len(convo)} messages • Auto-read on view")
     else:
         st.info("No messages yet • Start the conversation below")
-    
-    # ====================== SEND MESSAGE WITH ATTACHMENTS (REALTIME & CLEAN) ======================
+   
+    # SEND MESSAGE WITH ATTACHMENTS
     with st.form("send_msg_form", clear_on_submit=True):
         col_send1, col_send2 = st.columns([3, 1])
         with col_send1:
             new_msg = st.text_area("Type message...", height=120, label_visibility="collapsed")
         with col_send2:
             msg_files = st.file_uploader("Attach Files (Images/Proofs)", accept_multiple_files=True, label_visibility="collapsed")
-        
+       
         send = st.form_submit_button("Send ➤", type="primary", use_container_width=True)
         if send:
             if not new_msg.strip() and not msg_files:
                 st.error("Message or file required")
             else:
                 try:
-                    # Text message
                     insert_data = {
                         "message": new_msg.strip() or "📎 Attached files",
                         "timestamp": datetime.datetime.now().isoformat()
@@ -2558,10 +2549,9 @@ elif selected == "💬 Messages":
                         insert_data["to_client"] = partner_name
                     else:
                         insert_data["from_client"] = st.session_state.full_name
-                    
+                   
                     supabase.table("messages").insert(insert_data).execute()
-                    
-                    # Attachments
+                   
                     if msg_files:
                         os.makedirs("uploaded_files/messages", exist_ok=True)
                         for file in msg_files:
@@ -2569,24 +2559,22 @@ elif selected == "💬 Messages":
                             path = f"uploaded_files/messages/{safe}"
                             with open(path, "wb") as f:
                                 f.write(file.getbuffer())
-                    
+                   
                     log_action("Private Message Sent", f"To/From {partner_name}")
                     st.success("Message sent realtime!")
                     st.cache_data.clear()
                     st.rerun()
                 except Exception as e:
                     st.error(f"Send error: {str(e)}")
-    
-    # Auto-system messages note
+   
     st.caption("🤖 Auto-messages: Profit shares, withdrawal status, license info • Delivered here privately")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:2rem; text-align:center; margin-top:2rem;'>
         <h3 style='color:{accent_color};'>Realtime Private Channels</h3>
         <p>Secure • Attachments • Auto-updates • Empire aligned & connected.</p>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL FIXED MESSAGES ======================
 # ====================== PART 6: NOTIFICATIONS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
 elif selected == "🔔 Notifications":
     st.header("Empire Notifications 🔔")
