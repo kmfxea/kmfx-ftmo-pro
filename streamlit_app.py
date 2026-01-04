@@ -1464,50 +1464,49 @@ elif selected == "💰 Profit Sharing":
                 st.success("Profit recorded & fully auto-distributed!")
                 st.cache_data.clear()
                 st.rerun()
-# ====================== MY PROFILE PAGE (FINAL SUPER ADVANCED - WITH DARK GLASS 3D FLIP CARD) ======================
+# ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH PASSWORD CHANGE + FORGOT PASSWORD REQUEST) ======================
 elif selected == "👤 My Profile":
     # SAFE ROLE CHECK
     current_role = st.session_state.get("role", "guest")
     if current_role != "client":
         st.error("🔒 My Profile is client-only.")
         st.stop()
-    
+   
     st.header("My Profile 👤")
     st.markdown("**Your KMFX EA empire membership: Realtime premium flip card, earnings, full details, participation, withdrawals • Full transparency & motivation.**")
-    
+   
     my_name = st.session_state.full_name
-    
+    my_username = st.session_state.username
+   
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_my_profile_data():
         user_resp = supabase.table("users").select("*").eq("full_name", my_name).execute()
         my_user = user_resp.data[0] if user_resp.data else {}
-        
+       
         accounts_resp = supabase.table("ftmo_accounts").select("*").execute()
         accounts = accounts_resp.data or []
         my_accounts = [a for a in accounts if any(p["name"] == my_name for p in a.get("participants", []))]
-        
+       
         wd_resp = supabase.table("withdrawals").select("*").eq("client_name", my_name).order("date_requested", desc=True).execute()
         my_withdrawals = wd_resp.data or []
-        
+       
         files_resp = supabase.table("client_files").select("id, original_name, file_name, upload_date").eq("assigned_client", my_name).execute()
         my_proofs = files_resp.data or []
-        
+       
         all_users_resp = supabase.table("users").select("full_name, title").execute()
         all_users = all_users_resp.data or []
-        
+       
         return my_user, my_accounts, my_withdrawals, my_proofs, all_users
-    
+   
     my_user, my_accounts, my_withdrawals, my_proofs, all_users = fetch_my_profile_data()
-    
+   
     st.caption("🔄 Profile auto-refresh every 30s • Earnings & card update realtime")
-    
-    # ====================== PREMIUM THEME-ADAPTIVE FLIP CARD (DARK & LIGHT MODE PERFECT) ======================
+   
+    # ====================== PREMIUM THEME-ADAPTIVE FLIP CARD ======================
     my_title = my_user.get("title", "Member").upper()
     card_title = f"{my_title} CARD" if my_title != "NONE" else "MEMBER CARD"
     my_balance = my_user.get("balance", 0)
-
-    # Theme-adaptive colors (perfect in both dark & light)
     if theme == "dark":
         front_bg = "linear-gradient(135deg, #000000, #1f1f1f)"
         back_bg = "linear-gradient(135deg, #1f1f1f, #000000)"
@@ -1520,18 +1519,16 @@ elif selected == "👤 My Profile":
         opacity_low = "0.7"
         opacity_med = "0.8"
     else:
-        # Light mode: Clean luxury white card with soft shadows & refined colors
         front_bg = "linear-gradient(135deg, #ffffff, #f5f8fa)"
         back_bg = "linear-gradient(135deg, #f5f8fa, #eef2f5)"
-        text_color = "#0f172a"  # Deep slate for premium readability
-        accent_gold = "#a67c00"  # Rich dark gold (better contrast on light)
-        accent_green = "#004d33"  # Deep forest green (elegant & premium)
-        border_color = "#d4af37"  # Soft gold border
+        text_color = "#0f172a"
+        accent_gold = "#a67c00"
+        accent_green = "#004d33"
+        border_color = "#d4af37"
         shadow = "0 20px 50px rgba(0,0,0,0.1)"
         mag_strip = "#b0b0b0"
         opacity_low = "0.7"
         opacity_med = "0.85"
-
     st.markdown(f"""
     <div style="perspective: 1500px; max-width: 600px; margin: 3rem auto;">
       <div class="flip-card">
@@ -1608,7 +1605,7 @@ elif selected == "👤 My Profile":
       .flip-card-back {{
         transform: rotateY(180deg);
       }}
-      
+     
       @media (max-width: 768px) {{
         .flip-card {{
           width: 90vw !important;
@@ -1643,7 +1640,54 @@ elif selected == "👤 My Profile":
       Hover (desktop) or tap (mobile) the card to flip ↺
     </p>
     """, unsafe_allow_html=True)
-    
+   
+    # ====================== CHANGE PASSWORD (CLIENT SELF-SERVICE) ======================
+    st.subheader("🔑 Change Password")
+    with st.expander("Update your password", expanded=False):
+        with st.form("change_password_form", clear_on_submit=True):
+            current_pwd = st.text_input("Current Password *", type="password")
+            new_pwd = st.text_input("New Password *", type="password")
+            confirm_pwd = st.text_input("Confirm New Password *", type="password")
+           
+            submitted = st.form_submit_button("Change Password", type="primary")
+            if submitted:
+                if not current_pwd or not new_pwd or not confirm_pwd:
+                    st.error("All fields required")
+                elif new_pwd != confirm_pwd:
+                    st.error("New passwords do not match")
+                else:
+                    try:
+                        resp = supabase.table("users").select("password").eq("username", my_username).execute()
+                        if not resp.data:
+                            st.error("User not found")
+                        else:
+                            hashed = resp.data[0]["password"]
+                            if bcrypt.checkpw(current_pwd.encode(), hashed.encode()):
+                                new_hashed = bcrypt.hashpw(new_pwd.encode(), bcrypt.gensalt()).decode()
+                                supabase.table("users").update({"password": new_hashed}).eq("username", my_username).execute()
+                                st.success("Password changed successfully! Logging out for security...")
+                                st.session_state.clear()
+                                st.rerun()
+                            else:
+                                st.error("Current password incorrect")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+   
+    # ====================== FORGOT PASSWORD REQUEST (TO OWNER) ======================
+    st.subheader("🔒 Forgot Password?")
+    with st.expander("Request password reset", expanded=False):
+        st.info("Submit request — owner will reset & inform you securely.")
+        with st.form("forgot_pwd_form", clear_on_submit=True):
+            reason = st.text_area("Reason / Message to Owner (Optional)", placeholder="e.g. I forgot my password, please reset to 'NewPass123'")
+           
+            submitted = st.form_submit_button("Send Reset Request to Owner", type="primary")
+            if submitted:
+                try:
+                    log_action("Password Reset Request", f"From {my_name} ({my_username}) | Reason: {reason or 'No reason'}")
+                    st.success("Request sent to owner! They will reset your password & inform you.")
+                except Exception as e:
+                    st.error(f"Error: {str(e)}")
+   
     # ====================== SHARED ACCOUNTS WITH % & FUNDED PHP ======================
     st.subheader(f"Your Shared Accounts ({len(my_accounts)} active)")
     if my_accounts:
@@ -1651,7 +1695,7 @@ elif selected == "👤 My Profile":
             my_pct = next((p["percentage"] for p in acc.get("participants", []) if p["name"] == my_name), 0)
             my_projected = (acc.get("current_equity", 0) * my_pct / 100) if acc.get("current_equity") else 0
             my_funded_php = sum(c["units"] * c["php_per_unit"] for c in acc.get("contributors", []) if c["name"] == my_name)
-            
+           
             with st.expander(f"🌟 {acc['name']} • Your Share: {my_pct:.1f}% • Phase: {acc['current_phase']}", expanded=False):
                 col_acc1, col_acc2 = st.columns(2)
                 with col_acc1:
@@ -1660,8 +1704,7 @@ elif selected == "👤 My Profile":
                 with col_acc2:
                     st.metric("Account Withdrawable", f"${acc.get('withdrawable_balance', 0):,.0f}")
                     st.metric("Your Funded (PHP)", f"₱{my_funded_php:,.0f}")
-                
-                # Participants Tree with titles
+               
                 participants = acc.get("participants", [])
                 if participants:
                     labels = ["Profits"]
@@ -1678,7 +1721,7 @@ elif selected == "👤 My Profile":
                     st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No participation yet • Owner will assign you to shared profits")
-    
+   
     # ====================== WITHDRAWAL HISTORY & QUICK REQUEST ======================
     st.subheader("💳 Your Withdrawal Requests & History")
     if my_withdrawals:
@@ -1696,7 +1739,7 @@ elif selected == "👤 My Profile":
             st.divider()
     else:
         st.info("No requests yet • Earnings auto-accumulate")
-    
+   
     # Quick request
     with st.expander("➕ Request New Withdrawal (from Balance)", expanded=False):
         if my_balance <= 0:
@@ -1707,7 +1750,7 @@ elif selected == "👤 My Profile":
                 method = st.selectbox("Method", ["USDT", "Bank Transfer", "Wise", "PayPal", "GCash", "Other"])
                 details = st.text_area("Details")
                 proof = st.file_uploader("Upload Proof * (Required)", help="Auto-saved to vault")
-                
+               
                 submitted = st.form_submit_button("Submit Request", type="primary")
                 if submitted:
                     if amount > my_balance:
@@ -1729,7 +1772,7 @@ elif selected == "👤 My Profile":
                                 "assigned_client": my_name,
                                 "notes": f"Proof for ${amount:,.0f}"
                             }).execute()
-                            
+                           
                             supabase.table("withdrawals").insert({
                                 "client_name": my_name,
                                 "amount": amount,
@@ -1738,13 +1781,13 @@ elif selected == "👤 My Profile":
                                 "status": "Pending",
                                 "date_requested": datetime.date.today().isoformat()
                             }).execute()
-                            
+                           
                             st.success("Request submitted!")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-    
+   
     # My proofs
     st.subheader("📁 Your Proofs in Vault")
     if my_proofs:
@@ -1759,7 +1802,7 @@ elif selected == "👤 My Profile":
                         st.download_button(p["original_name"], f, p["original_name"])
     else:
         st.info("No proofs uploaded yet")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
@@ -1770,7 +1813,6 @@ elif selected == "👤 My Profile":
         </p>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL MY PROFILE WITH DARK GLASS 3D FLIP CARD ======================
 # ====================== PART 5: GROWTH FUND PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
 elif selected == "🌱 Growth Fund":
     st.header("Growth Fund Management 🌱")
