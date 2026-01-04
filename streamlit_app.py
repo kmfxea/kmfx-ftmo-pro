@@ -884,7 +884,7 @@ elif selected == "📊 FTMO Accounts":
                     values = edited_tree["percentage"].tolist()
                     fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                     link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                    fig.update_layout(font=dict(color="black"))  # Black text in tree
+                    fig.update_layout(font=dict(color="black"))
                     st.plotly_chart(fig, use_container_width=True)
                 with tab_prev2:
                     if not edited_contrib.empty:
@@ -894,7 +894,7 @@ elif selected == "📊 FTMO Accounts":
                             values = (valid["units"] * valid["php_per_unit"]).tolist()
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
-                            fig.update_layout(font=dict(color="black"))  # Black text in tree
+                            fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
                
                 submitted = st.form_submit_button("🚀 Launch Account", type="primary", use_container_width=True)
@@ -999,7 +999,7 @@ elif selected == "📊 FTMO Accounts":
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
            
-            # EDIT FORM - same as create with tabs
+            # EDIT FORM
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -1020,8 +1020,20 @@ elif selected == "📊 FTMO Accounts":
                         st.subheader("🌳 Unified Profit Distribution Tree (%)")
                         st.info("**Include 'Contributor Pool' row** • Edit all % freely • Total must be exactly 100%")
                         
+                        # Auto-add Contributor Pool row if missing in old accounts
+                        current_part = pd.DataFrame(cur["participants"])
+                        if "Contributor Pool" not in current_part["name"].values:
+                            contrib_pct = cur.get("contributor_share_pct", 30.0)
+                            contrib_row = pd.DataFrame([{
+                                "name": "Contributor Pool",
+                                "role": "Funding Contributors (pro-rata)",
+                                "percentage": contrib_pct
+                            }])
+                            current_part = pd.concat([contrib_row, current_part], ignore_index=True)
+                            st.info(f"Auto-added 'Contributor Pool' row ({contrib_pct}%) for compatibility")
+                        
                         edited_tree = st.data_editor(
-                            pd.DataFrame(cur["participants"]),
+                            current_part,
                             num_rows="dynamic",
                             use_container_width=True,
                             key=f"participants_editor_edit_{eid}",
@@ -1156,7 +1168,7 @@ elif selected == "📊 FTMO Accounts":
         else:
             st.info("No accounts yet")
    
-    # CLIENT VIEW - with contributors tree tab
+    # CLIENT VIEW
     else:
         my_name = st.session_state.full_name
         my_accounts = [a for a in accounts if any(p["name"] == my_name for p in a.get("participants", []))]
@@ -1239,7 +1251,7 @@ elif selected == "📊 FTMO Accounts":
 # ====================== PROFIT SHARING PAGE - FULL LATEST WITH CONTRIBUTOR POOL AUTO ======================
 elif selected == "💰 Profit Sharing":
     st.header("Profit Sharing & Auto-Distribution 💰")
-    st.markdown("**Empire scaling engine: Input FTMO withdrawable profit → Auto-split: Contributor Pool % to contributors pro-rata → Remaining to participants % • Auto-balance • Growth Fund optional • Realtime preview • Instant sync.**")
+    st.markdown("**Empire scaling engine: Input FTMO withdrawable profit → Auto-split & distribute • Auto-email breakdown to all involved for transparency • Realtime preview • Instant sync.**")
    
     current_role = st.session_state.get("role", "guest")
    
@@ -1247,14 +1259,19 @@ elif selected == "💰 Profit Sharing":
         st.warning("Profit recording is owner/admin only.")
         st.stop()
    
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+   
     @st.cache_data(ttl=60)
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select("id, name, current_phase, current_equity, unit_value, participants, contributors, contributor_share_pct").execute().data or []
-        users = supabase.table("users").select("id, full_name, balance, title").execute().data or []
+        users = supabase.table("users").select("id, full_name, email, title, balance").execute().data or []
         user_map = {u["full_name"]: u for u in users}
-        return accounts, user_map
+        email_map = {u["full_name"]: u.get("email") for u in users if u.get("email")}
+        return accounts, user_map, email_map
    
-    accounts, user_map = fetch_profit_data()
+    accounts, user_map, email_map = fetch_profit_data()
     if not accounts:
         st.info("No accounts yet.")
         st.stop()
@@ -1398,6 +1415,7 @@ elif selected == "💰 Profit Sharing":
                 participant_pool = gross_profit - contributor_pool
                 units = gross_profit / unit_value
                 
+                # Record profit
                 profit_resp = supabase.table("profits").insert({
                     "account_id": acc_id,
                     "gross_profit": gross_profit,
@@ -1411,8 +1429,8 @@ elif selected == "💰 Profit Sharing":
                 }).execute()
                 profit_id = profit_resp.data[0]["id"]
                 
+                # Distributions & auto-balance
                 distributions = []
-                
                 total_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
                 if total_funded_php > 0 and contributor_share_pct > 0:
                     for c in contributors:
@@ -1422,7 +1440,7 @@ elif selected == "💰 Profit Sharing":
                             "profit_id": profit_id,
                             "participant_name": c["name"],
                             "participant_role": "Contributor",
-                            "percentage": round((funded / total_funded_php) * 100, 2) if total_funded_php > 0 else 0,
+                            "percentage": round((funded / total_funded_php) * 100, 2),
                             "share_amount": share,
                             "is_growth_fund": False
                         })
@@ -1460,6 +1478,86 @@ elif selected == "💰 Profit Sharing":
                         "account_source": acc_name,
                         "recorded_by": st.session_state.full_name
                     }).execute()
+                
+                # GENERATE & AUTO-SEND EMAIL BREAKDOWN
+                date_str = record_date.strftime("%B %d, %Y")
+                html_breakdown = f"""
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #000; background: #f8fbff; padding: 20px;">
+                    <div style="max-width: 800px; margin: auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                        <h1 style="color: #00ffaa; text-align: center;">🚀 KMFX Profit Distribution Report</h1>
+                        <h2 style="text-align: center;">Account: {acc_name} • Date: {date_str}</h2>
+                        <p style="font-size: 1.2rem; text-align: center;">Gross Profit Received: <strong>${gross_profit:,.2f}</strong></p>
+                        <p style="font-size: 1.2rem; text-align: center;">Contributor Pool ({contributor_share_pct}%): <strong>${contributor_pool:,.2f}</strong></p>
+                        <p style="font-size: 1.2rem; text-align: center;">Participants Pool ({100 - contributor_share_pct}%): <strong>${participant_pool:,.2f}</strong></p>
+                        <p style="font-size: 1.2rem; text-align: center;">Units Generated: <strong>{units:.2f}</strong></p>
+                        
+                        <h3>Contributor Pool Breakdown (Pro-rata Funded PHP)</h3>
+                        <table style="width:100%; border-collapse: collapse;">
+                            <tr style="background: #00ffaa; color: black;">
+                                <th style="padding: 12px; border: 1px solid #ddd;">Name</th>
+                                <th style="padding: 12px; border: 1px solid #ddd;">Funded PHP</th>
+                                <th style="padding: 12px; border: 1px solid #ddd;">Share</th>
+                            </tr>
+                            {''.join(f'<tr><td style="padding: 12px; border: 1px solid #ddd;">{c["Name"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{c["Funded PHP"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{c["Share"]}</td></tr>' for c in contrib_preview)}
+                        </table>
+                        
+                        <h3>Participants Breakdown</h3>
+                        <table style="width:100%; border-collapse: collapse;">
+                            <tr style="background: #ffd700; color: black;">
+                                <th style="padding: 12px; border: 1px solid #ddd;">Name</th>
+                                <th style="padding: 12px; border: 1px solid #ddd;">%</th>
+                                <th style="padding: 12px; border: 1px solid #ddd;">Share</th>
+                            </tr>
+                            {''.join(f'<tr><td style="padding: 12px; border: 1px solid #ddd;">{p["Name"]}</td><td style="padding: 12px; border: 1px solid #ddd;">{p["%"]}%</td><td style="padding: 12px; border: 1px solid #ddd;">{p["Share"]}</td></tr>' for p in part_preview)}
+                        </table>
+                        
+                        <p style="margin-top: 30px; text-align: center; font-size: 1.1rem;">
+                            Thank you for being part of the KMFX Empire • Built by Faith, Shared for Generations 👑<br>
+                            Questions? Contact owner.
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """
+                
+                # Show breakdown in app
+                st.subheader("Profit Distribution Breakdown (Auto-Sent via Email)")
+                st.markdown(html_breakdown, unsafe_allow_html=True)
+                
+                # Auto-send emails
+                sender_email = os.getenv("EMAIL_SENDER")
+                sender_password = os.getenv("EMAIL_PASSWORD")
+                if sender_email and sender_password:
+                    involved = set()
+                    for c in contrib_preview:
+                        name = c["Name"].split(" (")[0]  # Strip title
+                        involved.add(name)
+                    for p in part_preview:
+                        name = p["Name"].split(" (")[0]
+                        involved.add(name)
+                   
+                    sent_count = 0
+                    for name in involved:
+                        email = email_map.get(name)
+                        if email:
+                            try:
+                                msg = MIMEMultipart("alternative")
+                                msg["From"] = sender_email
+                                msg["To"] = email
+                                msg["Subject"] = f"KMFX Profit Distribution - {acc_name} {date_str}"
+                                msg.attach(MIMEText(html_breakdown, "html"))
+                                
+                                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                                    server.login(sender_email, sender_password)
+                                    server.sendmail(sender_email, email, msg.as_string())
+                                sent_count += 1
+                            except Exception as e:
+                                st.warning(f"Email failed for {name}: {str(e)}")
+                    st.success(f"Breakdown emailed to {sent_count} members!")
+                else:
+                    st.warning("Email not sent — add EMAIL_SENDER & EMAIL_PASSWORD in .env for auto-email")
+                    st.info("Copy the breakdown above for manual email")
                 
                 st.success("Profit recorded & fully auto-distributed!")
                 st.cache_data.clear()
