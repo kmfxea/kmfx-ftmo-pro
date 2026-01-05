@@ -815,10 +815,10 @@ elif selected == "📊 FTMO Accounts":
   
     accounts, all_users = fetch_all_data()
   
-    # FULL DISPLAY MAPS FIX (WITH REVERSE FOR EDIT LOAD)
-    registered_display = []        # titled e.g. "Michael Blando (VIP)"
-    full_name_to_display = {}      # titled -> plain full_name (for save)
-    display_to_full_name = {}      # plain full_name -> titled (for edit load)
+    # FULL DISPLAY MAPS (TITLED <-> PLAIN)
+    registered_display = []        # titled displays for dropdowns/editor
+    full_name_to_display = {}      # titled -> plain (for save)
+    display_to_full_name = {}      # plain -> titled (for edit load & previews)
     for u in all_users:
         if u["role"] == "client":
             plain = u["full_name"]
@@ -849,12 +849,11 @@ elif selected == "📊 FTMO Accounts":
                 st.subheader("🌳 Unified Profit Distribution Tree (%)")
                 st.info("**Include 'Contributor Pool' row** • Edit all % freely • Total must be exactly 100% • Contributor Pool % auto pro-rata to contributors")
                
-                # FIXED DEFAULT ROWS - USE TITLED DISPLAYS FOR EDITOR
+                # DEFAULT ROWS USE TITLED DISPLAYS
                 default_rows = [
                     {"name": "Contributor Pool", "role": "Funding Contributors (pro-rata)", "percentage": 30.0},
                     {"name": "King Minted", "role": "Founder/Owner", "percentage": 70.0}
                 ]
-                # Add all registered clients with titled display (0%)
                 for display in registered_display:
                     default_rows.append({"name": display, "role": "Team Member", "percentage": 0.0})
                
@@ -912,7 +911,6 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
               
-                # Previews (keep your original)
                 tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                 with tab_prev1:
                     labels = ["Gross Profit"]
@@ -1002,12 +1000,10 @@ elif selected == "📊 FTMO Accounts":
                         if participants:
                             labels = ["Gross Profit"]
                             for p in participants:
-                                display = p["name"]
-                                if display == "Contributor Pool":
+                                display = display_to_full_name.get(p["name"], p["name"])
+                                if p["name"] == "Contributor Pool":
                                     display = "Contributor Pool (pro-rata)"
-                                # Use titled display
-                                titled = display_to_full_name.get(display, display)
-                                labels.append(f"{titled} ({p['percentage']:.1f}%)")
+                                labels.append(f"{display} ({p['percentage']:.1f}%)")
                             values = [p["percentage"] for p in participants]
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
@@ -1019,8 +1015,8 @@ elif selected == "📊 FTMO Accounts":
                             labels = ["Funded (PHP)"]
                             values = []
                             for c in contributors:
-                                titled = display_to_full_name.get(c["name"], c["name"])
-                                labels.append(f"{titled} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)")
+                                display = display_to_full_name.get(c["name"], c["name"])
+                                labels.append(f"{display} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)")
                                 values.append(c.get("units", 0) * c.get("php_per_unit", 0))
                             fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
                                                             link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
@@ -1046,7 +1042,7 @@ elif selected == "📊 FTMO Accounts":
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
           
-            # FULLY FIXED EDIT FORM - NAMES LOAD WITH TITLES
+            # FULLY FIXED EDIT FORM
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -1067,7 +1063,6 @@ elif selected == "📊 FTMO Accounts":
                         st.subheader("🌳 Unified Profit Distribution Tree (%)")
                         st.info("**Include 'Contributor Pool' row** • Edit all % freely • Total must be exactly 100%")
                        
-                        # LOAD PARTICIPANTS & MAP PLAIN -> TITLED FOR DISPLAY
                         current_part = pd.DataFrame(cur["participants"])
                         if "Contributor Pool" not in current_part["name"].values:
                             contrib_pct = cur.get("contributor_share_pct", 30.0)
@@ -1079,7 +1074,7 @@ elif selected == "📊 FTMO Accounts":
                             current_part = pd.concat([contrib_row, current_part], ignore_index=True)
                             st.info(f"Auto-added 'Contributor Pool' row ({contrib_pct}%) for compatibility")
                        
-                        # MAP STORED PLAIN NAMES TO TITLED DISPLAYS
+                        # MAP PLAIN -> TITLED FOR EDITOR LOAD
                         current_part["name"] = current_part["name"].apply(lambda n: display_to_full_name.get(n, n))
                        
                         edited_tree = st.data_editor(
@@ -1119,7 +1114,7 @@ elif selected == "📊 FTMO Accounts":
                         # LOAD CONTRIBUTORS WITH TITLED DISPLAYS
                         contrib_df = pd.DataFrame([
                             {
-                                "name": display_to_full_name.get(c["name"], c["name"]),  # titled if exists
+                                "name": display_to_full_name.get(c["name"], c["name"]),
                                 "units": c.get("units", 0),
                                 "php_per_unit": c.get("php_per_unit", 0)
                             }
@@ -1141,7 +1136,6 @@ elif selected == "📊 FTMO Accounts":
                             total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                             st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                        
-                        # Previews (keep your original)
                         tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                         with tab_prev1:
                             labels = ["Gross Profit"]
@@ -1226,7 +1220,7 @@ elif selected == "📊 FTMO Accounts":
         else:
             st.info("No accounts yet")
   
-    # CLIENT VIEW (TITLED DISPLAYS)
+    # CLIENT VIEW (WITH TITLED DISPLAYS)
     else:
         my_name = st.session_state.full_name
         my_accounts = [a for a in accounts if any(p["name"] == my_name for p in a.get("participants", []))]
@@ -1306,7 +1300,6 @@ elif selected == "📊 FTMO Accounts":
                         st.info("No contributors yet")
   
     if not accounts:
-        st.info("No accounts in empire yet")
 
 # ====================== PROFIT SHARING PAGE - FULL LATEST WITH CONTRIBUTOR POOL AUTO ======================
 elif selected == "💰 Profit Sharing":
