@@ -1300,6 +1300,7 @@ elif selected == "📊 FTMO Accounts":
                         st.info("No contributors yet")
   
     if not accounts:
+        st.info("No accounts in empire yet")
 
 # ====================== PROFIT SHARING PAGE - FULL LATEST WITH CONTRIBUTOR POOL AUTO ======================
 elif selected == "💰 Profit Sharing":
