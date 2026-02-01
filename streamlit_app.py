@@ -1,7 +1,4 @@
-# ====================== PART 1: SUPABASE CLOUD SETUP & INITIALIZATION ======================
-# KMFX FTMO Pro Manager - FULL SUPABASE CLOUD VERSION 2025
-# Fully cloud-based, real-time ready, optimized, mobile-perfect
-
+# ====================== KMFX EA - FULL 2026 APP WITH PUBLIC LANDING + QR ======================
 import streamlit as st
 import pandas as pd
 import datetime
@@ -10,32 +7,31 @@ import os
 import threading
 import time
 import requests
-import base64
-import hashlib
 import plotly.graph_objects as go
+import qrcode
+from io import BytesIO
 from supabase import create_client, Client
 from dotenv import load_dotenv
+import uuid
 
-load_dotenv()  # Load .env file with SUPABASE_URL and SUPABASE_KEY
+load_dotenv()
 
-# ====================== SUPABASE CONNECTION ======================
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
-
 if not supabase_url or not supabase_key:
-    st.error("Missing SUPABASE_URL or SUPABASE_KEY in .env file! Please check your .env file.")
+    st.error("Missing SUPABASE_URL or SUPABASE_KEY in .env file!")
     st.stop()
 
 supabase: Client = create_client(supabase_url, supabase_key)
 
-# ====================== KEEP-ALIVE (FOR STREAMLIT CLOUD DEPLOYMENT) ======================
+# Keep-alive for Streamlit Cloud
 def keep_alive():
     while True:
         try:
-            requests.get("https://kmfx-ftmo-pro.streamlit.app", timeout=10)
+            requests.get("https://kmfxeaftmo.streamlit.app", timeout=10)
         except:
             pass
-        time.sleep(1500)  # Every 25 minutes
+        time.sleep(1500)
 
 if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
     if not hasattr(st, "_keep_alive_thread_started"):
@@ -44,12 +40,13 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         st._keep_alive_thread_started = True
 
 st.set_page_config(
-    page_title="KMFX FTMO Pro Manager",
-    page_icon="🚀",
+    page_title="KMFX EA - Elite Empire",
+    page_icon="👑",
     layout="centered",
-    initial_sidebar_state="collapsed"  # CHANGE TO "collapsed"
+    initial_sidebar_state="collapsed"
 )
-# ====================== LOCAL FOLDERS FOR FILE UPLOADS ======================
+
+# Local folders
 folders = [
     "uploaded_files",
     "uploaded_files/client_files",
@@ -60,7 +57,7 @@ folders = [
 for folder in folders:
     os.makedirs(folder, exist_ok=True)
 
-# ====================== LOG ACTION TO SUPABASE ======================
+# Log action
 def log_action(action, details="", user_name=None):
     user_name = user_name or st.session_state.get("full_name", "Unknown")
     user_type = st.session_state.get("role", "unknown")
@@ -72,79 +69,48 @@ def log_action(action, details="", user_name=None):
             "user_type": user_type,
             "user_name": user_name
         }).execute()
-    except Exception as e:
-        st.warning("Log failed (cloud issue)")
+    except:
+        pass
 
-# ====================== CREATE DEFAULT USERS (FIRST TIME ONLY) ======================
+# Default users
 def create_default_users():
     try:
         response = supabase.table("users").select("id", count="exact").execute()
         if response.count == 0:
             hashed_owner = bcrypt.hashpw("ChangeMeNow123!".encode(), bcrypt.gensalt()).decode()
-            hashed_admin = bcrypt.hashpw("AdminSecure2025!".encode(), bcrypt.gensalt()).decode()
-            hashed_client = bcrypt.hashpw("Client123!".encode(), bcrypt.gensalt()).decode()
-
             supabase.table("users").insert([
-                {"username": "kingminted", "password": hashed_owner, "full_name": "King Minted", "role": "owner"},
-                {"username": "admin", "password": hashed_admin, "full_name": "KMFX Admin", "role": "admin"},
-                {"username": "client1", "password": hashed_client, "full_name": "Client One", "role": "client"}
+                {"username": "kingminted", "password": hashed_owner, "full_name": "King Minted", "role": "owner"}
             ]).execute()
-            st.success("Default accounts created in cloud database. CHANGE PASSWORDS ASAP!")
-            st.warning("Security: Go to Admin Management to update passwords.")
+            st.success("Default owner created. CHANGE PASSWORD ASAP!")
     except Exception as e:
-        st.error(f"Error creating default users: {e}")
+        st.error(f"Error creating defaults: {e}")
 
 create_default_users()
-# ====================== FINAL SIDEBAR FIX: NATIVE ARROW ON DESKTOP + WIDER MOBILE SLIDE-IN ======================
-# Desktop: Native Streamlit arrow visible & working (collapsible, default expanded)
-# Mobile: No native arrow, custom glass hamburger, starts closed, WIDER sidebar (90% / max 380px), smooth slide-in + overlay
-# ====================== FINAL: MEDIUM BOXES + FONT BALANCE + ALL PREVIOUS FIXES ======================
-# Boxes (glass-cards): Medium size (reduced padding, tighter feel)
-# Global font: Slightly larger (15px base) for better readability
-# Font inside boxes: Slightly smaller (14px text, 1.8rem headings) — looser but not tight
-# Top header blended, red arrow, no sidebar shadow, mobile wide/looser — all intact
 
+# Theme & Full Premium Glass CSS
 if "theme" not in st.session_state:
     st.session_state.theme = "dark"
 
 theme = st.session_state.theme
-
 accent_primary = "#00ffaa"
-accent_hover = "#00cc88"
+accent_gold = "#ffd700"
 accent_glow = "#00ffaa40"
-accent_secondary = "#ffd700"
+bg_color = "#0a0d14" if theme == "dark" else "#f8fbff"
+card_bg = "rgba(15, 20, 30, 0.70)" if theme == "dark" else "rgba(255, 255, 255, 0.75)"
+border_color = "rgba(100, 100, 100, 0.15)" if theme == "dark" else "rgba(0, 0, 0, 0.08)"
+text_primary = "#ffffff" if theme == "dark" else "#0f172a"
+text_muted = "#aaaaaa" if theme == "dark" else "#64748b"
+
+# === ADD THESE LINES ===
+card_shadow = "0 10px 30px rgba(0,0,0,0.5)" if theme == "dark" else "0 8px 25px rgba(0,0,0,0.12)"
+card_shadow_hover = "0 20px 50px rgba(0,255,170,0.45)" if theme == "dark" else "0 15px 40px rgba(0,0,0,0.2)"
 accent_color = accent_primary
-
-if theme == "dark":
-    bg_color = "#0a0d14"
-    card_bg = "rgba(15, 20, 30, 0.70)"
-    sidebar_bg = "rgba(10, 13, 20, 0.90)"
-    border_color = "rgba(100, 100, 100, 0.15)"
-    text_primary = "#ffffff"
-    text_muted = "#aaaaaa"
-    input_bg = "rgba(30, 35, 45, 0.5)"
-else:
-    bg_color = "#f8fbff"
-    card_bg = "rgba(255, 255, 255, 0.75)"
-    sidebar_bg = "rgba(255, 255, 255, 0.90)"
-    border_color = "rgba(0, 0, 0, 0.08)"
-    text_primary = "#0f172a"
-    text_muted = "#64748b"
-    input_bg = "rgba(240, 245, 255, 0.6)"
-
-glass_blur = "blur(20px)"
-card_shadow = "0 8px 32px rgba(0,0,0,0.12)"
-card_shadow_hover = "0 16px 50px rgba(0,255,170,0.20)"
-
-st.set_page_config(
-    page_title="KMFX FTMO Pro Manager",
-    page_icon="🚀",
-    layout="centered",
-    initial_sidebar_state="expanded"
-)
+accent_hover = "#00ffcc" if theme == "dark" else "#00cc99"
+sidebar_bg = "rgba(10, 13, 20, 0.95)" if theme == "dark" else "rgba(248, 251, 255, 0.95)"
+# ========================
 
 st.markdown(f"""
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
     /* Global - Slightly larger base font */
     html, body, [class*="css-"] {{
@@ -155,7 +121,7 @@ st.markdown(f"""
         background: {bg_color};
         color: {text_primary};
     }}
-  
+ 
     /* Adaptive text */
     h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
         color: {text_primary} !important;
@@ -163,36 +129,90 @@ st.markdown(f"""
     small, caption, .caption {{
         color: {text_muted} !important;
     }}
-  
+ 
     /* Medium glass cards - reduced padding for medium size */
     .glass-card {{
         background: {card_bg};
-        backdrop-filter: {glass_blur};
-        -webkit-backdrop-filter: {glass_blur};
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border-radius: 20px;
         border: 1px solid {border_color};
-        padding: 1.8rem !important; /* Medium/tighter */
+        padding: 2.2rem !important; /* Slightly more spacious for public */
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
+        margin: 2rem 0;
     }}
     .glass-card:hover {{
         box-shadow: {card_shadow_hover};
-        transform: translateY(-4px);
+        transform: translateY(-6px);
         border-color: {accent_primary};
     }}
-  
-    /* Smaller font inside cards */
+ 
+    /* Font inside cards - balanced for public readability */
     .glass-card h1, .glass-card h2, .glass-card h3,
     .glass-card h4, .glass-card p, .glass-card div,
     .glass-card span, .glass-card label {{
-        font-size: 14px !important; /* Slightly smaller inside boxes */
-        line-height: 1.5 !important;
+        font-size: 15px !important;
+        line-height: 1.6 !important;
     }}
-    .glass-card h1 {{ font-size: 1.8rem !important; }}
-    .glass-card h2 {{ font-size: 1.6rem !important; }}
-    .glass-card h3 {{ font-size: 1.4rem !important; }}
-  
-    /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT (ultimate fix for selectbox dropdown too) */
+    .glass-card h1 {{ font-size: 2.2rem !important; }}
+    .glass-card h2 {{ font-size: 1.8rem !important; }}
+    .glass-card h3 {{ font-size: 1.5rem !important; }}
+ 
+    /* GOLD TEXT CLASS - for premium headings */
+    .gold-text {{
+        color: {accent_gold} !important;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }}
+ 
+    /* PUBLIC HERO SECTION */
+    .public-hero {{
+        text-align: center;
+        padding: 6rem 2rem 4rem;
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }}
+    .public-hero h1 {{
+        font-size: clamp(3rem, 8vw, 5rem);
+        background: linear-gradient(90deg, {accent_gold}, {accent_primary});
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }}
+    .public-hero h2 {{
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        margin: 1.5rem 0;
+    }}
+ 
+    /* TIMELINE CARD - for progress section */
+    .timeline-card {{
+        background: rgba(30, 35, 45, 0.6);
+        border-left: 6px solid {accent_gold};
+        border-radius: 0 20px 20px 0;
+        padding: 2rem;
+        margin: 2.5rem 0;
+        transition: all 0.3s ease;
+    }}
+    .timeline-card:hover {{
+        transform: translateX(10px);
+        box-shadow: 0 10px 30px {accent_glow};
+    }}
+    .timeline-card h3 {{
+        color: {accent_gold};
+        margin-bottom: 1rem;
+    }}
+ 
+    /* BIG STATS in hero */
+    .big-stat {{
+        font-size: 3rem !important;
+        font-weight: 700;
+        color: {accent_primary};
+    }}
+ 
+    /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stSelectbox > div > div > div,
@@ -205,15 +225,13 @@ st.markdown(f"""
         border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
-  
-    /* Selectbox selected value - black text */
+ 
+    /* Selectbox fixes */
     .stSelectbox > div > div > div > div[role="button"] > div,
     .stSelectbox > div > div > div > div > div:first-child {{
         color: #000000 !important;
         background: #ffffff !important;
     }}
-  
-    /* Selectbox dropdown menu - white background, black text, hover dark grey */
     [data-baseweb="select"] > div[role="listbox"] > div,
     [data-baseweb="select"] div[role="option"] {{
         background: #ffffff !important;
@@ -224,97 +242,77 @@ st.markdown(f"""
         background: #e0e0e0 !important;
         color: #000000 !important;
     }}
-  
-    /* Selectbox arrow - black */
     .stSelectbox [data-baseweb="select"] svg {{
         fill: #000000 !important;
     }}
-  
-    /* Placeholder - medium grey */
+ 
     ::placeholder {{
         color: #666666 !important;
         opacity: 1 !important;
     }}
-  
+ 
     /* Buttons */
     button[kind="primary"] {{
         background: {accent_primary} !important;
         color: #000000 !important;
         border-radius: 16px !important;
         box-shadow: 0 6px 20px {accent_glow} !important;
+        padding: 1rem 2rem !important;
+        font-size: 1.2rem !important;
     }}
     button[kind="primary"]:hover {{
         background: {accent_hover} !important;
-        box-shadow: 0 10px 30px {accent_glow} !important;
+        box-shadow: 0 12px 35px {accent_glow} !important;
+        transform: translateY(-3px);
     }}
-  
+ 
     /* TOP HEADER BLEND */
     header[data-testid="stHeader"] {{
         background-color: {bg_color} !important;
-        backdrop-filter: {glass_blur};
+        backdrop-filter: blur(20px);
     }}
-    header[data-testid="stHeader"] button,
-    header[data-testid="stHeader"] div[role="menubar"] button {{
-        color: {text_primary} !important;
-        background: transparent !important;
-    }}
-  
+ 
     /* SIDEBAR - NO SHADOW */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
-        backdrop-filter: {glass_blur};
-        -webkit-backdrop-filter: {glass_blur};
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         width: 320px !important;
         min-width: 320px !important;
         border-right: 1px solid {border_color};
         box-shadow: none !important;
-        transition: all 0.3s ease;
     }}
-  
+ 
     /* RED arrow/hamburger */
     [data-testid="collapsedControl"] {{
         color: #ff4757 !important;
-        background: transparent !important;
     }}
     [data-testid="collapsedControl"] svg {{
         fill: #ff4757 !important;
         stroke: #ff4757 !important;
     }}
-  
+ 
     /* Desktop */
     @media (min-width: 769px) {{
         .main .block-container {{
             padding-left: 3rem !important;
             padding-top: 2rem !important;
-            transition: all 0.3s ease !important;
         }}
     }}
-  
+ 
     /* Mobile: Wider + looser */
     @media (max-width: 768px) {{
         section[data-testid="stSidebar"] {{
             width: 92% !important;
             max-width: 420px !important;
         }}
-        div[data-testid="stSidebar"] div.stRadio > div > label {{
-            font-size: 13px !important;
-            padding: 16px 22px !important;
-            margin: 8px 14px !important;
-        }}
-        div[data-testid="stSidebar"] h3, div[data-testid="stSidebar"] p,
-        div[data-testid="stSidebar"] div, div[data-testid="stSidebar"] span {{
-            font-size: 13px !important;
-        }}
-        .glass-card {{
-            padding: 2rem !important; /* Balanced for mobile */
-        }}
-        .block-container {{
-            padding: 1.5rem !important;
-            padding-top: 80px !important;
-        }}
+        .public-hero {{ padding: 4rem 1rem 3rem; min-height: 70vh; }}
+        .glass-card {{ padding: 2rem !important; }}
+        .timeline-card {{ border-left: none; border-top: 6px solid {accent_gold}; border-radius: 20px; }}
+        .big-stat {{ font-size: 2.2rem !important; }}
     }}
-  
-    /* Premium Menu */
+ 
+    /* Premium Menu (sidebar) */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
@@ -339,40 +337,22 @@ st.markdown(f"""
         box-shadow: 0 10px 30px rgba(0,255,170,0.4);
         font-weight: 600;
     }}
-  
-    section[data-testid="stSidebar"] * {{
-        color: {text_primary} !important;
-    }}
-  
-    /* Force black text for category names, captions, small text — visible in both modes */
-    small,
-    .caption,
-    .stMarkdown small,
-    .stMarkdown caption,
-    figcaption,
-    .stMetric label,
-    .stMetric value {{
+ 
+    /* Force black text for metrics */
+    .stMetric label, .stMetric value {{
         color: black !important;
-        opacity: 1 !important;
     }}
-  
-    /* For Plotly Sankey trees (category labels in previews) - force black text */
     svg text {{
         fill: black !important;
         color: black !important;
     }}
-
-    /* ===== NEW FIX: SIDEBAR COLLAPSE (ARROW ONLY ON ALL PHONES) ===== */
-    /* Force sidebar fully hidden when collapsed — only arrow visible */
+ 
+    /* SIDEBAR COLLAPSE FIX */
     section[data-testid="stSidebar"][aria-expanded="false"] {{
         width: 0 !important;
         min-width: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
         overflow: hidden !important;
     }}
-
-    /* Position collapse arrow properly (visible & centered when closed) */
     [data-testid="collapsedControl"] {{
         position: fixed !important;
         left: 0 !important;
@@ -384,23 +364,35 @@ st.markdown(f"""
         padding: 20px 8px !important;
         box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
     }}
-
-    /* Mobile specific — ensure arrow only when closed */
     @media (max-width: 768px) {{
-        section[data-testid="stSidebar"][aria-expanded="false"] > div:first-child {{
-            display: none !important;
-        }}
         [data-testid="collapsedControl"] {{
-            top: 50% !important;
-            left: 0 !important;
             padding: 24px 10px !important;
         }}
     }}
-    /* ===== END OF SIDEBAR FIX ===== */
 </style>
 """, unsafe_allow_html=True)
-# ====================== PART 2: LOGIN SYSTEM (FINAL SUPER ADVANCED - TABBED ROLE LOGIN & FIXED) ======================
-# Helper function for login (defined early - no NameError)
+
+# QR Auto-Login
+params = st.query_params
+qr_token = params.get("qr")
+if qr_token and not st.session_state.get("authenticated", False):
+    try:
+        resp = supabase.table("users").select("*").eq("qr_token", qr_token).execute()
+        if resp.data:
+            user = resp.data[0]
+            st.session_state.authenticated = True
+            st.session_state.username = user["username"]
+            st.session_state.full_name = user["full_name"]
+            st.session_state.role = user["role"]
+            log_action("QR Login Success", f"User: {user['full_name']}")
+            st.query_params.clear()
+            st.rerun()
+        else:
+            st.error("Invalid or revoked QR code")
+    except:
+        st.error("QR login failed")
+
+# Login helper
 def login_user(username, password):
     try:
         response = supabase.table("users").select("password, full_name, role").eq("username", username.lower()).execute()
@@ -420,69 +412,209 @@ def login_user(username, password):
     except Exception as e:
         st.error(f"Login error: {e}")
 
-# Authentication check
+# Auth check
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
-    st.session_state.role = "guest"
-    st.session_state.full_name = ""
-    st.session_state.username = ""
 
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-    st.session_state.role = "guest"
-    st.session_state.full_name = ""
-    st.session_state.username = ""
 if not st.session_state.authenticated:
-    col1, col2, col3 = st.columns([1, 4, 1])
-    with col2:
-        st.markdown("<div class='glass-card' style='text-align:center; padding:3rem;'>", unsafe_allow_html=True)
-        st.markdown(f"<h1 style='color:{accent_color}; margin-bottom:0;'>🚀 KMFX FTMO Pro</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='opacity:0.8; margin-bottom:2rem;'>Elite Scaling Empire • Cloud Edition 2026</p>", unsafe_allow_html=True)
-       
-        # Tabbed role login
-        tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
-       
-        with tab_owner:
-            st.markdown("### Owner Access (Full Empire Control)")
-            # REMOVED: Default credentials display for security
-            # No longer showing username/password in app
-            with st.form("login_form_owner"):
-                username = st.text_input("Username", placeholder="Enter owner username", key="owner_user")
-                password = st.text_input("Password", type="password", key="owner_pwd")
-                if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
-                    login_user(username, password)
-       
-        with tab_admin:
-            st.markdown("### Admin Access (Operational)")
-            # Optional: Keep or remove this too - removed for consistency
-            st.info("Use credentials provided by Owner")
-            with st.form("login_form_admin"):
-                username = st.text_input("Username", placeholder="Enter admin username", key="admin_user")
-                password = st.text_input("Password", type="password", key="admin_pwd")
-                if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
-                    login_user(username, password)
-       
-        with tab_client:
-            st.markdown("### Client Access (Team Member)")
-            st.info("Use credentials provided by Owner • View balance, shared accounts, request withdrawals")
-            with st.form("login_form_client"):
-                username = st.text_input("Username", placeholder="Your username", key="client_user")
-                password = st.text_input("Password", type="password", key="client_pwd")
-                if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
-                    login_user(username, password)
-       
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
-# ====================== END OF FINAL TABBED LOGIN ======================
+    # ====================== PUBLIC LANDING PAGE (NO GLASS CARD + LOGO AT TOP, ZERO SPACE, LOGO WORKING) ======================
+   
+    # GLOBAL FIX: Zero top space + hide Streamlit bar
+    st.markdown("""
+    <style>
+    /* Remove all top space */
+    .block-container {
+        padding-top: 0rem !important;
+        margin-top: 0rem !important;
+    }
+    .main > div {
+        padding-top: 0rem !important;
+    }
+    header { visibility: hidden !important; }
+    </style>
+    """, unsafe_allow_html=True)
+   
+    # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
+    logo_col = st.columns([1, 6, 1])[1]  # Slightly wider middle column for better logo size
+    with logo_col:
+        st.image("assets/logo.png")  # No use_column_width → no warning, still large & responsive
+   
+    # Original content (centered)
+    st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color:{text_primary};'>Automated Gold Trading for Financial Freedom</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size:1.4rem; color:{text_muted};'>Passed FTMO Phase 1 • +3,071% 5-Year Backtest • Building Legacies of Generosity</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size:1.2rem;'>Mark Jeff Blando – Founder & Developer • 2026</p>", unsafe_allow_html=True)
+   
+    # Realtime Stats - FIXED QUERY + RESPONSIVE (NO TRUNCATION)
+    try:
+        accounts_count = supabase.table("ftmo_accounts").select("id", count="exact").execute().count or 0
+        equity_data = supabase.table("ftmo_accounts").select("current_equity").execute().data or []
+        total_equity = sum(acc.get("current_equity", 0) for acc in equity_data)
+        
+        # FIXED: Correct "type, amount" format
+        gf_data = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
+        gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_data)
+        
+        members_count = supabase.table("users").select("id", count="exact").eq("role", "client").execute().count or 0
+    except Exception as e:
+        print(f"Supabase stats error: {e}")
+        accounts_count = total_equity = gf_balance = members_count = 0
+   
+    # FULL-WIDTH RESPONSIVE METRICS (auto-stack on mobile, no truncation)
+    cols = st.columns(4)
+    with cols[0]:
+        st.metric("Active Accounts", accounts_count)
+    with cols[1]:
+        st.metric("Total Equity", f"${total_equity:,.0f}")
+    with cols[2]:
+        st.metric("Growth Fund", f"${gf_balance:,.0f}")
+    with cols[3]:
+        st.metric("Members", members_count)  # Shortened label to prevent cutoff on small screens
+   
+    # =====================================================================================================
 
-# ====================== SIDEBAR NAVIGATION ======================
+    # Portfolio Story
+    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text'>Origin & Motivation (2024)</h2>", unsafe_allow_html=True)
+    st.write("""
+    Noong 2024, frustrated ako sa manual trading — paulit-ulit na losses dahil sa emotions, lack of discipline, at timing issues. Realization: "Kung hindi professional, maloloss ka lang sa market."
+
+    Decided to build my own Expert Advisor (EA) to remove human error, achieve consistency, and become a professional trader through automation.
+
+    Early inspiration from ~2016 trading days, sharing ideas with friend Ramil.
+    """)
+
+    st.markdown("<h2 class='gold-text'>Development Phase (2024)</h2>", unsafe_allow_html=True)
+    st.write("""
+    - Full year of self-study in MQL5 programming
+    - Trial-and-error: Combined multiple indicators, price action rules, risk management filters
+    - Hundreds of backtests, forward tests, debugging — almost 1 year of experiment before stability
+    """)
+
+    st.markdown("<h2 class='gold-text'>Official Launch & Early Testing (2025)</h2>", unsafe_allow_html=True)
+    st.write("""
+    - January 2025: Breakthrough — EA fully functional and running smoothly. Officially named KMFX EA
+    - Focused exclusively on XAUUSD (GOLD) for its volatility and opportunities
+    - September 2025: Formed KMFX EA TESTER group (initial: Weber — most active, Ramil, Sheldon, Jai). ~2 months forward testing with multiple trials and real-time feedback
+    - Late 2025 (Oct-Dec): Mastered backtesting — ran historical data from 2021–2025. Game-changer: Quickly spotted weaknesses, polished entries/exits, filters for gold spikes/news volatility
+    """)
+
+    st.markdown("<h2 class='gold-text'>Major Milestones & Tools (2025)</h2>", unsafe_allow_html=True)
+    st.write("""
+    - October 15, 2025: Launched sleek KMFX EA MT5 Client Tracker dashboard at kmfxea.streamlit.app — premium portal for performance tracking (owner, admin, client logins)
+    - December 2025: Pioneer community formed — 14 believers contributed ₱17,000 PHP (₱1,000 per unit) to fund the real challenge phase
+      - Profit sharing: 30% of profits proportional to units
+      - Thank you to: Mark, Jai, Doc, Weber (2 units), Don, Mark Fernandez (3 units), Ramil, Cristy, Meg, Roland, Mila, Malruz, Julius, Joshua
+    """)
+
+    st.markdown("<h2 class='gold-text'>FTMO Prop Firm Journey – First Attempt (Dec 2025 - Jan 2026)</h2>", unsafe_allow_html=True)
+    st.write("""
+    - December 13, 2025: Started FTMO 10K Challenge (Plan A, real evaluation)
+    - December 26, 2025: PASSED Phase 1 (Challenge) in just ~13 days!
+      - Certificate issued: Proven profit target achieved + quality risk management
+      - Stats snapshot: $10,000 → $11,040.58 (+10.41% gain), 2.98% max drawdown, 118 trades (longs only, 52% win rate), +12,810.8 pips, profit factor 1.52
+      - Avg trade: 43 minutes (scalping-style on gold volatility)
+    """)
+
+    st.markdown("<h2 class='gold-text'>Phase 2 (Verification) Attempt</h2>", unsafe_allow_html=True)
+    st.write("""
+    - Goal: 5% profit target, same strict risk limits (5% daily / 10% overall loss)
+    - Outcome: Failed due to emotional intervention — shaken by market noise, manually adjusted parameters and added trades
+    - Key Insight: Untouched sim run (Jan 1–16, 2026) showed ~$2,000 additional gain — would have passed easily
+    - Big Lesson: Trust the System No Matter What. Emotions are the real enemy; the EA is solid when left alone
+    - Turned failure into life rebuild: Discipline, patience, surrender to God's plan — applied to trading AND personal life
+    """)
+
+    st.markdown("<h2 class='gold-text'>Current Attempt (May 2026)</h2>", unsafe_allow_html=True)
+    st.write("""
+    - New FTMO 10K Challenge (Phase 1) ongoing
+    - Full trust mode: 100% hands-off — no tweaks, no manual trades, pure automated execution
+    - Confidence: Previous pass + untouched sims prove the edge. Goal: Pass with consistency, low DD, then Verification → funded account
+    """)
+
+    st.markdown("<h2 class='gold-text'>Dual Product Evolution (2026)</h2>", unsafe_allow_html=True)
+    st.write("""
+    - Prop Firm Version (KMFX EA – Locked): For FTMO/challenges only — personal use, strict no-intervention during evaluations
+    - Personal/Client Version (in progress): Same core strategy, but client-friendly
+      - Solid backtest results on historical GOLD data (consistent gains, controlled risk)
+      - Future: Deployable on personal accounts, potential for clients/pioneers (with sharing or access via dashboard)
+      - Advantage: Separate from prop rules — flexible for real-money growth
+    """)
+
+    st.markdown("<h2 class='gold-text'>Performance Proof</h2>", unsafe_allow_html=True)
+    st.write("""
+    - FTMO Phase 1 Passed: +10.41%, 2.98% max DD
+    - 2025 Backtest: +187.97%
+    - 5-Year Backtest (2021-2025): +3,071%
+    - Safety First: 1% risk per trade, no martingale/grid, controlled drawdown
+    """)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Progress Timeline
+    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text'>Empire Progress Timeline</h2>", unsafe_allow_html=True)
+
+    timeline = [
+        ("2024", "Origin & Development", "Frustration with manual trading → Full year MQL5 self-study → Trial-and-error building the EA"),
+        ("Early 2025", "Breakthrough", "EA fully functional → Official KMFX EA name → Focused on XAUUSD"),
+        ("Sep-Dec 2025", "Testing & Community", "Tester group formed → Mastered backtesting → Dashboard launched (Oct 15) → Pioneer community (₱17k funded)"),
+        ("Dec 2025-Jan 2026", "First FTMO Success", "Phase 1 passed in 13 days → +10.41% gain, 2.98% DD"),
+        ("Phase 2", "Key Lesson", "Emotional failure → Learned to trust the system completely"),
+        ("May 2026", "Current Challenge", "New FTMO 10K • Full hands-off mode • On track for funded account")
+    ]
+
+    for date, title, desc in timeline:
+        st.markdown(f"<div class='timeline-card'><h3 class='gold-text'>{date} — {title}</h3><p>{desc}</p></div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Member Login CTA
+    st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>", unsafe_allow_html=True)
+    st.markdown(f"<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:1.4rem;'>Access your elite dashboard, balance, shares, and tools</p>", unsafe_allow_html=True)
+    if st.button("Member Login →", type="primary", use_container_width=True):
+        st.session_state.show_login = True
+
+    if st.session_state.get("show_login"):
+        col1, col2, col3 = st.columns([1, 4, 1])
+        with col2:
+            st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+            tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
+
+            with tab_owner:
+                with st.form("login_form_owner"):
+                    username = st.text_input("Username", placeholder="Owner username", key="owner_user")
+                    password = st.text_input("Password", type="password", key="owner_pwd")
+                    if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
+                        login_user(username, password)
+
+            with tab_admin:
+                with st.form("login_form_admin"):
+                    username = st.text_input("Username", placeholder="Admin username", key="admin_user")
+                    password = st.text_input("Password", type="password", key="admin_pwd")
+                    if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
+                        login_user(username, password)
+
+            with tab_client:
+                with st.form("login_form_client"):
+                    username = st.text_input("Username", placeholder="Your username", key="client_user")
+                    password = st.text_input("Password", type="password", key="client_pwd")
+                    if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
+                        login_user(username, password)
+
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+
+# ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) ======================
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
-    current_role = st.session_state.get("role", "guest")
-    st.markdown(f"<p style='text-align:center; color:{accent_color};'><strong>{current_role.title()}</strong></p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
     st.divider()
 
-    # Role-based pages (strict)
+    current_role = st.session_state.role
     if current_role == "client":
         pages = [
             "🏠 Dashboard", "👤 My Profile", "📊 FTMO Accounts", "💰 Profit Sharing",
@@ -504,19 +636,14 @@ with st.sidebar:
             "🔔 Notifications", "💳 Withdrawals", "🤖 EA Versions", "📸 Testimonials",
             "📈 Reports & Export", "🔮 Simulator", "📜 Audit Logs", "👤 Admin Management"
         ]
-    else:
-        pages = ["🏠 Dashboard"]
 
     if "selected_page" not in st.session_state:
-        st.session_state.selected_page = pages[0]
-    elif st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
 
     selected = st.radio("Navigation", pages, index=pages.index(st.session_state.selected_page), label_visibility="collapsed")
     st.session_state.selected_page = selected
 
     st.divider()
-
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
@@ -526,10 +653,9 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
 
-# ====================== HEADER & GROWTH FUND METRIC ======================
+# Header & Growth Fund (common to all authenticated pages)
 try:
-    gf_response = supabase.table("growth_fund_transactions").select("type, amount").execute()
-    gf_balance = sum(row["amount"] if row["type"] == "In" else -row["amount"] for row in gf_response.data) if gf_response.data else 0.0
+    gf_balance = sum(row["amount"] if row["type"] == "In" else -row["amount"] for row in supabase.table("growth_fund_transactions").select("type, amount").execute().data)
 except:
     gf_balance = 0.0
 
@@ -538,33 +664,27 @@ with col1:
     st.markdown(f"<h1>{selected}</h1>", unsafe_allow_html=True)
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
-    # === FIXED MOBILE SIDEBAR CONTROLS (PLACE THIS AFTER YOUR HEADER OR WHEREVER YOU HAD IT BEFORE) ===
 
-   
-# ====================== ANNOUNCEMENT BANNER ======================
+# Announcement Banner
 try:
-    ann_response = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute()
-    if ann_response.data:
-        ann = ann_response.data[0]
-        st.markdown(f"""
-        <div class='glass-card' style='border-left: 5px solid {accent_color}; padding:1.5rem;'>
-            <h4 style='margin:0; color:{accent_color};'>📢 {ann['title']}</h4>
-            <p style='margin:0.8rem 0 0; opacity:0.9;'>{ann['message']}</p>
-            <small style='opacity:0.7;'>Posted: {ann['date']}</small>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        raise Exception()
+    ann = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute().data[0]
+    st.markdown(f"""
+    <div class='glass-card' style='border-left: 5px solid {accent_primary}; padding:1.5rem;'>
+        <h4 style='margin:0; color:{accent_primary};'>📢 {ann['title']}</h4>
+        <p style='margin:0.8rem 0 0; opacity:0.9;'>{ann['message']}</p>
+        <small style='opacity:0.7;'>Posted: {ann['date']}</small>
+    </div>
+    """, unsafe_allow_html=True)
 except:
     st.markdown(f"""
     <div class='glass-card' style='text-align:center; padding:2rem;'>
-        <h3 style='margin:0; color:{accent_color};'>Welcome back, {st.session_state.full_name}! 🚀</h3>
+        <h3 style='margin:0; color:{accent_primary};'>Welcome back, {st.session_state.full_name}! 🚀</h3>
         <p style='margin:1rem 0 0; opacity:0.8;'>Scale smarter. Trade bolder. Win bigger.</p>
     </div>
     """, unsafe_allow_html=True)
 
-# ====================== MAIN CONTENT START ======================
-st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+# ====================== END OF CODE BEFORE DASHBOARD PAGE ======================
+# (Your dashboard and other pages start here in your original code)
 
 # ====================== PART 3: DASHBOARD PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME OPTIMIZED) ======================
 # ====================== DASHBOARD PAGE - FULLY FIXED (PHP PER UNIT KEY + SAFE GET + CONSISTENT) ======================
