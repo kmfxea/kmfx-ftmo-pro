@@ -525,7 +525,7 @@ if not st.session_state.authenticated:
     - Turned failure into life rebuild: Discipline, patience, surrender to God's plan — applied to trading AND personal life
     """)
 
-    st.markdown("<h2 class='gold-text'>Current Attempt (May 2026)</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text'>Current Attempt (Jan 2026)</h2>", unsafe_allow_html=True)
     st.write("""
     - New FTMO 10K Challenge (Phase 1) ongoing
     - Full trust mode: 100% hands-off — no tweaks, no manual trades, pure automated execution
@@ -1841,45 +1841,45 @@ elif selected == "💰 Profit Sharing":
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error recording profit: {str(e)}")
-# ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH PASSWORD CHANGE + FORGOT PASSWORD REQUEST) ======================
+# ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH SELF QR GENERATE/REGENERATE) ======================
 elif selected == "👤 My Profile":
     # SAFE ROLE CHECK
     current_role = st.session_state.get("role", "guest")
     if current_role != "client":
         st.error("🔒 My Profile is client-only.")
         st.stop()
-   
+  
     st.header("My Profile 👤")
     st.markdown("**Your KMFX EA empire membership: Realtime premium flip card, earnings, full details, participation, withdrawals • Full transparency & motivation.**")
-   
+  
     my_name = st.session_state.full_name
     my_username = st.session_state.username
-   
+  
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_my_profile_data():
         user_resp = supabase.table("users").select("*").eq("full_name", my_name).execute()
         my_user = user_resp.data[0] if user_resp.data else {}
-       
+      
         accounts_resp = supabase.table("ftmo_accounts").select("*").execute()
         accounts = accounts_resp.data or []
         my_accounts = [a for a in accounts if any(p["name"] == my_name for p in a.get("participants", []))]
-       
+      
         wd_resp = supabase.table("withdrawals").select("*").eq("client_name", my_name).order("date_requested", desc=True).execute()
         my_withdrawals = wd_resp.data or []
-       
+      
         files_resp = supabase.table("client_files").select("id, original_name, file_name, upload_date").eq("assigned_client", my_name).execute()
         my_proofs = files_resp.data or []
-       
+      
         all_users_resp = supabase.table("users").select("full_name, title").execute()
         all_users = all_users_resp.data or []
-       
+      
         return my_user, my_accounts, my_withdrawals, my_proofs, all_users
-   
+  
     my_user, my_accounts, my_withdrawals, my_proofs, all_users = fetch_my_profile_data()
-   
+  
     st.caption("🔄 Profile auto-refresh every 30s • Earnings & card update realtime")
-   
+  
     # ====================== PREMIUM THEME-ADAPTIVE FLIP CARD ======================
     my_title = my_user.get("title", "Member").upper()
     card_title = f"{my_title} CARD" if my_title != "NONE" else "MEMBER CARD"
@@ -1982,7 +1982,7 @@ elif selected == "👤 My Profile":
       .flip-card-back {{
         transform: rotateY(180deg);
       }}
-     
+    
       @media (max-width: 768px) {{
         .flip-card {{
           width: 90vw !important;
@@ -2017,7 +2017,61 @@ elif selected == "👤 My Profile":
       Hover (desktop) or tap (mobile) the card to flip ↺
     </p>
     """, unsafe_allow_html=True)
-   
+
+    # ====================== MY QUICK LOGIN QR CODE (CLIENT SELF-GENERATE & REGENERATE) ======================
+    st.subheader("🔑 My Quick Login QR Code")
+    import qrcode
+    from io import BytesIO
+    import uuid
+
+    current_qr_token = my_user.get("qr_token")
+    app_url = "https://kmfxeaftmo.streamlit.app"  # Replace if your deployed URL is different
+
+    if current_qr_token:
+        qr_url = f"{app_url}/?qr={current_qr_token}"
+
+        # Generate QR image
+        buf = BytesIO()
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(qr_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        img.save(buf, format="PNG")
+
+        col_qr1, col_qr2 = st.columns([1, 2])
+        with col_qr1:
+            st.image(buf.getvalue(), caption="Your Current QR Code")
+        with col_qr2:
+            st.markdown("**Your Quick Login QR**")
+            st.markdown("Scan this on your phone or another device to auto-login instantly.")
+            st.code(qr_url, language="text")
+
+        # SELF-REGENERATE BUTTON
+        st.markdown("---")
+        st.info("If your QR code is compromised or not working, regenerate a new one below (old QR will be revoked instantly).")
+        if st.button("🔄 Regenerate My QR Code", type="primary", use_container_width=True):
+            new_token = str(uuid.uuid4())
+            try:
+                supabase.table("users").update({"qr_token": new_token}).eq("id", my_user["id"]).execute()
+                log_action("QR Token Self-Regenerated", f"By {my_name}")
+                st.success("New QR code generated successfully! Page will refresh to show the updated code.")
+                st.cache_data.clear()
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error regenerating QR code: {str(e)}")
+    else:
+        st.info("You don't have a QR login code yet. Generate one below for quick access on mobile/other devices.")
+        if st.button("🚀 Generate My QR Code", type="primary", use_container_width=True):
+            new_token = str(uuid.uuid4())
+            try:
+                supabase.table("users").update({"qr_token": new_token}).eq("id", my_user["id"]).execute()
+                log_action("QR Token Self-Generated", f"By {my_name}")
+                st.success("QR code generated successfully! Page will refresh to show it.")
+                st.cache_data.clear()
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error generating QR code: {str(e)}")
+
     # ====================== CHANGE PASSWORD (CLIENT SELF-SERVICE) ======================
     st.subheader("🔑 Change Password")
     with st.expander("Update your password", expanded=False):
@@ -2025,7 +2079,7 @@ elif selected == "👤 My Profile":
             current_pwd = st.text_input("Current Password *", type="password")
             new_pwd = st.text_input("New Password *", type="password")
             confirm_pwd = st.text_input("Confirm New Password *", type="password")
-           
+          
             submitted = st.form_submit_button("Change Password", type="primary")
             if submitted:
                 if not current_pwd or not new_pwd or not confirm_pwd:
@@ -2049,14 +2103,14 @@ elif selected == "👤 My Profile":
                                 st.error("Current password incorrect")
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
-   
+  
     # ====================== FORGOT PASSWORD REQUEST (TO OWNER) ======================
     st.subheader("🔒 Forgot Password?")
     with st.expander("Request password reset", expanded=False):
         st.info("Submit request — owner will reset & inform you securely.")
         with st.form("forgot_pwd_form", clear_on_submit=True):
             reason = st.text_area("Reason / Message to Owner (Optional)", placeholder="e.g. I forgot my password, please reset to 'NewPass123'")
-           
+          
             submitted = st.form_submit_button("Send Reset Request to Owner", type="primary")
             if submitted:
                 try:
@@ -2064,7 +2118,7 @@ elif selected == "👤 My Profile":
                     st.success("Request sent to owner! They will reset your password & inform you.")
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
-   
+  
     # ====================== SHARED ACCOUNTS WITH % & FUNDED PHP ======================
     st.subheader(f"Your Shared Accounts ({len(my_accounts)} active)")
     if my_accounts:
@@ -2072,7 +2126,7 @@ elif selected == "👤 My Profile":
             my_pct = next((p["percentage"] for p in acc.get("participants", []) if p["name"] == my_name), 0)
             my_projected = (acc.get("current_equity", 0) * my_pct / 100) if acc.get("current_equity") else 0
             my_funded_php = sum(c["units"] * c["php_per_unit"] for c in acc.get("contributors", []) if c["name"] == my_name)
-           
+          
             with st.expander(f"🌟 {acc['name']} • Your Share: {my_pct:.1f}% • Phase: {acc['current_phase']}", expanded=False):
                 col_acc1, col_acc2 = st.columns(2)
                 with col_acc1:
@@ -2081,7 +2135,7 @@ elif selected == "👤 My Profile":
                 with col_acc2:
                     st.metric("Account Withdrawable", f"${acc.get('withdrawable_balance', 0):,.0f}")
                     st.metric("Your Funded (PHP)", f"₱{my_funded_php:,.0f}")
-               
+              
                 participants = acc.get("participants", [])
                 if participants:
                     labels = ["Profits"]
@@ -2098,7 +2152,7 @@ elif selected == "👤 My Profile":
                     st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No participation yet • Owner will assign you to shared profits")
-   
+  
     # ====================== WITHDRAWAL HISTORY & QUICK REQUEST ======================
     st.subheader("💳 Your Withdrawal Requests & History")
     if my_withdrawals:
@@ -2116,7 +2170,7 @@ elif selected == "👤 My Profile":
             st.divider()
     else:
         st.info("No requests yet • Earnings auto-accumulate")
-   
+  
     # Quick request
     with st.expander("➕ Request New Withdrawal (from Balance)", expanded=False):
         if my_balance <= 0:
@@ -2127,7 +2181,7 @@ elif selected == "👤 My Profile":
                 method = st.selectbox("Method", ["USDT", "Bank Transfer", "Wise", "PayPal", "GCash", "Other"])
                 details = st.text_area("Details")
                 proof = st.file_uploader("Upload Proof * (Required)", help="Auto-saved to vault")
-               
+              
                 submitted = st.form_submit_button("Submit Request", type="primary")
                 if submitted:
                     if amount > my_balance:
@@ -2149,7 +2203,7 @@ elif selected == "👤 My Profile":
                                 "assigned_client": my_name,
                                 "notes": f"Proof for ${amount:,.0f}"
                             }).execute()
-                           
+                          
                             supabase.table("withdrawals").insert({
                                 "client_name": my_name,
                                 "amount": amount,
@@ -2158,13 +2212,13 @@ elif selected == "👤 My Profile":
                                 "status": "Pending",
                                 "date_requested": datetime.date.today().isoformat()
                             }).execute()
-                           
+                          
                             st.success("Request submitted!")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-   
+  
     # My proofs
     st.subheader("📁 Your Proofs in Vault")
     if my_proofs:
@@ -2179,7 +2233,7 @@ elif selected == "👤 My Profile":
                         st.download_button(p["original_name"], f, p["original_name"])
     else:
         st.info("No proofs uploaded yet")
-   
+  
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
@@ -3968,27 +4022,31 @@ elif selected == "📜 Audit Logs":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL AUDIT LOGS ======================
-# ====================== PART 6: ADMIN MANAGEMENT PAGE (FINAL SUPER ADVANCED - WITH FULL CLIENT DETAILS, TITLE SYNC, EDIT + DELETE) ======================
+# ====================== PART 6: ADMIN MANAGEMENT PAGE (FINAL SUPER ADVANCED - WITH FULL CLIENT DETAILS, TITLE SYNC, EDIT + DELETE + QR CODE GENERATION) ======================
 elif selected == "👤 Admin Management":
     st.header("Empire Team Management 👤")
-    st.markdown("**Owner-exclusive: Register team members with full details (Name, Accounts, Email, Contact, Address) & Title (Pioneer, VIP, etc.) for labeled dropdowns • Realtime balances • Full Edit (including password) • Secure delete • Full sync to FTMO participants as 'Name (Title)'**")
-   
+    st.markdown("**Owner-exclusive: Register team members with full details (Name, Accounts, Email, Contact, Address) & Title (Pioneer, VIP, etc.) for labeled dropdowns • Realtime balances • Full Edit (including password) • Secure delete • QR Login Token Generation/Regeneration • Full sync to FTMO participants as 'Name (Title)'**")
+
     # STRICT OWNER ONLY
     current_role = st.session_state.get("role", "guest")
     if current_role != "owner":
         st.error("🔒 Team Management is OWNER-ONLY for empire security.")
         st.stop()
-   
+
+    import uuid  # For generating unique QR tokens
+    import qrcode
+    from io import BytesIO
+
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_users_full():
         users_resp = supabase.table("users").select("*").order("created_at", desc=True).execute()
         return users_resp.data or []
-   
+
     users = fetch_users_full()
-   
+
     st.caption("🔄 Team auto-refresh every 30s • Full details & titles sync to dropdowns & lists")
-   
+
     # REGISTER NEW TEAM MEMBER WITH FULL DETAILS & TITLE
     st.subheader("➕ Register New Team Member")
     with st.form("add_user_form", clear_on_submit=True):
@@ -3999,7 +4057,7 @@ elif selected == "👤 Admin Management":
         with col_u2:
             initial_pwd = st.text_input("Initial Password *", type="password")
             urole = st.selectbox("Role *", ["client", "admin"])
-       
+      
         st.markdown("### Client Details")
         col_info1, col_info2 = st.columns(2)
         with col_info1:
@@ -4008,10 +4066,10 @@ elif selected == "👤 Admin Management":
         with col_info2:
             contact_no = st.text_input("Contact No.", placeholder="e.g. 09128197085")
             address = st.text_area("Address", placeholder="e.g. Rodriguez 1, Rodriguez Dampalit, Malabon City")
-       
+      
         title = st.selectbox("Title/Label (Optional)", ["None", "Pioneer", "Distributor", "VIP", "Elite Trader", "Contributor"], help="Shows as 'Name (Title)' in dropdowns & lists")
         notes = st.text_area("Notes (Optional)")
-       
+      
         submitted = st.form_submit_button("🚀 Register & Sync Info", type="primary", use_container_width=True)
         if submitted:
             if not username.strip() or not full_name.strip() or not initial_pwd:
@@ -4037,18 +4095,18 @@ elif selected == "👤 Admin Management":
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
-   
-    # CURRENT TEAM WITH FULL INFO DISPLAY + EDIT + DELETE
+
+    # CURRENT TEAM WITH FULL INFO DISPLAY + EDIT + DELETE + QR CODE MANAGEMENT
     st.subheader("👥 Current Empire Team (Realtime)")
     if users:
         team = [u for u in users if u["username"] != "kingminted"]  # Exclude owner
-        
+       
         col_search1, col_search2 = st.columns(2)
         with col_search1:
             search_user = st.text_input("Search Name/Email/Contact/Accounts")
         with col_search2:
             filter_role = st.selectbox("Filter Role", ["All", "client", "admin"])
-       
+      
         filtered_team = team
         if search_user:
             filtered_team = [u for u in filtered_team if search_user.lower() in u["full_name"].lower() or
@@ -4057,22 +4115,72 @@ elif selected == "👤 Admin Management":
                              search_user.lower() in str(u.get("accounts", "")).lower()]
         if filter_role != "All":
             filtered_team = [u for u in filtered_team if u["role"] == filter_role]
-       
+      
         if filtered_team:
             for u in filtered_team:
-                title_display = f" ({u.get('title', '')})" if u.get("title") else ""
+                title_display = f" ({u.get('title', '')})" if u.get('title') else ""
                 balance = u.get("balance", 0)
                 with st.expander(f"{u['full_name']}{title_display} (@{u['username']}) • {u['role'].title()} • Balance ${balance:,.2f}", expanded=False):
                     st.markdown(f"**Accounts:** {u.get('accounts') or 'None'}")
                     st.markdown(f"**Email:** {u.get('email') or 'None'}")
                     st.markdown(f"**Contact No.:** {u.get('contact_no') or 'None'}")
                     st.markdown(f"**Address:** {u.get('address') or 'None'}")
-                    
+
+                    # ====================== QR CODE MANAGEMENT (OWNER ONLY) ======================
+                    st.markdown("### 🔑 Quick Login QR Code Management")
+                    current_qr_token = u.get("qr_token")
+
+                    # Replace with your actual deployed app URL
+                    app_url = "https://kmfxeaftmo.streamlit.app"
+
+                    if current_qr_token:
+                        qr_url = f"{app_url}/?qr={current_qr_token}"
+
+                        # Generate QR image
+                        buf = BytesIO()
+                        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+                        qr.add_data(qr_url)
+                        qr.make(fit=True)
+                        img = qr.make_image(fill_color="black", back_color="white")
+                        img.save(buf, format="PNG")
+
+                        col_qr1, col_qr2 = st.columns([1, 2])
+                        with col_qr1:
+                            st.image(buf.getvalue(), caption="Current QR Code")
+                        with col_qr2:
+                            st.markdown("**Current QR Login Link**")
+                            st.code(qr_url, language="text")
+                            st.info("This QR allows instant login on mobile/other devices.")
+
+                        if st.button("🔄 Regenerate QR Token", key=f"regen_qr_{u['id']}"):
+                            new_token = str(uuid.uuid4())
+                            try:
+                                supabase.table("users").update({"qr_token": new_token}).eq("id", u["id"]).execute()
+                                log_action("QR Token Regenerated", f"For {u['full_name']}")
+                                st.success("New QR token generated! Old one revoked.")
+                                st.cache_data.clear()
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error regenerating token: {str(e)}")
+                    else:
+                        st.info("No QR login token yet.")
+                        if st.button("🚀 Generate QR Login Token", key=f"gen_qr_{u['id']}"):
+                            new_token = str(uuid.uuid4())
+                            try:
+                                supabase.table("users").update({"qr_token": new_token}).eq("id", u["id"]).execute()
+                                log_action("QR Token Generated", f"For {u['full_name']}")
+                                st.success("QR token generated! Refresh to see.")
+                                st.cache_data.clear()
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error generating token: {str(e)}")
+
+                    # Existing Edit/Delete buttons
                     col_btn1, col_btn2 = st.columns(2)
                     with col_btn1:
                         if st.button("✏️ Edit", key=f"edit_{u['id']}"):
                             st.session_state.edit_user_id = u["id"]
-                            st.session_state.edit_user_data = u.copy()  # Copy to avoid reference issues
+                            st.session_state.edit_user_data = u.copy()
                             st.rerun()
                     with col_btn2:
                         if st.button("🗑️ Remove from Empire", key=f"del_{u['id']}", type="secondary"):
@@ -4084,8 +4192,8 @@ elif selected == "👤 Admin Management":
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
-                    
-                    # EDIT FORM (appears when Edit clicked)
+
+                    # EDIT FORM (same as before - unchanged)
                     if "edit_user_id" in st.session_state and st.session_state.edit_user_id == u["id"]:
                         edit_data = st.session_state.edit_user_data
                         with st.form(key=f"edit_form_{u['id']}", clear_on_submit=True):
@@ -4096,7 +4204,7 @@ elif selected == "👤 Admin Management":
                             with col_e2:
                                 new_pwd = st.text_input("New Password (leave blank to keep current)", type="password")
                                 new_role = st.selectbox("Role *", ["client", "admin"], index=0 if edit_data["role"] == "client" else 1)
-                            
+                           
                             st.markdown("### Client Details")
                             col_einfo1, col_einfo2 = st.columns(2)
                             with col_einfo1:
@@ -4105,22 +4213,22 @@ elif selected == "👤 Admin Management":
                             with col_einfo2:
                                 new_contact = st.text_input("Contact No.", value=edit_data.get("contact_no") or "")
                                 new_address = st.text_area("Address", value=edit_data.get("address") or "")
-                            
+                           
                             new_title = st.selectbox("Title/Label (Optional)", ["None", "Pioneer", "Distributor", "VIP", "Elite Trader", "Contributor"],
                                                      index=0 if not edit_data.get("title") else ["None", "Pioneer", "Distributor", "VIP", "Elite Trader", "Contributor"].index(edit_data["title"]))
-                            
+                           
                             col_save, col_cancel = st.columns(2)
                             with col_save:
                                 save_submitted = st.form_submit_button("💾 Save Changes", type="primary")
                             with col_cancel:
                                 cancel_submitted = st.form_submit_button("Cancel")
-                            
+                           
                             if cancel_submitted:
                                 if "edit_user_id" in st.session_state:
                                     del st.session_state.edit_user_id
                                     del st.session_state.edit_user_data
                                 st.rerun()
-                            
+                           
                             if save_submitted:
                                 if not new_username.strip() or not new_full_name.strip():
                                     st.error("Username and full name required")
@@ -4136,10 +4244,10 @@ elif selected == "👤 Admin Management":
                                             "contact_no": new_contact.strip() or None,
                                             "address": new_address.strip() or None
                                         }
-                                        if new_pwd.strip():  # Only update password if provided
+                                        if new_pwd.strip():
                                             hashed_new = bcrypt.hashpw(new_pwd.encode(), bcrypt.gensalt()).decode()
                                             update_data["password"] = hashed_new
-                                        
+                                       
                                         supabase.table("users").update(update_data).eq("id", u["id"]).execute()
                                         log_action("Team Member Edited", f"{new_full_name} ({new_title if new_title != 'None' else ''})")
                                         st.success("User updated successfully!")
@@ -4154,19 +4262,19 @@ elif selected == "👤 Admin Management":
             st.info("No matching team members")
     else:
         st.info("No team members yet • Register with full info for complete tracking")
-   
+  
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Owner Team Control Center
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Full client info (accounts, email, contact, address) • Titles synced • Full Edit + Delete • Realtime balances • Empire team fully managed.
+            Full client info (accounts, email, contact, address) • Titles synced • Full Edit + Delete • QR Login Token Management • Realtime balances • Empire team fully managed.
         </p>
         <h2 style="color:#ffd700;">👑 KMFX Team Management • Owner Exclusive 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL ADMIN MANAGEMENT WITH FULL EDIT + DELETE ======================
+# ====================== END OF FINAL ADMIN MANAGEMENT WITH QR CODE GENERATION ======================
 # ====================== CLOSE MAIN CONTENT & FOOTER ======================
 st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("---")
