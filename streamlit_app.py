@@ -561,7 +561,7 @@ if not st.session_state.authenticated:
         ("Sep-Dec 2025", "Testing & Community", "Tester group formed → Mastered backtesting → Dashboard launched (Oct 15) → Pioneer community (₱17k funded)"),
         ("Dec 2025-Jan 2026", "First FTMO Success", "Phase 1 passed in 13 days → +10.41% gain, 2.98% DD"),
         ("Phase 2", "Key Lesson", "Emotional failure → Learned to trust the system completely"),
-        ("May 2026", "Current Challenge", "New FTMO 10K • Full hands-off mode • On track for funded account")
+        ("Jan 2026", "Current Challenge", "New FTMO 10K • Full hands-off mode • On track for funded account")
     ]
 
     for date, title, desc in timeline:
