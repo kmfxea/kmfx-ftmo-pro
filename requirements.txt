@@ -1,7 +1,8 @@
 streamlit
 pandas
-plotly
-python-dotenv
 bcrypt
-supabase
 requests
+plotly
+qrcode[pil]  # <-- IMPORTANT: With [pil] for image support (QR generation needs Pillow)
+supabase
+python-dotenv
