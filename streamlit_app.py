@@ -23,6 +23,35 @@ if not supabase_url or not supabase_key:
     st.stop()
 
 supabase: Client = create_client(supabase_url, supabase_key)
+def upload_to_supabase(file, bucket: str, folder: str = "", use_signed_url: bool = False, signed_expiry: int = 3600) -> tuple[str, str]:
+    """
+    Upload file to Supabase Storage - GOD-TIER FUTURE-READY VERSION
+    Returns (url, storage_path)
+    """
+    try:
+        safe_name = f"{uuid.uuid4()}_{file.name}"
+        file_path = f"{folder}/{safe_name}" if folder else safe_name
+        
+        # Simple spinner (lighter than status for multi-upload)
+        with st.spinner(f"Uploading {file.name}..."):
+            supabase.storage.from_(bucket).upload(
+                file_path,
+                file.getbuffer(),
+                {"content-type": file.type or "application/octet-stream", "upsert": True}
+            )
+        
+        if use_signed_url:
+            signed = supabase.storage.from_(bucket).create_signed_url(file_path, signed_expiry)
+            url = signed["signedURL"]
+        else:
+            url = supabase.storage.from_(bucket).get_public_url(file_path)
+        
+        st.success(f"✅ {file.name} uploaded permanently!")
+        return url, file_path
+    
+    except Exception as e:
+        st.error(f"Upload failed for {file.name}: {str(e)}")
+        raise
 
 # Keep-alive for Streamlit Cloud
 def keep_alive():
@@ -2400,12 +2429,12 @@ elif selected == "🌱 Growth Fund":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL GROWTH FUND ======================
-# ====================== PART 5: LICENSE GENERATOR PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & OWNER-ONLY) ======================
+# ====================== FINAL ULTIMATE LICENSE GENERATOR (UNIVERSAL BROKER + SOFT REVOKE - 2026 READY) ======================
 elif selected == "🔑 License Generator":
     st.header("EA License Generator 🔑")
-    st.markdown("**Ultimate Security Engine 2025+ alignment: OWNER-ONLY generation • MQL5-compatible encrypted licenses • Per-client UNIQUE_KEY & ENC_DATA • Allowed accounts, expiry (NEVER supported), live/demo lock • Auto-balance context • Revoke • Full empire security & transparency.**")
-    
-    # Python replication of MQL5 XOR encryption (exact match to EA code)
+    st.markdown("**Ultimate Universal Security Engine • Works on ANY Broker (FTMO, XM, IC Markets, etc.) • OWNER-ONLY • MQL5 XOR encryption • NEVER expiry • Any account lock • Live/Demo • Soft Revoke • Full empire security.**")
+   
+    # Python XOR encryption (exact MQL5 match)
     def mt_encrypt(plain: str, key: str) -> str:
         result = bytearray()
         klen = len(key)
@@ -2417,46 +2446,46 @@ elif selected == "🔑 License Generator":
         if len(result) % 2 != 0:
             result.append(0)
         return ''.join(f'{b:02X}' for b in result).upper()
-    
-    # STRICT OWNER-ONLY ACCESS
+   
+    # OWNER ONLY
     current_role = st.session_state.get("role", "guest")
     if current_role != "owner":
-        st.error("🔒 License generation is OWNER-ONLY for maximum empire security.")
-        st.info("Admins view history • Clients see their license in My Profile/Messages.")
+        st.error("🔒 License generation is OWNER-ONLY.")
         st.stop()
-    
-    # Cache data for realtime sync
+   
     @st.cache_data(ttl=60)
     def fetch_license_data():
         clients_resp = supabase.table("users").select("id, full_name, balance, role").eq("role", "client").execute()
         clients = clients_resp.data or []
         history_resp = supabase.table("client_licenses").select("*").order("date_generated", desc=True).execute()
         history = history_resp.data or []
-        user_map = {c["id"]: {"name": c["full_name"], "balance": c["balance"] or 0} for c in clients}
+        user_map = {c["id"]: {"name": c["full_name"] or "Unknown", "balance": c["balance"] or 0} for c in clients}
         return clients, history, user_map
-    
+   
     clients, history, user_map = fetch_license_data()
-    
+   
     if not clients:
-        st.info("No clients registered yet. Add in Admin Management to enable licensing.")
+        st.info("No clients yet — add in Team Management.")
         st.stop()
-    
-    st.subheader("Generate License (Owner Exclusive)")
+   
+    st.subheader("Generate Universal License")
     client_options = {f"{c['full_name']} (Balance: ${c['balance'] or 0:,.2f})": c for c in clients}
     selected_key = st.selectbox("Select Client", list(client_options.keys()))
     client = client_options[selected_key]
     client_id = client["id"]
     client_name = client["full_name"]
     client_balance = client["balance"] or 0
-    
-    st.info(f"**Client:** {client_name} | Current Balance: ${client_balance:,.2f} | Recommend for verified contributors/funded members")
-    
+   
+    st.info(f"**Client:** {client_name} | Balance: ${client_balance:,.2f} | **TIP:** Check 'Allow on ANY Account' for XM/real brokers — universal & no lock issues.")
+   
     with st.form("license_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            allowed_accounts = st.text_area("Allowed Account Logins (comma-separated)", 
-                                            placeholder="e.g. 12345678,87654321",
-                                            help="Blank = any account allowed • Exact MT5 login numbers")
+            allow_any_account = st.checkbox("Allow on ANY Account Number (Universal Broker)", value=True, help="RECOMMENDED for XM/real accounts — ignores specific logins")
+            if not allow_any_account:
+                allowed_accounts = st.text_area("Specific Allowed Logins (comma-separated)", placeholder="e.g. 12345678,87654321", help="Exact MT5 numbers only")
+            else:
+                allowed_accounts = ""  # Ignored
             allow_live = st.checkbox("Allow Live Trading", value=True)
         with col2:
             expiry_option = st.radio("Expiry Policy", ["Specific Date", "NEVER (Lifetime)"])
@@ -2465,37 +2494,44 @@ elif selected == "🔑 License Generator":
                 expiry_str = expiry_date.strftime("%Y-%m-%d")
             else:
                 expiry_str = "NEVER"
-        
-        version_note = st.text_input("Version Note (Internal)", value="v3.0 Elite 2026")
+       
+        version_note = st.text_input("Version Note", value="v3.0 Elite Universal 2026")
         internal_notes = st.text_area("Internal Notes (Optional)")
+       
+        # Clean & format accounts
+        if allow_any_account:
+            accounts_str = "*"  # Special universal flag
+        else:
+            acc_list = [acc.strip() for acc in allowed_accounts.split(",") if acc.strip()]
+            accounts_str = ",".join(acc_list) if acc_list else ""
         
-        # Auto UNIQUE_KEY generation (aligned sa example format)
-        name_clean = client_name.upper().replace(" ", "")
-        key_date = "NEVER" if expiry_str == "NEVER" else expiry_str[5:7] + expiry_str[8:] + expiry_str[:4]  # MMDDYYYY like DEC282025
-        unique_key = f"KMFX_{name_clean}_{key_date}"
-        
-        st.code(unique_key, language="text")
-        
-        accounts_str = allowed_accounts.strip() or ""
         live_str = "1" if allow_live else "0"
         plain = f"{client_name}|{accounts_str}|{expiry_str}|{live_str}"
-        enc_data_hex = mt_encrypt(plain, unique_key)
         
-        # Ready-to-paste snippet
-        st.subheader("Ready-to-Paste EA Code Snippet")
+        # Clean name for key (alphanumeric only)
+        name_clean = "".join(c for c in client_name.upper() if c.isalnum())
+        key_date = "NEVER" if expiry_str == "NEVER" else expiry_str[8:] + expiry_str[5:7] + expiry_str[2:4]  # YYYYMMDD
+        unique_key = f"KMFX_{name_clean}_{key_date}"
+       
+        st.code(unique_key, language="text")
+       
+        enc_data_hex = mt_encrypt(plain, unique_key)
+       
+        st.subheader("Ready-to-Paste EA Code")
         snippet = f'''
 //+------------------------------------------------------------------+
-//| ULTIMATE SECURITY ENGINE 2025+ | Generated for {client_name}
+//| UNIVERSAL SECURITY ENGINE 2026 | Generated for {client_name}
 //+------------------------------------------------------------------+
 string UNIQUE_KEY = "{unique_key}";
-string ENC_DATA   = "{enc_data_hex}";
+string ENC_DATA = "{enc_data_hex}";
 // ==================================================================
+// Note: Use * or blank accounts for ANY broker/account
         '''
         st.code(snippet, language="cpp")
-        st.caption("Direct paste into EA • 100% compatible • NEVER expiry supported")
-        
+        st.caption("Paste into EA • Universal compatible • * = any account/broker")
+       
         submitted = st.form_submit_button("🚀 Generate & Issue License", type="primary", use_container_width=True)
-        
+       
         if submitted:
             try:
                 supabase.table("client_licenses").insert({
@@ -2507,108 +2543,112 @@ string ENC_DATA   = "{enc_data_hex}";
                     "expiry": expiry_str,
                     "allow_live": int(allow_live),
                     "notes": internal_notes or None,
-                    "allowed_accounts": allowed_accounts.strip() or None
+                    "allowed_accounts": accounts_str if accounts_str != "*" else None,
+                    "revoked": False
                 }).execute()
-                log_action("License Issued (Owner Only)", f"{unique_key} for {client_name}")
-                st.success(f"License issued to **{client_name}**! Empire secured.")
+                log_action("Universal License Issued", f"{unique_key} for {client_name}")
+                st.success(f"Universal license issued to **{client_name}**! Works on XM/FTMO/any broker.")
                 st.balloons()
                 st.cache_data.clear()
                 st.rerun()
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-    
-    # History with revoke (owner management)
-    st.subheader("📜 Issued Licenses History (Owner Management)")
+   
+    # History with SOFT REVOKE
+    st.subheader("📜 Issued Licenses History")
     if history:
         for h in history:
             user_info = user_map.get(h["account_id"], {"name": "Unknown", "balance": 0})
-            with st.expander(f"🔑 {h.get('key', 'Legacy')} • {user_info['name']} • Issued {h['date_generated']}", expanded=False):
+            status = "🔴 Revoked" if h.get("revoked", False) else "🟢 Active"
+            with st.expander(f"🔑 {h.get('key', 'Legacy')} • {user_info['name']} • {status} • Issued {h['date_generated']}", expanded=False):
                 st.markdown(f"**Expiry:** {h['expiry']} | **Live:** {'Allowed' if h['allow_live'] else 'Demo Only'}")
-                if h.get("allowed_accounts"):
-                    st.markdown(f"**Allowed Accounts:** {h['allowed_accounts']}")
-                st.markdown(f"**Current Balance:** ${user_info['balance']:,.2f}")
+                acc_display = h.get("allowed_accounts") or "ANY (*)"
+                st.markdown(f"**Accounts:** {acc_display}")
+                st.markdown(f"**Balance:** ${user_info['balance']:,.2f}")
                 if h["notes"]:
                     st.caption(f"Notes: {h['notes']}")
                 if h.get("enc_data"):
                     st.code(f"ENC_DATA = \"{h['enc_data']}\"", language="text")
                 if h.get("key"):
                     st.code(f"UNIQUE_KEY = \"{h['key']}\"", language="text")
-                
-                if st.button("🚫 Revoke License", key=f"revoke_{h['id']}", type="secondary"):
-                    try:
-                        supabase.table("client_licenses").delete().eq("id", h["id"]).execute()
-                        log_action("License Revoked (Owner)", f"for {user_info['name']}")
-                        st.success("License revoked!")
-                        st.cache_data.clear()
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error: {str(e)}")
+               
+                if not h.get("revoked", False):
+                    if st.button("🚫 Revoke (Soft - Invalidates License)", key=f"revoke_{h['id']}", type="secondary"):
+                        try:
+                            supabase.table("client_licenses").update({"revoked": True}).eq("id", h["id"]).execute()
+                            log_action("License Soft Revoked", f"for {user_info['name']}")
+                            st.success("License revoked (history preserved)")
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+                else:
+                    st.info("Already revoked")
     else:
         st.info("No licenses issued yet.")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:2rem; text-align:center; margin-top:2rem;'>
-        <h3 style='color:{accent_color};'>Owner-exclusive • 100% EA Security Aligned • Empire Protected.</h3>
-        <p>Direct paste-ready • XOR encryption • NEVER expiry • Account lock • Live/Demo • Revocable • Synced to balances.</p>
+        <h3 style='color:{accent_color};'>Universal Broker Compatible • XM/FTMO/Any • Soft Revoke • Future-Proof</h3>
+        <p>Check 'Allow on ANY Account' for XM/real brokers • * flag = universal • No more broker lock issues ever.</p>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL LICENSE GENERATOR ======================
-# ====================== PART 5: FILE VAULT PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
+# ====================== END OF FINAL ULTIMATE UNIVERSAL LICENSE GENERATOR ======================
+# ====================== PART 5: FILE VAULT PAGE (FINAL SUPER ADVANCED - SUPABASE STORAGE INTEGRATED) ======================
 elif selected == "📁 File Vault":
     st.header("Secure File Vault 📁")
-    st.markdown("**Empire document fortress: Centralized storage for payout proofs, agreements, KYC, contributor files • Auto-assigned to clients • Balance context • Advanced search/filter • Image/PDF previews • Download logging • Required for withdrawals • Full transparency & realtime sync.**")
-    
+    st.markdown("**Empire document fortress: Centralized permanent storage for payout proofs, agreements, KYC, contributor files • Auto-assigned to clients • Balance context • Advanced search/filter • Image/PDF previews • Download logging • Required for withdrawals • Full transparency & realtime sync.**")
+   
     # SAFE ROLE
     current_role = st.session_state.get("role", "guest")
-    
+   
     # FULL AUTO CACHE - Realtime sync
     @st.cache_data(ttl=60)
     def fetch_vault_full_data():
         files_resp = supabase.table("client_files").select("*").order("upload_date", desc=True).execute()
         files = files_resp.data or []
-        
+       
         users_resp = supabase.table("users").select("id, full_name, balance, role").execute()
         users = users_resp.data or []
         user_map = {u["full_name"]: {"id": u["id"], "balance": u["balance"] or 0, "role": u["role"]} for u in users}
         registered_clients = [u["full_name"] for u in users if u["role"] == "client"]
-        
+       
         return files, user_map, registered_clients
-    
+   
     files, user_map, registered_clients = fetch_vault_full_data()
-    
-    st.caption("🔄 Vault auto-refresh every 60s • Proofs sync for withdrawals")
-    
+   
+    st.caption("🔄 Vault auto-refresh every 60s • Files now PERMANENT via Supabase Storage")
+   
     # Client view restriction (own + assigned)
     if current_role == "client":
         my_name = st.session_state.full_name
         files = [f for f in files if f["sent_by"] == my_name or f.get("assigned_client") == my_name]
-    
-    # ====================== UPLOAD SECTION (OWNER/ADMIN - AUTO-ASSIGN) ======================
+   
+    # ====================== UPLOAD SECTION (OWNER/ADMIN - SUPABASE STORAGE) ======================
     if current_role in ["owner", "admin"]:
-        with st.expander("➕ Upload New Files (Multi + Auto-Assign)", expanded=False):
+        with st.expander("➕ Upload New Files (Multi + Auto-Assign + Permanent Storage)", expanded=False):
             with st.form("file_upload_form", clear_on_submit=True):
                 uploaded_files = st.file_uploader("Choose Files (PDF, Images, Docs, Proofs)", accept_multiple_files=True)
-                category = st.selectbox("Category", 
+                category = st.selectbox("Category",
                                         ["Payout Proof", "Withdrawal Proof", "Agreement", "KYC/ID", "Contributor Contract", "Testimonial Image", "Other"])
                 assigned_client = st.selectbox("Assign to Client (Auto-Balance Context)", ["None"] + registered_clients)
                 tags = st.text_input("Tags (comma-separated)", placeholder="e.g. withdrawal Jan2026, 100K funded")
                 notes = st.text_area("Notes (Optional)", placeholder="e.g. Proof for $5K payout")
-                
-                submitted = st.form_submit_button("Upload & Auto-Sync", type="primary", use_container_width=True)
+               
+                submitted = st.form_submit_button("Upload & Auto-Sync (Permanent)", type="primary", use_container_width=True)
                 if submitted:
                     if not uploaded_files:
                         st.error("Select files")
                     else:
                         success = 0
                         for uploaded in uploaded_files:
-                            safe_name = "".join(c for c in uploaded.name if c.isalnum() or c in "._- ")
-                            path = f"uploaded_files/client_files/{safe_name}"
-                            with open(path, "wb") as f:
-                                f.write(uploaded.getbuffer())
                             try:
+                                url, storage_path = upload_to_supabase(uploaded, "client_files", "vault")
+                                
                                 supabase.table("client_files").insert({
-                                    "file_name": safe_name,
                                     "original_name": uploaded.name,
+                                    "file_url": url,
+                                    "storage_path": storage_path,
                                     "upload_date": datetime.date.today().isoformat(),
                                     "sent_by": st.session_state.full_name,
                                     "category": category,
@@ -2616,15 +2656,15 @@ elif selected == "📁 File Vault":
                                     "tags": tags.strip(),
                                     "notes": notes or None
                                 }).execute()
-                                log_action("File Uploaded", f"{uploaded.name} | Category: {category} | Client: {assigned_client}")
+                                log_action("File Uploaded (Permanent)", f"{uploaded.name} | Category: {category} | Client: {assigned_client}")
                                 success += 1
                             except Exception as e:
                                 st.error(f"Error {uploaded.name}: {str(e)}")
                         if success > 0:
-                            st.success(f"{success} files uploaded & synced!")
+                            st.success(f"{success} files uploaded permanently & synced!")
                             st.cache_data.clear()
                             st.rerun()
-    
+   
     # ====================== ADVANCED SEARCH & FILTER ======================
     st.subheader("🔍 Advanced Search & Filter")
     col_s1, col_s2, col_s3 = st.columns(3)
@@ -2634,26 +2674,27 @@ elif selected == "📁 File Vault":
         filter_category = st.selectbox("Category", ["All"] + sorted(set(f.get("category", "Other") for f in files)))
     with col_s3:
         filter_client = st.selectbox("Assigned Client", ["All"] + sorted(set(f.get("assigned_client") for f in files if f.get("assigned_client"))))
-    
+   
     # Apply filters
     filtered = files
     if search_term:
-        filtered = [f for f in filtered if search_term.lower() in f["original_name"].lower() or 
-                    search_term.lower() in (f.get("tags") or "").lower() or 
+        filtered = [f for f in filtered if search_term.lower() in f["original_name"].lower() or
+                    search_term.lower() in (f.get("tags") or "").lower() or
                     search_term.lower() in (f.get("notes") or "").lower()]
     if filter_category != "All":
         filtered = [f for f in filtered if f.get("category", "Other") == filter_category]
     if filter_client != "All":
         filtered = [f for f in filtered if f.get("assigned_client") == filter_client]
-    
-    # ====================== VAULT GRID DISPLAY WITH PREVIEWS & CONTEXT ======================
-    st.subheader(f"Vault Contents ({len(filtered)} files • Realtime)")
+   
+    # ====================== VAULT GRID DISPLAY WITH URL PREVIEWS & DOWNLOADS ======================
+    st.subheader(f"Vault Contents ({len(filtered)} files • Permanent Storage)")
     if filtered:
+        import requests
         cols = st.columns(3)
         for idx, f in enumerate(filtered):
             with cols[idx % 3]:
-                path = f"uploaded_files/client_files/{f['file_name']}"
                 client_balance = user_map.get(f.get("assigned_client"), {"balance": 0})["balance"]
+                file_url = f.get("file_url")
                 with st.container():
                     st.markdown(f"""
                     <div class='glass-card' style='padding:1.2rem;'>
@@ -2662,13 +2703,13 @@ elif selected == "📁 File Vault":
                         <small>Category: {f.get('category', 'Other')}</small>
                     </div>
                     """, unsafe_allow_html=True)
-                    
-                    # Previews
-                    if f["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) and os.path.exists(path):
-                        st.image(path, use_container_width=True)
-                    elif f["original_name"].lower().endswith('.pdf') and os.path.exists(path):
+                   
+                    # Image preview via URL
+                    if file_url and f["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                        st.image(file_url, use_container_width=True)
+                    elif file_url and f["original_name"].lower().endswith('.pdf'):
                         st.caption("PDF Document (download for full view)")
-                    
+                   
                     # Context
                     if f.get("assigned_client"):
                         st.caption(f"👤 Assigned: {f['assigned_client']} (Balance: ${client_balance:,.2f})")
@@ -2677,57 +2718,63 @@ elif selected == "📁 File Vault":
                     if f["notes"]:
                         with st.expander("Notes"):
                             st.write(f["notes"])
-                    
-                    # Download with log
-                    if os.path.exists(path):
-                        with open(path, "rb") as file_data:
-                            if st.download_button("⬇️ Download", file_data, f['original_name'], use_container_width=True):
-                                log_action("File Downloaded", f"{f['original_name']} by {st.session_state.full_name}")
-                    
-                    # Delete (owner/admin)
+                   
+                    # Download via URL
+                    if file_url:
+                        try:
+                            response = requests.get(file_url)
+                            if response.status_code == 200:
+                                if st.download_button("⬇️ Download", response.content, f['original_name'], use_container_width=True):
+                                    log_action("File Downloaded", f"{f['original_name']} by {st.session_state.full_name}")
+                            else:
+                                st.error("File URL error")
+                        except:
+                            st.error("Download failed")
+                   
+                    # Delete (owner/admin) with storage cleanup
                     if current_role in ["owner", "admin"]:
                         if st.button("🗑️ Delete", key=f"del_file_{f['id']}", type="secondary", use_container_width=True):
                             try:
-                                os.remove(path)
+                                if f.get("storage_path"):
+                                    supabase.storage.from_("client_files").remove([f["storage_path"]])
                                 supabase.table("client_files").delete().eq("id", f["id"]).execute()
-                                log_action("File Deleted", f['original_name'])
-                                st.success("File removed")
+                                log_action("File Deleted (Permanent)", f['original_name'])
+                                st.success("File removed permanently")
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
     else:
         st.info("Vault empty or no matches • Upload proofs/agreements for transparency")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-            Secure & Synced Document Vault
+            Permanent & Secure Document Vault
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Proofs required for payouts • Assigned to clients • Searchable • Realtime • Empire trust automated.
+            Files NEVER disappear • CDN-fast • Proofs required for payouts • Assigned to clients • Searchable • Realtime • Empire trust automated.
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX File Vault • Fully Integrated 2026</h2>
+        <h2 style="color:#ffd700;">👑 KMFX File Vault • Cloud Permanent 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL FILE VAULT ======================
-# ====================== ANNOUNCEMENTS PAGE - FULL FINAL LATEST (NO NOTIFICATION SPAM) ======================
-
+# ====================== END OF FINAL FILE VAULT WITH SUPABASE STORAGE ======================
+# ====================== ANNOUNCEMENTS PAGE - FULL FINAL LATEST (SUPABASE STORAGE INTEGRATED) ======================
 elif selected == "📢 Announcements":
     st.header("Empire Announcements 📢")
-    st.markdown("**Central realtime communication: Broadcast updates • Rich images/attachments • Likes ❤️ • Threaded comments 💬 • Pinning 📌 • Category filters • Full team engagement & transparency.**")
-   
+    st.markdown("**Central realtime communication: Broadcast updates • Rich images/attachments (PERMANENT STORAGE) • Likes ❤️ • Threaded comments 💬 • Pinning 📌 • Category filters • Full team engagement & transparency.**")
+  
     current_role = st.session_state.get("role", "guest")
-   
+  
     @st.cache_data(ttl=15)
     def fetch_announcements_realtime():
         ann_resp = supabase.table("announcements").select("*").order("date", desc=True).execute()
         announcements = ann_resp.data or []
-       
+      
         for ann in announcements:
-            att_resp = supabase.table("announcement_files").select("original_name, file_name").eq("announcement_id", ann["id"]).execute()
+            att_resp = supabase.table("announcement_files").select("id, original_name, file_url, storage_path").eq("announcement_id", ann["id"]).execute()
             ann["attachments"] = att_resp.data or []
-       
+      
         try:
             comm_resp = supabase.table("announcement_comments").select("*").order("timestamp", desc=True).execute()
             comments_map = {}
@@ -2741,13 +2788,13 @@ elif selected == "📢 Announcements":
         except:
             for ann in announcements:
                 ann["comments"] = []
-       
+      
         return announcements
-   
+  
     announcements = fetch_announcements_realtime()
-   
-    st.caption("🔄 Feed auto-refresh every 15s • Likes & comments realtime")
-   
+  
+    st.caption("🔄 Feed auto-refresh every 15s • Attachments now PERMANENT via Supabase Storage")
+  
     # POST NEW (OWNER/ADMIN)
     if current_role in ["owner", "admin"]:
         with st.expander("➕ Broadcast New Announcement", expanded=True):
@@ -2755,9 +2802,9 @@ elif selected == "📢 Announcements":
                 title = st.text_input("Title *")
                 category = st.selectbox("Category", ["General", "Profit Distribution", "Withdrawal Update", "License Granted", "Milestone", "EA Update", "Team Alert"])
                 message = st.text_area("Message *", height=150)
-                attachments = st.file_uploader("Attachments (Images/Proofs - Full Preview)", accept_multiple_files=True)
+                attachments = st.file_uploader("Attachments (Images/Proofs - Permanent Full Preview)", accept_multiple_files=True)
                 pin = st.checkbox("📌 Pin to Top")
-               
+              
                 submitted = st.form_submit_button("📢 Post Announcement", type="primary", use_container_width=True)
                 if submitted:
                     if not title.strip() or not message.strip():
@@ -2774,33 +2821,35 @@ elif selected == "📢 Announcements":
                                 "pinned": pin
                             }).execute()
                             ann_id = resp.data[0]["id"]
-                           
+                          
                             for file in attachments or []:
-                                safe = "".join(c for c in file.name if c.isalnum() or c in "._- ")
-                                path = f"uploaded_files/announcements/{safe}"
-                                with open(path, "wb") as f:
-                                    f.write(file.getbuffer())
-                                supabase.table("announcement_files").insert({
-                                    "announcement_id": ann_id,
-                                    "file_name": safe,
-                                    "original_name": file.name
-                                }).execute()
-                           
-                            st.success("Announcement posted realtime! (Visible to all in feed)")
+                                try:
+                                    url, storage_path = upload_to_supabase(file, "announcements")
+                                    supabase.table("announcement_files").insert({
+                                        "announcement_id": ann_id,
+                                        "original_name": file.name,
+                                        "file_url": url,
+                                        "storage_path": storage_path
+                                    }).execute()
+                                except Exception as e:
+                                    st.warning(f"Attachment {file.name} upload failed: {str(e)}")
+                          
+                            st.success("Announcement posted realtime! (Attachments permanent)")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-   
+  
     # FILTER & SEARCH
     st.subheader("📻 Live Empire Feed")
     categories = sorted(set(a.get("category", "General") for a in announcements))
     filter_cat = st.selectbox("Category Filter", ["All"] + categories)
-   
+  
     filtered = [a for a in announcements if filter_cat == "All" or a.get("category") == filter_cat]
     filtered = sorted(filtered, key=lambda x: (not x.get("pinned", False), x["date"]), reverse=True)
-   
+  
     # REALTIME RICH FEED
+    import requests
     if filtered:
         for ann in filtered:
             pinned = " 📌 PINNED" if ann.get("pinned") else ""
@@ -2808,25 +2857,31 @@ elif selected == "📢 Announcements":
                 st.markdown(f"<h3 style='color:{accent_color};'>{ann['title']}{pinned}</h3>", unsafe_allow_html=True)
                 st.caption(f"{ann.get('category', 'General')} • by {ann['posted_by']} • {ann['date']}")
                 st.markdown(ann['message'])
-               
+              
+                # Images via URL
                 images = [att for att in ann["attachments"] if att["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
                 if images:
                     img_cols = st.columns(min(len(images), 4))
                     for idx, att in enumerate(images):
-                        path = f"uploaded_files/announcements/{att['file_name']}"
-                        if os.path.exists(path):
+                        if att.get("file_url"):
                             with img_cols[idx % 4]:
-                                st.image(path, use_container_width=True)
-               
+                                st.image(att["file_url"], use_container_width=True)
+              
+                # Non-images download
                 non_images = [att for att in ann["attachments"] if not att["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
                 if non_images:
                     st.markdown("**Files:**")
                     for att in non_images:
-                        path = f"uploaded_files/announcements/{att['file_name']}"
-                        if os.path.exists(path):
-                            with open(path, "rb") as f:
-                                st.download_button(att['original_name'], f, att['original_name'])
-               
+                        if att.get("file_url"):
+                            try:
+                                response = requests.get(att["file_url"])
+                                if response.status_code == 200:
+                                    st.download_button(att['original_name'], response.content, att['original_name'])
+                                else:
+                                    st.error(f"File {att['original_name']} unavailable")
+                            except:
+                                st.error(f"Download failed for {att['original_name']}")
+              
                 if st.button(f"❤️ {ann['likes']}", key=f"like_{ann['id']}"):
                     try:
                         supabase.table("announcements").update({"likes": ann["likes"] + 1}).eq("id", ann["id"]).execute()
@@ -2834,13 +2889,13 @@ elif selected == "📢 Announcements":
                         st.rerun()
                     except:
                         pass
-               
+              
                 with st.expander(f"💬 Comments ({len(ann.get('comments', []))}) • Realtime", expanded=False):
                     for c in ann.get("comments", []):
                         st.markdown(f"**{c['user_name']}** • {c['timestamp'][:16].replace('T', ' ')}")
                         st.markdown(c['message'])
                         st.divider()
-                   
+                  
                     with st.form(key=f"comment_{ann['id']}"):
                         comment = st.text_area("Add comment...", height=80, label_visibility="collapsed")
                         if st.form_submit_button("Post"):
@@ -2857,7 +2912,7 @@ elif selected == "📢 Announcements":
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"Error: {str(e)}")
-               
+              
                 if current_role in ["owner", "admin"]:
                     col_admin = st.columns(3)
                     with col_admin[0]:
@@ -2867,11 +2922,13 @@ elif selected == "📢 Announcements":
                     with col_admin[2]:
                         if st.button("🗑️ Delete", key=f"del_{ann['id']}", type="secondary"):
                             try:
+                                # Cleanup attachments from storage
                                 for att in ann["attachments"]:
-                                    os.remove(f"uploaded_files/announcements/{att['file_name']}")
+                                    if att.get("storage_path"):
+                                        supabase.storage.from_("announcements").remove([att["storage_path"]])
                                 supabase.table("announcement_files").delete().eq("announcement_id", ann["id"]).execute()
                                 supabase.table("announcements").delete().eq("id", ann["id"]).execute()
-                                st.success("Deleted")
+                                st.success("Deleted (attachments removed permanently)")
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
@@ -2879,18 +2936,18 @@ elif selected == "📢 Announcements":
                 st.divider()
     else:
         st.info("No announcements yet • First post activates realtime feed")
-   
+  
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Realtime Team Communication
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Images full preview • Likes & comments update live • Pinned alerts • Empire connected.
+            Images full preview • Attachments PERMANENT • Likes & comments update live • Pinned alerts • Empire connected.
         </p>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL REALTIME ANNOUNCEMENTS ======================
+# ====================== END OF FINAL REALTIME ANNOUNCEMENTS WITH SUPABASE STORAGE ======================
 elif selected == "💬 Messages":
     st.header("Private Messages 💬")
     st.markdown("**Secure realtime 1:1 empire communication • Threaded chats • File attachments with previews • Search • Auto-system messages (profit shares, withdrawal updates, license grants) • Balance context • Instant sync & clean UI.**")
@@ -3164,47 +3221,43 @@ elif selected == "🔔 Notifications":
     </div>
     """, unsafe_allow_html=True)
 # ====================== END OF FINAL REALTIME NOTIFICATIONS ======================
-# ====================== PART 6: WITHDRAWALS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME + BALANCE 0 FIX) ======================
+# ====================== PART 6: WITHDRAWALS PAGE (FINAL SUPER ADVANCED - SUPABASE STORAGE INTEGRATED FOR PROOFS) ======================
 elif selected == "💳 Withdrawals":
     st.header("Withdrawal Management 💳")
-    st.markdown("**Empire payout engine: Clients request from auto-earned balances • Require payout proof (auto-vault) • Amount limited to balance • Owner approve/pay/reject • Auto-deduct balance • Realtime sync & full transparency.**")
-   
+    st.markdown("**Empire payout engine: Clients request from auto-earned balances • Require payout proof (PERMANENT STORAGE) • Amount limited to balance • Owner approve/pay/reject • Auto-deduct balance • Realtime sync & full transparency.**")
+ 
     # SAFE ROLE
     current_role = st.session_state.get("role", "guest")
-   
+ 
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_withdrawals_full():
         wd_resp = supabase.table("withdrawals").select("*").order("date_requested", desc=True).execute()
         withdrawals = wd_resp.data or []
-       
+     
         users_resp = supabase.table("users").select("id, full_name, balance, role").execute()
         users = users_resp.data or []
         user_map = {u["full_name"]: {"id": u["id"], "balance": u["balance"] or 0} for u in users}
-       
+     
         # Related proofs (safe handling)
-        files_resp = supabase.table("client_files").select("id, original_name, file_name, category, assigned_client, notes").execute()
-        proofs = []
-        for f in files_resp.data or []:
-            cat = f.get("category", "Other")
-            if cat in ["Payout Proof", "Withdrawal Proof"] or "withdrawal" in f.get("notes", "").lower():
-                proofs.append(f)
-       
+        files_resp = supabase.table("client_files").select("id, original_name, file_url, storage_path, category, assigned_client, notes").execute()
+        proofs = files_resp.data or []
+     
         return withdrawals, users, user_map, proofs
-   
+ 
     withdrawals, users, user_map, proofs = fetch_withdrawals_full()
-   
-    st.caption("🔄 Withdrawals auto-refresh every 30s for realtime status")
-   
+ 
+    st.caption("🔄 Withdrawals auto-refresh every 30s • Proofs now PERMANENT via Supabase Storage")
+ 
     # ====================== CLIENT VIEW: REQUEST + HISTORY ======================
     if current_role == "client":
         my_name = st.session_state.full_name
         my_balance = user_map.get(my_name, {"balance": 0})["balance"]
         my_withdrawals = [w for w in withdrawals if w["client_name"] == my_name]
-       
+     
         st.subheader(f"Your Withdrawal Requests (Available Balance: ${my_balance:,.2f})")
-       
-        # Only show request form if balance > 0 (FIXES ERROR WHEN BALANCE=0)
+     
+        # Only show request form if balance > 0
         if my_balance > 0:
             with st.expander("➕ Request New Withdrawal", expanded=True):
                 with st.form("wd_request_form", clear_on_submit=True):
@@ -3213,13 +3266,13 @@ elif selected == "💳 Withdrawals":
                         min_value=1.0,
                         max_value=float(my_balance),
                         step=100.0,
-                        value=min(100.0, my_balance),  # Safe default value <= max
+                        value=min(100.0, my_balance),
                         help=f"Max: ${my_balance:,.2f}"
                     )
                     method = st.selectbox("Payout Method", ["USDT", "Bank Transfer", "Wise", "PayPal", "GCash", "Other"])
                     details = st.text_area("Payout Details (Wallet/Address/Bank Info)")
-                    proof_file = st.file_uploader("Upload Payout Proof * (Required)", type=["png", "jpg", "jpeg", "pdf"], help="Screenshot of wallet, bank statement • Auto-saved to vault")
-                   
+                    proof_file = st.file_uploader("Upload Payout Proof * (Required - Permanent Storage)", type=["png", "jpg", "jpeg", "pdf"], help="Screenshot of wallet, bank statement • Auto-saved permanently to vault")
+                 
                     submitted = st.form_submit_button("Submit Request for Approval", type="primary", use_container_width=True)
                     if submitted:
                         if amount > my_balance:
@@ -3228,21 +3281,20 @@ elif selected == "💳 Withdrawals":
                             st.error("Payout proof required")
                         else:
                             try:
-                                # Auto-upload proof to vault
-                                safe = "".join(c for c in proof_file.name if c.isalnum() or c in "._- ")
-                                path = f"uploaded_files/client_files/{safe}"
-                                with open(path, "wb") as f:
-                                    f.write(proof_file.getbuffer())
+                                # Permanent upload to Supabase Storage
+                                url, storage_path = upload_to_supabase(proof_file, "client_files", "proofs")
+                                
                                 supabase.table("client_files").insert({
-                                    "file_name": safe,
                                     "original_name": proof_file.name,
+                                    "file_url": url,
+                                    "storage_path": storage_path,
                                     "upload_date": datetime.date.today().isoformat(),
                                     "sent_by": my_name,
                                     "category": "Withdrawal Proof",
                                     "assigned_client": my_name,
                                     "notes": f"Proof for ${amount:,.0f} withdrawal"
                                 }).execute()
-                               
+                             
                                 # Submit request
                                 supabase.table("withdrawals").insert({
                                     "client_name": my_name,
@@ -3252,8 +3304,8 @@ elif selected == "💳 Withdrawals":
                                     "status": "Pending",
                                     "date_requested": datetime.date.today().isoformat()
                                 }).execute()
-                               
-                                st.success("Request submitted! Owner will review proof.")
+                             
+                                st.success("Request submitted permanently! Owner will review proof.")
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
@@ -3262,7 +3314,7 @@ elif selected == "💳 Withdrawals":
             st.info("No available balance yet • Earnings auto-accumulate from profits")
             with st.expander("➕ Request New Withdrawal"):
                 st.info("Withdrawal requests will be available once you have earnings in your balance.")
-       
+     
         # History
         if my_withdrawals:
             st.markdown("### Request History")
@@ -3280,16 +3332,17 @@ elif selected == "💳 Withdrawals":
                 st.divider()
         else:
             st.info("No requests yet • Earnings auto-accumulate")
-   
+ 
     # ====================== OWNER/ADMIN VIEW: ALL REQUESTS + ACTIONS ======================
     else:
         st.subheader("All Empire Withdrawal Requests")
-       
+        import requests
+     
         if withdrawals:
             for w in withdrawals:
                 client_balance = user_map.get(w["client_name"], {"balance": 0})["balance"]
                 status_color = {"Pending": "#ffa502", "Approved": accent_color, "Paid": "#2ed573", "Rejected": "#ff4757"}.get(w["status"], "#888")
-               
+             
                 with st.container():
                     st.markdown(f"""
                     <div class='glass-card' style='padding:1.8rem; border-left:5px solid {status_color};'>
@@ -3300,23 +3353,29 @@ elif selected == "💳 Withdrawals":
                     if w["details"]:
                         with st.expander("Payout Details"):
                             st.write(w["details"])
-                   
-                    # Related proofs
+                 
+                    # Related proofs via URL (permanent)
                     related_proofs = [p for p in proofs if p.get("assigned_client") == w["client_name"] and
-                                      ("withdrawal" in p.get("notes", "").lower() or p.get("category") in ["Payout Proof", "Withdrawal Proof"])]
+                                      ("withdrawal" in str(p.get("notes") or "").lower() or p.get("category") in ["Payout Proof", "Withdrawal Proof"])]
                     if related_proofs:
-                        st.markdown("**Related Proofs:**")
+                        st.markdown("**Related Proofs (Permanent):**")
                         proof_cols = st.columns(min(len(related_proofs), 4))
                         for idx, p in enumerate(related_proofs):
-                            path = f"uploaded_files/client_files/{p['file_name']}"
-                            if os.path.exists(path):
+                            file_url = p.get("file_url")
+                            if file_url:
                                 with proof_cols[idx % 4]:
-                                    if p["original_name"].lower().endswith(('.png', '.jpg', '.jpeg')):
-                                        st.image(path, caption=p["original_name"], use_container_width=True)
+                                    if p["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                                        st.image(file_url, caption=p["original_name"], use_container_width=True)
                                     else:
-                                        with open(path, "rb") as f:
-                                            st.download_button(p["original_name"], f, p["original_name"])
-                   
+                                        try:
+                                            response = requests.get(file_url)
+                                            if response.status_code == 200:
+                                                st.download_button(p["original_name"], response.content, p["original_name"])
+                                            else:
+                                                st.caption(f"{p['original_name']} (PDF/Doc - download)")
+                                        except:
+                                            st.caption(f"{p['original_name']} (download failed)")
+                 
                     # Actions
                     if w["status"] == "Pending":
                         col_act1, col_act2 = st.columns(2)
@@ -3363,81 +3422,83 @@ elif selected == "💳 Withdrawals":
                     st.divider()
         else:
             st.info("No withdrawal requests yet")
-   
+ 
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Automatic & Secure Payouts
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Requests limited to earned balance • Proof auto-vaulted • Owner control • Auto-deduct • Empire cashflow perfected.
+            Requests limited to earned balance • Proofs PERMANENT • Owner control • Auto-deduct • Empire cashflow perfected.
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX Withdrawals • Fully Automated 2026</h2>
+        <h2 style="color:#ffd700;">👑 KMFX Withdrawals • Cloud Permanent 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL WITHDRAWALS (BALANCE 0 ERROR FIXED) ======================
-# ====================== PART 6: EA VERSIONS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
+# ====================== END OF FINAL WITHDRAWALS WITH SUPABASE STORAGE FOR PROOFS ======================
+# ====================== PART 6: EA VERSIONS PAGE (FINAL SUPER ADVANCED - SUPABASE STORAGE INTEGRATED) ======================
 elif selected == "🤖 EA Versions":
     st.header("EA Versions Management 🤖")
-    st.markdown("**Elite EA distribution: Owner release new versions with changelog • Auto-announce to team • Download tracking • License gating (latest version requires active license) • Realtime list • Full empire sync with licenses & announcements.**")
-    
+    st.markdown("**Elite EA distribution: Owner release new versions with changelog • Auto-announce to team • Download tracking • License gating (latest version requires active license) • Realtime list • Files now PERMANENT via Supabase Storage.**")
+   
     # SAFE ROLE
     current_role = st.session_state.get("role", "guest")
-    
+   
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_ea_full():
         versions_resp = supabase.table("ea_versions").select("*").order("upload_date", desc=True).execute()
         versions = versions_resp.data or []
-        
+       
         downloads_resp = supabase.table("ea_downloads").select("*").execute()
         downloads = downloads_resp.data or []
-        
+       
         # Download count per version
         download_counts = {}
         for d in downloads:
             vid = d["version_id"]
             download_counts[vid] = download_counts.get(vid, 0) + 1
-        
+       
         # Client license check (for gating latest version)
         if current_role == "client":
-            license_resp = supabase.table("client_licenses").select("allow_live, version").eq("account_id", st.session_state.get("user_id")).execute()  # Assume user_id in session if needed
+            # Adjust if you store user_id in session; fallback to name-based if needed
+            license_resp = supabase.table("client_licenses").select("allow_live, version").eq("account_id", 
+                supabase.table("users").select("id").eq("full_name", st.session_state.full_name).execute().data[0]["id"] if supabase.table("users").select("id").eq("full_name", st.session_state.full_name).execute().data else None
+            ).execute()
             client_license = license_resp.data[0] if license_resp.data else None
         else:
             client_license = None
-        
+       
         return versions, download_counts, client_license
-    
+   
     versions, download_counts, client_license = fetch_ea_full()
-    
-    st.caption("🔄 Versions auto-refresh every 30s • Downloads tracked realtime")
-    
+   
+    st.caption("🔄 Versions auto-refresh every 30s • EA files now PERMANENT via Supabase Storage")
+   
     # ====================== RELEASE NEW VERSION (OWNER ONLY) ======================
     if current_role == "owner":
         with st.expander("➕ Release New EA Version (Owner Exclusive)", expanded=True):
             with st.form("ea_form", clear_on_submit=True):
                 version_name = st.text_input("Version Name *", placeholder="e.g. v3.0 Elite 2026")
-                ea_file = st.file_uploader("Upload EA File (.ex5 / .mq5)", accept_multiple_files=False)
+                ea_file = st.file_uploader("Upload EA File (.ex5 / .mq5) *", accept_multiple_files=False)
                 changelog = st.text_area("Changelog *", height=200, placeholder="• New features\n• Bug fixes\n• Performance improvements")
                 announce = st.checkbox("📢 Auto-Announce to Empire", value=True)
-                
+               
                 submitted = st.form_submit_button("🚀 Release Version", type="primary", use_container_width=True)
                 if submitted:
                     if not version_name.strip() or not ea_file or not changelog.strip():
                         st.error("Version name, file, and changelog required")
                     else:
                         try:
-                            safe = "".join(c for c in ea_file.name if c.isalnum() or c in "._- ")
-                            path = f"uploaded_files/ea_versions/{safe}"
-                            with open(path, "wb") as f:
-                                f.write(ea_file.getbuffer())
+                            url, storage_path = upload_to_supabase(ea_file, "ea_versions")
+                            
                             supabase.table("ea_versions").insert({
                                 "version": version_name.strip(),
-                                "file_name": safe,
+                                "file_url": url,
+                                "storage_path": storage_path,
                                 "upload_date": datetime.date.today().isoformat(),
                                 "notes": changelog.strip()
                             }).execute()
-                            
+                           
                             if announce:
                                 supabase.table("announcements").insert({
                                     "title": f"New EA Version Released: {version_name.strip()}",
@@ -3447,105 +3508,113 @@ elif selected == "🤖 EA Versions":
                                     "category": "EA Update",
                                     "pinned": False
                                 }).execute()
-                            
-                            log_action("EA Version Released", version_name.strip())
-                            st.success(f"Version {version_name} released & synced!")
+                           
+                            log_action("EA Version Released (Permanent)", version_name.strip())
+                            st.success(f"Version {version_name} released permanently & synced!")
+                            st.balloons()
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
     elif current_role == "admin":
         st.info("Admins view & track downloads • Owner releases new versions")
-    
+   
     # ====================== REALTIME VERSION LIST WITH LICENSE GATING ======================
-    st.subheader("Available EA Versions (Realtime)")
+    st.subheader("Available EA Versions (Realtime • Permanent Files)")
+    import requests
     if versions:
         latest_version = versions[0]  # First is latest
         for v in versions:
             vid = v["id"]
             downloads = download_counts.get(vid, 0)
-            path = f"uploaded_files/ea_versions/{v['file_name']}"
-            
+            file_url = v.get("file_url")
+           
             # License gating for latest version
             is_latest = v == latest_version
             can_download = True
             if current_role == "client" and is_latest and client_license:
-                # Simple gating: latest requires license
                 can_download = client_license.get("allow_live", False)  # Or check version match if needed
-            
+           
             with st.expander(f"🤖 {v['version']} • Released {v['upload_date']} • {downloads} downloads" + (" (Latest - License Required)" if is_latest else ""), expanded=is_latest):
                 st.markdown(f"**Changelog:**\n{v['notes'].replace(chr(10), '<br>')}", unsafe_allow_html=True)
-                
-                if os.path.exists(path):
-                    with open(path, "rb") as f:
-                        if can_download:
-                            if st.download_button(f"⬇️ Download {v['version']}", f, v['file_name'], use_container_width=True):
-                                try:
-                                    supabase.table("ea_downloads").insert({
-                                        "version_id": vid,
-                                        "downloaded_by": st.session_state.full_name,
-                                        "download_date": datetime.date.today().isoformat()
-                                    }).execute()
-                                    log_action("EA Downloaded", f"{v['version']} by {st.session_state.full_name}")
-                                except:
-                                    pass
+               
+                if file_url:
+                    try:
+                        response = requests.get(file_url)
+                        if response.status_code == 200:
+                            if can_download:
+                                if st.download_button(f"⬇️ Download {v['version']}", response.content, v.get('file_name', f"{v['version']}.ex5"), use_container_width=True):
+                                    try:
+                                        supabase.table("ea_downloads").insert({
+                                            "version_id": vid,
+                                            "downloaded_by": st.session_state.full_name,
+                                            "download_date": datetime.date.today().isoformat()
+                                        }).execute()
+                                        log_action("EA Downloaded (Permanent)", f"{v['version']} by {st.session_state.full_name}")
+                                    except:
+                                        pass
+                            else:
+                                st.warning("🔒 Active license required for latest version • Contact owner")
                         else:
-                            st.warning("🔒 Active license required for latest version • Contact owner")
+                            st.error("File unavailable")
+                    except:
+                        st.error("Download failed")
                 else:
                     st.error("File missing - contact owner")
-                
+               
                 if current_role == "owner":
                     if st.button("🗑️ Delete Version", key=f"del_ea_{vid}", type="secondary"):
                         try:
-                            os.remove(path)
+                            if v.get("storage_path"):
+                                supabase.storage.from_("ea_versions").remove([v["storage_path"]])
                             supabase.table("ea_versions").delete().eq("id", vid).execute()
                             supabase.table("ea_downloads").delete().eq("version_id", vid).execute()
-                            st.success("Version removed")
+                            st.success("Version removed permanently")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
     else:
         st.info("No EA versions released yet • Owner uploads activate elite distribution")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Elite EA Distribution
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Owner release • Auto-announce • Download tracked • Latest gated by license • Empire performance synced.
+            Owner release • Auto-announce • Download tracked • Latest gated by license • Files PERMANENT • Empire performance synced.
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX EA Versions • Fully Controlled 2026</h2>
+        <h2 style="color:#ffd700;">👑 KMFX EA Versions • Cloud Permanent 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL EA VERSIONS ======================
-# ====================== PART 6: TESTIMONIALS PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
+# ====================== END OF FINAL EA VERSIONS WITH SUPABASE STORAGE ======================
+# ====================== PART 6: TESTIMONIALS PAGE (FINAL SUPER ADVANCED - SUPABASE STORAGE INTEGRATED) ======================
 elif selected == "📸 Testimonials":
     st.header("Team Testimonials 📸")
-    st.markdown("**Empire motivation hub: Clients submit success stories + photos • Auto-balance context • Owner approve/reject with auto-announce • Realtime grid with full image previews • Search • Full team inspiration & transparency.**")
-    
+    st.markdown("**Empire motivation hub: Clients submit success stories + photos (PERMANENT STORAGE) • Auto-balance context • Owner approve/reject with auto-announce • Realtime grid with full image previews • Search • Full team inspiration & transparency.**")
+   
     # SAFE ROLE
     current_role = st.session_state.get("role", "guest")
-    
+   
     # FULL REALTIME CACHE
     @st.cache_data(ttl=30)
     def fetch_testimonials_full():
         approved_resp = supabase.table("testimonials").select("*").eq("status", "Approved").order("date_submitted", desc=True).execute()
         approved = approved_resp.data or []
-        
+       
         pending_resp = supabase.table("testimonials").select("*").eq("status", "Pending").order("date_submitted", desc=True).execute()
         pending = pending_resp.data or []
-        
+       
         users_resp = supabase.table("users").select("full_name, balance").execute()
         user_map = {u["full_name"]: u["balance"] or 0 for u in users_resp.data or []}
-        
+       
         return approved, pending, user_map
-    
+   
     approved, pending, user_map = fetch_testimonials_full()
-    
-    st.caption("🔄 Testimonials auto-refresh every 30s • Approved stories inspire realtime")
-    
+   
+    st.caption("🔄 Testimonials auto-refresh every 30s • Photos now PERMANENT via Supabase Storage")
+   
     # ====================== SUBMIT TESTIMONIAL (CLIENT ONLY) ======================
     if current_role == "client":
         my_balance = user_map.get(st.session_state.full_name, 0)
@@ -3553,63 +3622,66 @@ elif selected == "📸 Testimonials":
         with st.expander("➕ Submit Testimonial", expanded=True):
             with st.form("testi_form", clear_on_submit=True):
                 story = st.text_area("Your Story *", height=200, placeholder="e.g. How KMFX changed my trading, profits earned, journey...")
-                photo = st.file_uploader("Upload Photo * (Required for Approval)", type=["png", "jpg", "jpeg", "gif"])
-                
+                photo = st.file_uploader("Upload Photo * (Required for Approval - Permanent Storage)", type=["png", "jpg", "jpeg", "gif"])
+               
                 submitted = st.form_submit_button("Submit for Approval", type="primary", use_container_width=True)
                 if submitted:
                     if not story.strip() or not photo:
                         st.error("Story and photo required")
                     else:
                         try:
-                            safe = "".join(c for c in photo.name if c.isalnum() or c in "._- ")
-                            path = f"uploaded_files/testimonials/{safe}"
-                            with open(path, "wb") as f:
-                                f.write(photo.getbuffer())
+                            url, storage_path = upload_to_supabase(photo, "testimonials")
+                            
                             supabase.table("testimonials").insert({
                                 "client_name": st.session_state.full_name,
                                 "message": story.strip(),
-                                "image_file": path,
+                                "image_url": url,
+                                "storage_path": storage_path,
                                 "date_submitted": datetime.date.today().isoformat(),
                                 "status": "Pending"
                             }).execute()
-                            st.success("Testimonial submitted! Owner will review & approve.")
+                            st.success("Testimonial submitted permanently! Owner will review & approve.")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-    
+   
     # ====================== APPROVED TESTIMONIALS GRID (REALTIME FULL PREVIEWS) ======================
-    st.subheader("🌟 Approved Success Stories (Realtime)")
+    st.subheader("🌟 Approved Success Stories (Realtime • Permanent Photos)")
     if approved:
         # Search
         search_testi = st.text_input("Search stories")
         filtered_approved = [t for t in approved if search_testi.lower() in t["message"].lower() or search_testi.lower() in t["client_name"].lower()]
-        
+       
         cols = st.columns(3)
         for idx, t in enumerate(filtered_approved):
             with cols[idx % 3]:
                 balance = user_map.get(t["client_name"], 0)
-                path = t["image_file"]
+                image_url = t.get("image_url")
                 with st.container():
-                    if os.path.exists(path):
-                        st.image(path, use_container_width=True)
+                    if image_url:
+                        st.image(image_url, use_container_width=True)
+                    else:
+                        st.caption("No photo")
                     st.markdown(f"**{t['client_name']}** (Balance: ${balance:,.2f})")
                     st.markdown(t["message"])
                     st.caption(f"Submitted: {t['date_submitted']}")
     else:
         st.info("No approved testimonials yet • Stories activate on owner approval")
-    
+   
     # ====================== PENDING APPROVAL (OWNER/ADMIN) ======================
     if current_role in ["owner", "admin"] and pending:
         st.subheader("⏳ Pending Approval")
         for p in pending:
             balance = user_map.get(p["client_name"], 0)
-            path = p["image_file"]
+            image_url = p.get("image_url")
             with st.expander(f"{p['client_name']} • Submitted {p['date_submitted']} • Balance ${balance:,.2f}", expanded=False):
-                if os.path.exists(path):
-                    st.image(path, use_container_width=True)
+                if image_url:
+                    st.image(image_url, use_container_width=True)
+                else:
+                    st.caption("No photo")
                 st.markdown(p["message"])
-                
+               
                 col_app1, col_app2 = st.columns(2)
                 with col_app1:
                     if st.button("Approve & Auto-Announce", key=f"app_t_{p['id']}"):
@@ -3631,27 +3703,27 @@ elif selected == "📸 Testimonials":
                 with col_app2:
                     if st.button("Reject & Delete", key=f"rej_t_{p['id']}", type="secondary"):
                         try:
-                            if os.path.exists(path):
-                                os.remove(path)
+                            if p.get("storage_path"):
+                                supabase.storage.from_("testimonials").remove([p["storage_path"]])
                             supabase.table("testimonials").delete().eq("id", p["id"]).execute()
-                            st.success("Rejected")
+                            st.success("Rejected & removed permanently")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
-    
+   
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Success Stories & Motivation
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Client submissions • Balance context • Auto-announce approved • Empire inspired & growing.
+            Client submissions • Photos PERMANENT • Balance context • Auto-announce approved • Empire inspired & growing.
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX Testimonials • Fully Integrated 2026</h2>
+        <h2 style="color:#ffd700;">👑 KMFX Testimonials • Cloud Permanent 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== END OF FINAL TESTIMONIALS ======================
+# ====================== END OF FINAL TESTIMONIALS WITH SUPABASE STORAGE ======================
 # ====================== PART 6: REPORTS & EXPORT PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME FIXED) ======================
 elif selected == "📈 Reports & Export":
     st.header("Empire Reports & Export 📈")
