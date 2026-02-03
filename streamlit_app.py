@@ -2651,76 +2651,70 @@ string UNIQUE_KEY = "{unique_key}";
 string ENC_DATA = "{enc_data_hex}";
         ''', language="cpp")
 elif selected == "📁 File Vault":
-    st.header("Secure File Vault 📁")
-    st.markdown("**Permanent storage • Payout proofs • Agreements • KYC • EA files (.ex5) • Contributor files • Auto-assigned • Previews • Logging • Required for withdrawals**")
+    st.header("Secure File Vault 📦", anchor=False)
+    st.caption("Permanent encrypted storage • All file types supported • Proofs & documents secured • Auto-assigned access")
 
     current_role = st.session_state.get("role", "guest")
 
-    # ─── Fetch vault data ───
-    @st.cache_data(ttl=12)
-    def fetch_vault_full_data():
+    # ─── FETCH DATA ───
+    @st.cache_data(ttl=10)
+    def fetch_vault_data():
         files_resp = supabase.table("client_files").select("*").order("upload_date", desc=True).execute()
         files = files_resp.data or []
 
         users_resp = supabase.table("users").select("id, full_name, balance, role").execute()
         users = users_resp.data or []
 
-        user_map = {u["full_name"]: {"id": u["id"], "balance": u.get("balance", 0), "role": u["role"]}
-                    for u in users}
-
+        user_map = {u["full_name"]: {"id": u["id"], "balance": u.get("balance", 0), "role": u["role"]} for u in users}
         registered_clients = [u["full_name"] for u in users if u["role"] == "client"]
 
         return files, user_map, registered_clients
 
-    files, user_map, registered_clients = fetch_vault_full_data()
+    files, user_map, registered_clients = fetch_vault_data()
 
-    st.caption("🔄 Auto-refresh every 12s • Files stored permanently in Supabase Storage")
+    st.caption("🔄 Vault auto-refreshes every 10s • Files stored permanently in Supabase Storage")
 
-    # Restrict client view to their own files
+    # ─── CLIENT VIEW RESTRICTION ───
     if current_role == "client":
         my_name = st.session_state.get("full_name", "")
         files = [f for f in files if f["sent_by"] == my_name or f.get("assigned_client") == my_name]
 
-    # ─── UPLOAD SECTION ───
+    # ─── UPLOAD SECTION (Owner/Admin only) ───
     if current_role in ["owner", "admin"]:
-        with st.expander("➕ Upload Files (Multiple • Permanent)", expanded=True):
+        with st.container():
+            st.markdown("### 📤 Upload New Files")
             with st.form("file_upload_form", clear_on_submit=True):
-                uploaded_files = st.file_uploader(
-                    "Choose files (PDF, images, .ex5, zip, txt, doc, etc.)",
-                    type=["pdf", "png", "jpg", "jpeg", "gif", "zip", "ex5", "txt", "doc", "docx"],
-                    accept_multiple_files=True,
-                    help=".ex5 files are fully supported. Upload any size allowed by your Supabase plan."
-                )
+                col_upload, col_options = st.columns([3, 2])
 
-                category = st.selectbox("Category", [
-                    "Payout Proof", "Withdrawal Proof", "Agreement", "KYC/ID",
-                    "Contributor Contract", "Testimonial Image", "EA File", "Other"
-                ])
+                with col_upload:
+                    uploaded_files = st.file_uploader(
+                        "Choose files (PDF, images, .ex5, zip, etc.)",
+                        type=["pdf", "png", "jpg", "jpeg", "gif", "zip", "ex5", "txt", "doc", "docx"],
+                        accept_multiple_files=True,
+                        help="Max 200MB per file • All file types supported • .ex5 fully allowed"
+                    )
 
-                assigned_client = st.selectbox("Assign to Client (optional)",
-                                             ["None"] + sorted(registered_clients))
+                with col_options:
+                    category = st.selectbox("Category", [
+                        "Payout Proof", "Withdrawal Proof", "Agreement", "KYC/ID",
+                        "Contributor Contract", "Testimonial Image", "EA File", "Other"
+                    ])
+                    assigned_client = st.selectbox("Assign to Client (optional)", ["None"] + sorted(registered_clients))
+                    tags = st.text_input("Tags (comma-separated)", "")
+                    notes = st.text_area("Notes", height=100)
 
-                tags = st.text_input("Tags (comma-separated, optional)", "")
-                notes = st.text_area("Notes (optional)", height=80)
-
-                submitted = st.form_submit_button("📤 Upload Permanently",
-                                                 type="primary",
-                                                 use_container_width=True)
+                submitted = st.form_submit_button("📤 Upload Files", type="primary", use_container_width=True)
 
                 if submitted and uploaded_files:
                     success_count = 0
                     failed_files = []
-
                     progress_bar = st.progress(0)
                     status_text = st.empty()
-
                     total_files = len(uploaded_files)
 
                     for idx, file in enumerate(uploaded_files):
                         try:
                             status_text.text(f"Uploading {file.name} ({idx+1}/{total_files})...")
-
-                            # Upload to storage
                             url, storage_path = upload_to_supabase(
                                 file=file,
                                 bucket="client_files",
@@ -2728,7 +2722,7 @@ elif selected == "📁 File Vault":
                                 use_signed_url=False
                             )
 
-                            # Save metadata
+                            # Insert metadata
                             insert_response = supabase.table("client_files").insert({
                                 "original_name": file.name,
                                 "file_url": url,
@@ -2745,7 +2739,7 @@ elif selected == "📁 File Vault":
                                 success_count += 1
                                 log_action("File Uploaded", f"{file.name} → {category} → {assigned_client}")
                             else:
-                                failed_files.append((file.name, "Metadata insert failed - no row returned"))
+                                failed_files.append((file.name, "Metadata insert failed"))
 
                         except Exception as e:
                             failed_files.append((file.name, str(e)))
@@ -2757,25 +2751,26 @@ elif selected == "📁 File Vault":
                     progress_bar.empty()
 
                     if success_count > 0:
-                        st.success(f"Successfully uploaded and saved **{success_count}** file(s)!")
+                        st.success(f"**{success_count} file(s)** uploaded successfully!")
                         st.cache_data.clear()
                         st.rerun()
 
                     if failed_files:
-                        st.warning(f"{len(failed_files)} file(s) had problems:")
+                        st.warning(f"{len(failed_files)} file(s) failed:")
                         for name, err in failed_files:
                             st.caption(f"• {name}: {err}")
 
     # ─── FILTERS ───
-    st.subheader("🔍 Search & Filter")
-    col1, col2, col3 = st.columns(3)
+    st.markdown("### 🔍 Filter Vault")
+    col1, col2, col3 = st.columns([3, 2, 2])
     with col1:
-        search = st.text_input("Search name / tags / notes", "")
+        search = st.text_input("Search by name, tags, or notes", placeholder="e.g. payout proof, .ex5")
     with col2:
         cat_filter = st.selectbox("Category", ["All"] + sorted(set(f.get("category", "Other") for f in files or [])))
     with col3:
         client_filter = st.selectbox("Assigned Client", ["All"] + sorted(set(f.get("assigned_client") for f in files if f.get("assigned_client"))))
 
+    # Apply filters
     filtered = files or []
     if search:
         s = search.lower()
@@ -2787,67 +2782,103 @@ elif selected == "📁 File Vault":
     if client_filter != "All":
         filtered = [f for f in filtered if f.get("assigned_client") == client_filter]
 
-    # ─── DISPLAY FILES ───
-    st.subheader(f"Vault Contents ({len(filtered)} files)")
+    # ─── FILE DISPLAY GRID ───
+    st.markdown(f"### Vault Contents ({len(filtered)} files)")
 
     if filtered:
-        cols = st.columns(3)
+        cols = st.columns(3) if len(filtered) > 2 else st.columns(2) if len(filtered) > 1 else st.columns(1)
+
         for i, f in enumerate(filtered):
-            with cols[i % 3]:
-                balance = user_map.get(f.get("assigned_client"), {"balance": 0})["balance"]
+            col = cols[i % len(cols)]
+
+            with col:
                 url = f.get("file_url")
+                assigned = f.get("assigned_client")
+                balance = user_map.get(assigned, {"balance": 0})["balance"]
 
-                st.markdown(f"""
-                <div style="padding:12px; border-radius:8px; background:rgba(30,35,45,0.6); margin-bottom:12px; border:1px solid rgba(100,100,100,0.3);">
-                    <strong>{f['original_name']}</strong><br>
-                    <small>{f['upload_date']} • {f['sent_by']}</small><br>
-                    <small>Category: {f.get('category', 'Other')}</small>
-                </div>
-                """, unsafe_allow_html=True)
+                card_style = """
+                    <div style="
+                        background: rgba(30,35,45,0.7);
+                        backdrop-filter: blur(12px);
+                        border-radius: 16px;
+                        border: 1px solid rgba(100,100,100,0.25);
+                        padding: 1.4rem;
+                        margin-bottom: 1.6rem;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+                    ">
+                        <div style="margin-bottom: 1rem;">
+                """
 
-                if url:
-                    if f["original_name"].lower().endswith(('.png','.jpg','.jpeg','.gif')):
-                        st.image(url, use_column_width=True)
-                    elif f["original_name"].lower().endswith('.pdf'):
-                        st.markdown(f"[📄 View PDF]({url})", unsafe_allow_html=True)
+                if url and f["original_name"].lower().endswith(('.png','.jpg','.jpeg','.gif')):
+                    card_style += f'<img src="{url}" style="width:100%; border-radius:10px; margin-bottom: 0.8rem;"/>'
+                else:
+                    card_style += '<div style="height:140px; background:rgba(50,55,65,0.5); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:1.1rem;">No preview available</div>'
 
-                    # Download button with fallback
-                    try:
-                        r = requests.get(url, timeout=8)
-                        if r.status_code == 200:
-                            st.download_button(
-                                label="⬇ Download",
-                                data=r.content,
-                                file_name=f["original_name"],
-                                mime="application/octet-stream",
-                                key=f"download_{f['id']}_{i}"   # unique key
-                            )
-                        else:
-                            st.caption("Download unavailable (file may be private)")
-                    except Exception as download_err:
-                        st.caption(f"Download error: {str(download_err)}")
+                card_style += f"""
+                        </div>
+                        <strong style="font-size:1.05rem; display:block; margin-bottom:0.4rem;">{f['original_name']}</strong>
+                        <small style="opacity:0.7; display:block; margin-bottom:0.6rem;">
+                            {f['upload_date']} • {f['sent_by']}
+                        </small>
+                        <div style="font-size:0.9rem; opacity:0.85;">
+                            Category: <strong>{f.get('category', 'Other')}</strong><br>
+                """
 
-                if f.get("assigned_client"):
-                    st.caption(f"Assigned: {f['assigned_client']} (${balance:,.2f})")
+                if assigned:
+                    card_style += f"Assigned: <strong>{assigned}</strong> (${balance:,.2f})<br>"
+
                 if f.get("tags"):
-                    st.caption(f"Tags: {f['tags']}")
+                    card_style += f"Tags: <em>{f['tags']}</em><br>"
+
+                card_style += """
+                        </div>
+                """
+
                 if f.get("notes"):
-                    with st.expander("Notes"):
+                    with st.expander("Notes", expanded=False):
                         st.write(f["notes"])
 
-                if current_role in ["owner", "admin"]:
-                    if st.button("🗑 Delete", key=f"del_file_{f['id']}", type="secondary"):
+                # Actions
+                col_a1, col_a2 = st.columns(2)
+                with col_a1:
+                    if url:
                         try:
-                            if f.get("storage_path"):
-                                supabase.storage.from_("client_files").remove([f["storage_path"]])
-                            supabase.table("client_files").delete().eq("id", f["id"]).execute()
-                            st.success(f"Deleted: {f['original_name']}")
-                            st.cache_data.clear()
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Delete failed: {str(e)}")
+                            r = requests.get(url, timeout=6)
+                            if r.status_code == 200:
+                                st.download_button(
+                                    "⬇ Download",
+                                    data=r.content,
+                                    file_name=f["original_name"],
+                                    mime="application/octet-stream",
+                                    key=f"dl_{f['id']}_{i}",
+                                    use_container_width=True
+                                )
+                        except:
+                            st.caption("Download unavailable")
+
+                with col_a2:
+                    if current_role in ["owner", "admin"]:
+                        if st.button("🗑 Delete", key=f"del_{f['id']}_{i}", type="secondary", use_container_width=True):
+                            if st.session_state.get(f"confirm_del_{f['id']}", False):
+                                try:
+                                    if f.get("storage_path"):
+                                        supabase.storage.from_("client_files").remove([f["storage_path"]])
+                                    supabase.table("client_files").delete().eq("id", f["id"]).execute()
+                                    st.success(f"Deleted: {f['original_name']}")
+                                    st.cache_data.clear()
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Delete failed: {str(e)}")
+                            else:
+                                st.session_state[f"confirm_del_{f['id']}"] = True
+                                st.warning("Click Delete again to confirm")
+                                st.rerun()
+
+                st.markdown(card_style + "</div>", unsafe_allow_html=True)
+
     else:
-        st.info("No files match your filter or vault is empty.")
+        st.info("No files match your filter or the vault is empty.")
 
     # ─── FOOTER ───
     bg_color = "#f8f9fa" if theme == "light" else "#1a1a2e"
@@ -2855,10 +2886,18 @@ elif selected == "📁 File Vault":
     border_color = "#ddd" if theme == "light" else "#444"
 
     st.markdown(f"""
-    <div style="padding:2rem; text-align:center; background:{bg_color}; border-radius:12px; margin:2rem 0; border:1px solid {border_color};">
-        <h2 style="color:#00cc99; margin-bottom:0.5rem;">KMFX Permanent File Vault • 2026</h2>
-        <p style="color:{text_color}; margin:0;">
-            Secure • Permanent • .ex5 support • Proofs required for payouts • All files in Supabase
+    <div style="
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        background: {bg_color};
+        border-radius: 16px;
+        margin: 3rem 0 1rem;
+        border: 1px solid {border_color};
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    ">
+        <h3 style="color: #00cc99; margin-bottom: 0.6rem;">KMFX Secure Vault • 2026</h3>
+        <p style="color: {text_color}; margin: 0; font-size: 0.95rem;">
+            Encrypted • Permanent • Full .ex5 support • Proofs required for withdrawals • Powered by Supabase
         </p>
     </div>
     """, unsafe_allow_html=True)
