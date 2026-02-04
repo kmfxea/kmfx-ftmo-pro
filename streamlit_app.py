@@ -2293,11 +2293,9 @@ elif selected == "🌱 Growth Fund":
         <h2 style="color:#ffd700;">👑 KMFX Growth Fund • Fully Automatic & Realtime 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== LICENSE GENERATOR - FULL FINAL LATEST 2026 (OWNER EXCLUSIVE + REALTIME + ELITE FEATURES) ======================
 elif selected == "🔑 License Generator":
     st.header("EA License Generator 🔑")
     st.markdown("**Universal Security • ANY Broker • Flexible Accounts • LIVE/DEMO Control • XOR Encryption • Realtime History**")
- 
     # Clean XOR encryption (no padding issues)
     def mt_encrypt(plain: str, key: str) -> str:
         if not key:
@@ -2308,12 +2306,10 @@ elif selected == "🔑 License Generator":
             k = ord(key[i % klen])
             result.append(ord(ch) ^ k)
         return ''.join(f'{b:02X}' for b in result).upper()
- 
     # STRICT OWNER ONLY
     if st.session_state.get("role", "guest") != "owner":
         st.error("🔒 License generation is OWNER-ONLY.")
         st.stop()
- 
     # ULTRA-REALTIME CACHE (10s)
     @st.cache_data(ttl=10)
     def fetch_license_data():
@@ -2323,18 +2319,14 @@ elif selected == "🔑 License Generator":
         history = history_resp.data or []
         user_map = {str(c["id"]): {"name": c["full_name"] or "Unknown", "balance": c["balance"] or 0} for c in clients}
         return clients, history, user_map
- 
     clients, history, user_map = fetch_license_data()
- 
     # Manual refresh button
     if st.button("🔄 Refresh License Data Now", use_container_width=True, type="secondary"):
         st.cache_data.clear()
         st.rerun()
- 
     if not clients:
         st.info("No clients yet — register in Team Management first.")
         st.stop()
- 
     st.subheader("Generate New License")
     client_options = {f"{c['full_name']} (Balance: ${c['balance'] or 0:,.2f})": c for c in clients}
     selected_key = st.selectbox("Select Client", list(client_options.keys()))
@@ -2342,18 +2334,16 @@ elif selected == "🔑 License Generator":
     client_id = client["id"]
     client_name = client["full_name"]
     client_balance = client["balance"] or 0
- 
     st.info(f"**Generating for:** {client_name} | Current Balance: ${client_balance:,.2f}")
- 
     # Session state defaults
     for key, default in [
         ("allow_any_account", True),
         ("allow_live_trading", True),
-        ("specific_accounts_value", "")
+        ("specific_accounts_value", ""),
+        ("expiry_option", "NEVER (Lifetime)")  # Default to NEVER for cleaner UX
     ]:
         if key not in st.session_state:
             st.session_state[key] = default
- 
     # Checkboxes with auto-rerun
     col_a, col_b = st.columns(2)
     with col_a:
@@ -2368,17 +2358,14 @@ elif selected == "🔑 License Generator":
             value=st.session_state.allow_live_trading,
             key="chk_live"
         )
- 
     if (allow_any != st.session_state.allow_any_account or allow_live != st.session_state.allow_live_trading):
         st.session_state.allow_any_account = allow_any
         st.session_state.allow_live_trading = allow_live
         st.rerun()
- 
     if allow_live:
         st.success("✅ LIVE + DEMO allowed")
     else:
         st.warning("⚠️ DEMO only (Live blocked)")
- 
     # GENERATE FORM
     with st.form("license_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
@@ -2391,17 +2378,30 @@ elif selected == "🔑 License Generator":
                 height=100
             )
         with col2:
-            expiry_option = st.radio("Expiry", ["Specific Date", "NEVER (Lifetime)"])
+            # FIXED: Radio with proper state persistence + conditional date input
+            expiry_option = st.radio(
+                "Expiry",
+                ["NEVER (Lifetime)", "Specific Date"],
+                index=0 if st.session_state.get("expiry_option") == "NEVER (Lifetime)" else 1,
+                key="expiry_radio"  # Forces rerun on change
+            )
+            st.session_state.expiry_option = expiry_option  # Persist choice
+
             if expiry_option == "Specific Date":
-                exp_date = st.date_input("Expiry Date", datetime.date.today() + datetime.timedelta(days=365))
+                exp_date = st.date_input(
+                    "Expiry Date",
+                    datetime.date.today() + datetime.timedelta(days=365),
+                    key="exp_date_input"
+                )
                 expiry_str = exp_date.strftime("%Y-%m-%d")
+                st.info(f"License expires on {expiry_str}")
             else:
                 expiry_str = "NEVER"
+                st.success("✅ Lifetime license (NEVER expires)")
+
             version_note = st.text_input("Version Note", value="v2.36 Elite 2026")
             internal_notes = st.text_area("Internal Notes (Optional)", height=100)
- 
         submitted = st.form_submit_button("🚀 Generate & Save License", type="primary", use_container_width=True)
- 
         if submitted:
             accounts_str = "*" if allow_any else ",".join([a.strip() for a in specific_accounts.split(",") if a.strip()])
             live_str = "1" if allow_live else "0"
@@ -2409,12 +2409,10 @@ elif selected == "🔑 License Generator":
             # Ensure even length for clean XOR
             if len(plain.encode()) % 2 == 1:
                 plain += " "
- 
             name_clean = "".join(c for c in client_name.upper() if c.isalnum())
             key_date = "NEVER" if expiry_str == "NEVER" else expiry_str[8:] + expiry_str[5:7] + expiry_str[2:4]
             unique_key = f"KMFX_{name_clean}_{key_date}"
             enc_data_hex = mt_encrypt(plain, unique_key)
- 
             try:
                 supabase.table("client_licenses").insert({
                     "account_id": client_id,
@@ -2428,27 +2426,24 @@ elif selected == "🔑 License Generator":
                     "allowed_accounts": accounts_str if accounts_str != "*" else None,
                     "revoked": False
                 }).execute()
- 
                 st.success(f"License generated successfully! **{unique_key}**")
                 st.balloons()
- 
                 # Clear specific accounts field
                 st.session_state.specific_accounts_value = ""
- 
+                # Reset expiry to default NEVER for next generation
+                st.session_state.expiry_option = "NEVER (Lifetime)"
                 # Show ready-to-paste code
                 st.subheader("📋 Ready to Paste into EA")
                 st.code(f'''
 string UNIQUE_KEY = "{unique_key}";
 string ENC_DATA = "{enc_data_hex}";
                 ''', language="cpp")
- 
                 # Force full refresh
                 st.cache_data.clear()
                 st.rerun()
             except Exception as e:
                 st.error(f"Save failed: {str(e)}")
- 
-    # REALTIME HISTORY
+    # REALTIME HISTORY (unchanged)
     st.subheader("📜 Issued Licenses History (Realtime)")
     if history:
         # Optional search
@@ -2456,14 +2451,12 @@ string ENC_DATA = "{enc_data_hex}";
         filtered_history = [h for h in history if search_hist.lower() in str(h.get("key","")).lower() or
                             search_hist.lower() in user_map.get(str(h.get("account_id")), {}).get("name","").lower() or
                             search_hist.lower() in str(h.get("version","")).lower()] if search_hist else history
- 
         for h in filtered_history:
             client_name_hist = user_map.get(str(h["account_id"]), {}).get("name", "Unknown")
             status = "🔴 Revoked" if h.get("revoked") else "🟢 Active"
             live_status = "LIVE+DEMO" if h.get("allow_live") else "DEMO only"
             acc_txt = "ANY (*)" if h.get("allowed_accounts") is None else h.get("allowed_accounts", "Custom")
             version_display = f" • {h.get('version', 'Standard')}"
- 
             with st.expander(
                 f"{h.get('key','—')} • {client_name_hist}{version_display} • {status} • {live_status} • {acc_txt} • {h.get('date_generated', '—')}",
                 expanded=False
@@ -2473,7 +2466,6 @@ string ENC_DATA = "{enc_data_hex}";
                     st.caption(f"Notes: {h['notes']}")
                 st.code(f"ENC_DATA = \"{h.get('enc_data','—')}\"", language="text")
                 st.code(f"UNIQUE_KEY = \"{h.get('key','—')}\"", language="text")
- 
                 col_act1, col_act2 = st.columns(2)
                 with col_act1:
                     if not h.get("revoked"):
@@ -2496,17 +2488,17 @@ string ENC_DATA = "{enc_data_hex}";
                             st.error(f"Error: {str(e)}")
     else:
         st.info("No licenses issued yet • Generate first to activate history")
- 
     # ELITE FOOTER
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-            Elite EA License System
+            Elite EA License System 2026
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Owner exclusive • Realtime history • Revoke/Delete instant • XOR secure • Universal or restricted • Empire protected.
+            ✅ Fixed expiry UX: Date input hidden/disabled when NEVER selected<br>
+            ✅ Default NEVER for faster lifetime licenses • Clean & effective
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX License Generator • Bulletproof 2026</h2>
+        <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Fixed & Elite</h2>
     </div>
     """, unsafe_allow_html=True)
 # ====================== FILE VAULT PAGE - FULL FINAL LATEST 2026 (PERMANENT SUPABASE STORAGE + REALTIME + ELITE GRID) ======================
