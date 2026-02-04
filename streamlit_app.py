@@ -14,7 +14,40 @@ from io import BytesIO
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import uuid
-
+# Global fix: lahat ng timestamp na may format na YYYY-MM-DDTHH:MM:SS na lalabas sa page
+# ay papalitan ng Philippine Time gamit ang browser (mas mabilis, walang pytz sa server)
+st.markdown("""
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Hanapin lahat ng text na mukhang ISO timestamp (hal. 2026-02-04T14:37:22)
+    const timeElements = document.querySelectorAll('p, span, div, small, caption, td, th');
+    timeElements.forEach(el => {
+        let text = el.innerText.trim();
+        if (text.match(/\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:?\\d{0,2}(Z)?/)) {
+            try {
+                // Parse bilang UTC
+                let date = new Date(text);
+                if (!isNaN(date)) {
+                    // Convert to Asia/Manila (UTC+8)
+                    let options = {
+                        timeZone: 'Asia/Manila',
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    };
+                    let formatted = date.toLocaleString('en-US', options);
+                    // Palitan ang orihinal na text
+                    el.innerText = el.innerText.replace(text, formatted);
+                }
+            } catch(e) {}
+        }
+    });
+});
+</script>
+""", unsafe_allow_html=True)
 load_dotenv()
 
 supabase_url = os.getenv("SUPABASE_URL")
