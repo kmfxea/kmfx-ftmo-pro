@@ -720,80 +720,88 @@ except:
         <p style='margin:1rem 0 0; opacity:0.8;'>Scale smarter. Trade bolder. Win bigger.</p>
     </div>
     """, unsafe_allow_html=True)
-
-# ====================== DASHBOARD PAGE - FULL LATEST FIXED (100% REALTIME, CLEAN, FAST, NO CACHE, NO BUGS) ======================
 if selected == "🏠 Dashboard":
     st.header("Elite Empire Command Center 🚀")
-    st.markdown("**Realtime, fully automatic empire overview: Accounts, participant trees, contributor funding (PHP units), profit distributions, client balances, growth fund • Everything synced instantly • Professional, clean, fast performance.**")
- 
+    st.markdown("**Realtime, fully automatic empire overview • All values now reliable with live fallback • No persistent mismatch**")
+
     current_role = st.session_state.get("role", "guest")
- 
-    # OPTIMIZED: Uses materialized views for instant heavy totals + lightweight fetches for trees
-    # ADDED: Safety check for count mismatch + better error handling
+
     def fetch_empire_summary():
         try:
-            # Instant from materialized views
-            gf_resp = supabase.table("mv_growth_fund_balance").select("balance").execute()
-            gf_balance = gf_resp.data[0]["balance"] if gf_resp.data else 0.0
-          
-            empire_resp = supabase.table("mv_empire_summary").select("*").execute()
-            empire = empire_resp.data[0] if empire_resp.data else {}
-            total_accounts = empire.get("total_accounts", 0)
-            total_equity = empire.get("total_equity", 0.0)
-            total_withdrawable = empire.get("total_withdrawable", 0.0)
-          
-            client_resp = supabase.table("mv_client_balances").select("*").execute()
-            client_summary = client_resp.data[0] if client_resp.data else {}
-            total_client_balances = client_summary.get("total_client_balances", 0.0)
-          
-            # Lightweight for trees & calculations (indexed tables = fast)
+            # Materialized views (fast but may lag)
+            gf_mv = supabase.table("mv_growth_fund_balance").select("balance").execute().data
+            gf_balance_mv = gf_mv[0]["balance"] if gf_mv else None
+
+            empire_mv = supabase.table("mv_empire_summary").select("*").execute().data
+            empire = empire_mv[0] if empire_mv else {}
+
+            client_mv = supabase.table("mv_client_balances").select("*").execute().data
+            client_summary = client_mv[0] if client_mv else {}
+
+            # LIVE DATA - always fetch these for accuracy
             accounts = supabase.table("ftmo_accounts").select("*").execute().data or []
-          
-            # Safety check: Ensure MV count matches actual rows
-            if total_accounts != len(accounts):
-                st.warning("⚠️ Account count mismatch detected (MV vs actual) — forcing data refresh")
-                # Optional: You can add REFRESH MATERIALIZED VIEW here if needed, but triggers should handle
-                # For now, just log and continue with actual count
-                total_accounts = len(accounts)
-          
-            profits = supabase.table("profits").select("gross_profit, growth_fund_add").execute().data or [] 
+            actual_total_accounts = len(accounts)
+
+            profits = supabase.table("profits").select("gross_profit, growth_fund_add").execute().data or []
             distributions = supabase.table("profit_distributions").select("share_amount, participant_name, is_growth_fund").execute().data or []
-          
+
             total_gross = sum(p.get("gross_profit", 0) for p in profits)
             total_distributed = sum(d.get("share_amount", 0) for d in distributions if not d.get("is_growth_fund", False))
-          
+
             # Participant shares tree
             participant_shares = {}
             for d in distributions:
                 if not d.get("is_growth_fund", False):
                     name = d["participant_name"]
                     participant_shares[name] = participant_shares.get(name, 0) + d["share_amount"]
-          
-            # Total funded PHP (v2 priority)
+
+            # Total funded PHP (from live accounts)
             total_funded_php = 0
             for acc in accounts:
-                contributors = acc.get("contributors_v2") or acc.get("contributors", [])
-                for c in contributors:
-                    units = c.get("units", 0)
-                    php_per_unit = c.get("php_per_unit", 0)
-                    total_funded_php += units * php_per_unit
-          
+                contribs = acc.get("contributors_v2") or acc.get("contributors", [])
+                for c in contribs:
+                    total_funded_php += c.get("units", 0) * c.get("php_per_unit", 0)
+
+            # Use MV values if available, fallback to live calculations
+            total_accounts = empire.get("total_accounts", actual_total_accounts)
+            total_equity = empire.get("total_equity", sum(acc.get("current_equity", 0) for acc in accounts))
+            total_withdrawable = empire.get("total_withdrawable", sum(acc.get("withdrawable_balance", 0) for acc in accounts))
+            gf_balance = gf_balance_mv if gf_balance_mv is not None else 0.0
+
+            # Extra fallback for GF using live transactions (if MV fails)
+            if gf_balance == 0:
+                gf_trans = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
+                gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_trans)
+
+            # Final safety: force correct count
+            if total_accounts != actual_total_accounts:
+                st.info(f"Note: Adjusted account count to actual table value ({actual_total_accounts})")
+                total_accounts = actual_total_accounts
+
             return (
                 accounts, profits, distributions,
                 total_accounts, total_equity, total_withdrawable,
                 gf_balance, total_gross, total_distributed,
-                total_client_balances, participant_shares, total_funded_php
+                client_summary.get("total_client_balances", 0.0),
+                participant_shares, total_funded_php
             )
+
         except Exception as e:
-            st.error(f"Summary fetch error: {str(e)} — Please check Supabase connection or logs.")
-            return [], [], [], 0, 0, 0, 0, 0, 0, 0, {}, 0
- 
+            st.error(f"Dashboard fetch error: {str(e)} — Showing fallback values")
+            accounts = supabase.table("ftmo_accounts").select("*").execute().data or []
+            return (
+                accounts, [], [],
+                len(accounts), 0.0, 0.0,
+                0.0, 0.0, 0.0,
+                0.0, {}, 0
+            )
+
     (accounts, profits, distributions,
      total_accounts, total_equity, total_withdrawable,
      gf_balance, total_gross, total_distributed,
      total_client_balances, participant_shares, total_funded_php) = fetch_empire_summary()
- 
-    # ====================== PROFESSIONAL METRICS GRID (INSTANT MV TOTALS) ======================
+
+    # ====================== PROFESSIONAL METRICS GRID ======================
     st.markdown(f"""
     <div style="display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -824,16 +832,15 @@ if selected == "🏠 Dashboard":
             <h2 style="margin:0.5rem 0 0; font-size:2.4rem; color:#00ffaa;">${total_distributed:,.0f}</h2>
         </div>
         <div class="glass-card" style="text-align:center; padding:1.5rem;">
-            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Client Balances (Auto)</h4>
+            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Client Balances</h4>
             <h2 style="margin:0.5rem 0 0; font-size:2.4rem; color:#ffd700;">${total_client_balances:,.0f}</h2>
         </div>
         <div class="glass-card" style="text-align:center; padding:1.5rem;">
-            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Growth Fund (Auto)</h4>
+            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Growth Fund</h4>
             <h2 style="margin:0.5rem 0 0; font-size:2.8rem; color:#ffd700;">${gf_balance:,.0f}</h2>
         </div>
     </div>
     """, unsafe_allow_html=True)
- 
     # ====================== QUICK ACTIONS ======================
     col1, col2 = st.columns([1, 1])
     with col1:
