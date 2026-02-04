@@ -2937,175 +2937,241 @@ elif selected == "📢 Announcements":
         </p>
     </div>
     """, unsafe_allow_html=True)
-# ====================== PRIVATE MESSAGES PAGE - FULL FINAL LATEST 2026 (PERMANENT SUPABASE STORAGE + IMAGES VISIBLE INLINE + REALTIME) ======================
 elif selected == "💬 Messages":
     st.header("Private Messages 💬")
-    st.markdown("**Secure realtime 1:1 empire communication • Threaded chats • File attachments with INLINE IMAGE PREVIEWS • Search • Auto-system messages • Balance context • Instant sync & clean UI.**")
- 
+    st.markdown(
+        "**Secure 1:1 communication • File attachments with inline previews • "
+        "Search • Balance context • Realtime updates**"
+    )
+
     current_role = st.session_state.get("role", "guest")
- 
-    # ULTRA-REALTIME CACHE (10s)
-    @st.cache_data(ttl=10)
-    def fetch_messages_full():
+    my_name = st.session_state.full_name
+
+    # ────────────────────────────────────────────────
+    # Fetch data - shorter TTL for chat feel + select only needed fields
+    # ────────────────────────────────────────────────
+    @st.cache_data(ttl=6)  # more frequent refresh for messages
+    def fetch_messages_data():
+        # Get all users (for name mapping & client list)
         users_resp = supabase.table("users").select("id, full_name, role, balance").execute()
         users = users_resp.data or []
- 
-        msg_resp = supabase.table("messages").select("*").order("timestamp", asc=True).execute()  # asc for chronological
+
+        # Get messages - IMPORTANT: select ALL relevant columns
+        msg_resp = supabase.table("messages").select(
+            "id, message, timestamp, from_admin, from_client, to_client"
+        ).order("timestamp", desc=False).execute()  # asc = oldest first
         messages = msg_resp.data or []
- 
-        convos = {}
-        for m in messages:
-            if current_role in ["owner", "admin"]:
-                partner = m.get("to_client") or m.get("from_client", "System")
-            else:
-                partner = "KMFX Admin"
-            convos.setdefault(partner, []).append(m)
- 
-        return users, messages, convos
- 
-    all_users, all_messages, conversations = fetch_messages_full()
- 
-    clients = [u for u in all_users if u["role"] == "client"]
- 
-    # Manual refresh
-    if st.button("🔄 Refresh Messages Now", use_container_width=True, type="secondary"):
-        st.cache_data.clear()
-        st.rerun()
- 
-    st.caption("🔄 Messages auto-refresh every 10s • Attachments (including images) now PERMANENT & VISIBLE")
- 
+
+        return users, messages
+
+    all_users, all_messages = fetch_messages_data()
+
+    # Build name lookup
+    name_by_id = {str(u["id"]): u["full_name"] for u in all_users}
+    balance_by_name = {u["full_name"]: u.get("balance", 0) for u in all_users}
+
+    # ────────────────────────────────────────────────
+    # Determine who we're chatting with
+    # ────────────────────────────────────────────────
     if current_role in ["owner", "admin"]:
-        if not clients:
-            st.info("No clients yet • Private messaging activates with team members")
+        if not any(u["role"] == "client" for u in all_users):
+            st.info("No clients yet. Messaging will activate once team members are added.")
             st.stop()
- 
-        client_options = {f"{c['full_name']} (Balance: ${c['balance'] or 0:,.2f})": c["full_name"] for c in clients}
-        selected_key = st.selectbox("Select Team Member for Private Chat", list(client_options.keys()))
-        partner_name = client_options[selected_key]
-        partner_balance = next((c["balance"] or 0 for c in clients if c["full_name"] == partner_name), 0)
- 
-        st.info(f"**Private chat with:** {partner_name} | Current Balance: ${partner_balance:,.2f}")
- 
-        convo = conversations.get(partner_name, [])
-    else:
+
+        client_names = [u["full_name"] for u in all_users if u["role"] == "client"]
+        client_options = {
+            f"{name} (Balance: ${balance_by_name.get(name, 0):,.2f})": name
+            for name in sorted(client_names)
+        }
+
+        selected_name = st.selectbox(
+            "Chat with team member",
+            options=list(client_options.keys()),
+            index=0,
+            key="admin_chat_select"
+        )
+        partner_name = client_options[selected_name]
+        partner_balance = balance_by_name.get(partner_name, 0)
+
+        st.info(f"**Chatting with:** {partner_name} • Balance: **${partner_balance:,.2f}**")
+
+        # Filter messages for this partner
+        convo = [
+            m for m in all_messages
+            if (m.get("from_client") == partner_name and m.get("to_client") is None) or
+               (m.get("from_admin") == my_name and m.get("to_client") == partner_name) or
+               (m.get("from_client") == partner_name and m.get("to_client") == my_name)
+        ]
+
+    else:  # Client view — always talking to admin / system
         partner_name = "KMFX Admin"
-        convo = [m for m in all_messages if
-                 m.get("to_client") == st.session_state.full_name or
-                 m.get("from_client") == st.session_state.full_name]
-        st.info("**Private channel with KMFX Admin** • Updates on shares, withdrawals, licenses")
- 
-    # REALTIME CHAT DISPLAY (BUBBLES WITH INLINE IMAGES)
+        partner_balance = None  # Admin has no balance shown to clients
+
+        st.info("**Private channel with KMFX Admin** • Updates on profits, withdrawals, licenses, etc.")
+
+        convo = [
+            m for m in all_messages
+            if (m.get("from_client") == my_name) or
+               (m.get("to_client") == my_name)
+        ]
+
+    # ────────────────────────────────────────────────
+    # Chat display
+    # ────────────────────────────────────────────────
     if convo:
-        search_msg = st.text_input("Search messages")
-        display_convo = [m for m in convo if search_msg.lower() in m["message"].lower()] if search_msg else convo
- 
+        search_term = st.text_input("Search messages", "", key="msg_search")
+        if search_term:
+            search_lower = search_term.lower()
+            display_msgs = [m for m in convo if search_lower in m["message"].lower()]
+        else:
+            display_msgs = convo
+
+        # Chat container with auto-scroll behavior
         chat_container = st.container()
         with chat_container:
-            for msg in display_convo:
-                is_from_me = (
-                    (current_role in ["owner", "admin"] and msg.get("from_admin") == st.session_state.full_name) or
-                    (current_role == "client" and msg.get("from_client") == st.session_state.full_name)
-                )
+            for msg in display_msgs:
+                # Determine direction and sender
+                if current_role in ["owner", "admin"]:
+                    is_from_me = msg.get("from_admin") == my_name
+                    sender_name = my_name if is_from_me else (msg.get("from_client") or "System")
+                else:
+                    is_from_me = msg.get("from_client") == my_name
+                    sender_name = my_name if is_from_me else "KMFX Admin"
+
                 align = "flex-end" if is_from_me else "flex-start"
-                bg = accent_primary if is_from_me else card_bg
-                text_c = "#000000" if is_from_me else text_primary
- 
-                sender = msg.get("from_admin") or msg.get("from_client") or "System"
-                time = msg["timestamp"][:16].replace("T", " ")
- 
+                bubble_bg = accent_primary if is_from_me else card_bg
+                text_color = "#000000" if is_from_me else text_primary
+                time_str = msg["timestamp"][:16].replace("T", " ")
+
+                # Message bubble
                 st.markdown(
-                    f"<div style='display:flex; justify-content:{align}; margin:1.2rem 0;'>"
-                    f"<div style='background:{bg}; padding:1.4rem 1.8rem; border-radius:20px; max-width:80%; box-shadow: {card_shadow};'>"
-                    f"<strong style='color:{text_c}; font-size:1.1rem;'>{sender}</strong><br>"
-                    f"<small style='opacity:0.7; color:{text_c}; display:block; margin-bottom:0.8rem;'>{time}</small>"
-                    f"</div>"
-                    f"</div>",
+                    f"""
+                    <div style="
+                        display: flex;
+                        justify-content: {align};
+                        margin: 1.1rem 0;
+                    ">
+                        <div style="
+                            background: {bubble_bg};
+                            color: {text_color};
+                            padding: 1.1rem 1.5rem;
+                            border-radius: 20px;
+                            max-width: 78%;
+                            box-shadow: {card_shadow};
+                            position: relative;
+                        ">
+                            <div style="font-weight: 600; margin-bottom: 0.4rem;">
+                                {sender_name}
+                            </div>
+                            <div style="font-size: 0.9rem; opacity: 0.7; margin-bottom: 0.6rem;">
+                                {time_str}
+                            </div>
+                            {msg['message'].replace('\n', '<br>')}
+                        </div>
+                    </div>
+                    """,
                     unsafe_allow_html=True
                 )
-                # Render message with inline images & file links
-                st.markdown(msg["message"], unsafe_allow_html=True)
- 
-        st.caption(f"{len(convo)} messages • Auto-scroll to bottom on new")
+
+        # Fake auto-scroll effect (Streamlit limitation workaround)
+        st.markdown(
+            """
+            <script>
+            const chat = window.parent.document.querySelectorAll('.stChatMessage, .stContainer')[-1];
+            if (chat) chat.scrollIntoView({behavior: 'smooth', block: 'end'});
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.caption(f"{len(convo)} message{'s' if len(convo) != 1 else ''} • newest at bottom")
+
     else:
-        st.info("No messages yet • Start the conversation below")
- 
-    # SEND MESSAGE WITH PERMANENT ATTACHMENTS (IMAGES VISIBLE INLINE)
-    st.subheader("Send Message")
-    with st.form("send_msg_form", clear_on_submit=True):
-        new_msg = st.text_area("Type your message...", height=120, placeholder="Write here...")
-        msg_files = st.file_uploader("Attach Files/Images (Permanent + Visible in Chat)", accept_multiple_files=True)
- 
-        send = st.form_submit_button("Send ➤", type="primary", use_container_width=True)
-        if send:
-            if not new_msg.strip() and not msg_files:
-                st.error("Message or attachment required")
+        st.info("No messages yet. Start the conversation below ↓")
+
+    # ────────────────────────────────────────────────
+    # Send message form
+    # ────────────────────────────────────────────────
+    st.subheader("Send a Message")
+    with st.form("send_message_form", clear_on_submit=True):
+        col_msg, col_file = st.columns([3, 2])
+
+        with col_msg:
+            new_message = st.text_area(
+                "Your message...",
+                height=110,
+                placeholder="Type here...",
+                label_visibility="collapsed",
+                key="new_msg_input"
+            )
+
+        with col_file:
+            attached_files = st.file_uploader(
+                "Attach images / files (visible inline)",
+                accept_multiple_files=True,
+                type=["png", "jpg", "jpeg", "gif", "pdf", "txt", "docx"],
+                key="msg_attach"
+            )
+
+        submitted = st.form_submit_button("Send →", type="primary", use_container_width=True)
+
+        if submitted:
+            if not new_message.strip() and not attached_files:
+                st.error("Please write a message or attach at least one file.")
             else:
-                try:
-                    # Prepare message text
-                    base_message = new_msg.strip() or "📎 Attached files"
- 
-                    # Upload attachments & build markdown
-                    attachment_md = []
-                    if msg_files:
-                        progress = st.progress(0)
-                        status = st.empty()
-                        for idx, file in enumerate(msg_files):
-                            status.text(f"Uploading {file.name}...")
-                            try:
-                                url, _ = upload_to_supabase(
-                                    file=file,
-                                    bucket="messages",  # Create this bucket in Supabase (public = true recommended)
-                                    folder="attachments",
-                                    use_signed_url=False  # Public URL if bucket public
-                                )
-                                if file.type.startswith("image/"):
-                                    attachment_md.append(f"![{file.name}]({url})")
-                                else:
-                                    attachment_md.append(f"[{file.name}]({url})")
-                            except Exception as e:
-                                st.warning(f"Failed to upload {file.name}: {str(e)}")
-                            progress.progress((idx + 1) / len(msg_files))
-                        status.empty()
-                        progress.empty()
- 
-                    final_message = base_message
-                    if attachment_md:
-                        final_message += "\n\n" + "\n".join(attachment_md)
- 
-                    # Insert message
-                    insert_data = {
-                        "message": final_message,
-                        "timestamp": datetime.datetime.now().isoformat()
-                    }
-                    if current_role in ["owner", "admin"]:
-                        insert_data["from_admin"] = st.session_state.full_name
-                        insert_data["to_client"] = partner_name
-                    else:
-                        insert_data["from_client"] = st.session_state.full_name
- 
-                    supabase.table("messages").insert(insert_data).execute()
- 
-                    log_action("Private Message Sent", f"To/From {partner_name} (with attachments)")
-                    st.success("Message sent! Images & files now visible inline.")
-                    st.cache_data.clear()
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Send failed: {str(e)}")
- 
-    st.caption("🤖 Auto-messages: Profit shares, withdrawal status, license info • Delivered here privately")
- 
-    # ELITE FOOTER
-    st.markdown(f"""
-    <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
-        <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-            Realtime Private Channels
-        </h1>
-        <p style="font-size:1.3rem; margin:2rem 0;">
-            Permanent attachments • Inline image previews • Search • Auto-updates • Empire aligned & connected.
-        </p>
-        <h2 style="color:#ffd700;">👑 KMFX Messages • Elite Realtime 2026</h2>
-    </div>
-    """, unsafe_allow_html=True)
+                with st.spinner("Sending..."):
+                    try:
+                        # Build message content
+                        content_parts = [new_message.strip()] if new_message.strip() else []
+
+                        # Handle attachments
+                        if attached_files:
+                            for file in attached_files:
+                                try:
+                                    url, _ = upload_to_supabase(
+                                        file=file,
+                                        bucket="messages",
+                                        folder="chat_attachments",
+                                        use_signed_url=False  # assuming public bucket
+                                    )
+
+                                    if file.type.startswith("image/"):
+                                        content_parts.append(f"![{file.name}]({url})")
+                                    else:
+                                        content_parts.append(f"[{file.name}]({url})")
+                                except Exception as upload_err:
+                                    st.warning(f"Could not upload {file.name}: {upload_err}")
+
+                        final_content = "\n\n".join(content_parts) or "📎 Attachment only"
+
+                        # Prepare insert
+                        insert_row = {
+                            "message": final_content,
+                            "timestamp": datetime.datetime.now().isoformat()
+                        }
+
+                        if current_role in ["owner", "admin"]:
+                            insert_row["from_admin"] = my_name
+                            insert_row["to_client"] = partner_name
+                        else:
+                            insert_row["from_client"] = my_name
+                            # to_admin is implicit (or you can add "to_admin": "KMFX Admin")
+
+                        supabase.table("messages").insert(insert_row).execute()
+
+                        log_action(
+                            "Private Message Sent",
+                            f"{'To ' + partner_name if current_role in ['owner','admin'] else 'From client'}"
+                        )
+
+                        st.success("Message sent!")
+                        st.cache_data.clear()
+                        st.rerun()
+
+                    except Exception as e:
+                        st.error(f"Failed to send message: {str(e)}")
+
+    st.caption("ℹ️ Auto-messages (profit shares, withdrawals, licenses) appear here automatically.")
 # ====================== NOTIFICATIONS PAGE - FULL FINAL LATEST 2026 (REALTIME + UNREAD BADGES + SEARCH + ELITE CARDS) ======================
 elif selected == "🔔 Notifications":
     st.header("Empire Notifications 🔔")
