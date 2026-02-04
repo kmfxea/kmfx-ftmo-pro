@@ -720,88 +720,72 @@ except:
         <p style='margin:1rem 0 0; opacity:0.8;'>Scale smarter. Trade bolder. Win bigger.</p>
     </div>
     """, unsafe_allow_html=True)
+
+# ====================== DASHBOARD PAGE - FULL LATEST FIXED (100% REALTIME, CLEAN, FAST, NO CACHE, NO BUGS) ======================
 if selected == "🏠 Dashboard":
     st.header("Elite Empire Command Center 🚀")
-    st.markdown("**Realtime, fully automatic empire overview • All values now reliable with live fallback • No persistent mismatch**")
-
+    st.markdown("**Realtime, fully automatic empire overview: Accounts, participant trees, contributor funding (PHP units), profit distributions, client balances, growth fund • Everything synced instantly • Professional, clean, fast performance.**")
+  
     current_role = st.session_state.get("role", "guest")
-
+  
+    # NO CACHE → always fresh realtime data on every load/rerun
+    # OPTIMIZED: Uses materialized views for instant heavy totals + lightweight fetches for trees
     def fetch_empire_summary():
         try:
-            # Materialized views (fast but may lag)
-            gf_mv = supabase.table("mv_growth_fund_balance").select("balance").execute().data
-            gf_balance_mv = gf_mv[0]["balance"] if gf_mv else None
-
-            empire_mv = supabase.table("mv_empire_summary").select("*").execute().data
-            empire = empire_mv[0] if empire_mv else {}
-
-            client_mv = supabase.table("mv_client_balances").select("*").execute().data
-            client_summary = client_mv[0] if client_mv else {}
-
-            # LIVE DATA - always fetch these for accuracy
+            # Instant from materialized views
+            gf_resp = supabase.table("mv_growth_fund_balance").select("balance").execute()
+            gf_balance = gf_resp.data[0]["balance"] if gf_resp.data else 0.0
+           
+            empire_resp = supabase.table("mv_empire_summary").select("*").execute()
+            empire = empire_resp.data[0] if empire_resp.data else {}
+            total_accounts = empire.get("total_accounts", 0)
+            total_equity = empire.get("total_equity", 0.0)
+            total_withdrawable = empire.get("total_withdrawable", 0.0)
+           
+            client_resp = supabase.table("mv_client_balances").select("*").execute()
+            client_summary = client_resp.data[0] if client_resp.data else {}
+            total_client_balances = client_summary.get("total_client_balances", 0.0)
+           
+            # Lightweight for trees & calculations (indexed tables = fast)
             accounts = supabase.table("ftmo_accounts").select("*").execute().data or []
-            actual_total_accounts = len(accounts)
-
-            profits = supabase.table("profits").select("gross_profit, growth_fund_add").execute().data or []
+            profits = supabase.table("profits").select("gross_profit, growth_fund_add").execute().data or []  # FIXED: removed non-existent trader_share
             distributions = supabase.table("profit_distributions").select("share_amount, participant_name, is_growth_fund").execute().data or []
-
+           
             total_gross = sum(p.get("gross_profit", 0) for p in profits)
             total_distributed = sum(d.get("share_amount", 0) for d in distributions if not d.get("is_growth_fund", False))
-
+           
             # Participant shares tree
             participant_shares = {}
             for d in distributions:
                 if not d.get("is_growth_fund", False):
                     name = d["participant_name"]
                     participant_shares[name] = participant_shares.get(name, 0) + d["share_amount"]
-
-            # Total funded PHP (from live accounts)
+           
+            # Total funded PHP (v2 priority)
             total_funded_php = 0
             for acc in accounts:
-                contribs = acc.get("contributors_v2") or acc.get("contributors", [])
-                for c in contribs:
-                    total_funded_php += c.get("units", 0) * c.get("php_per_unit", 0)
-
-            # Use MV values if available, fallback to live calculations
-            total_accounts = empire.get("total_accounts", actual_total_accounts)
-            total_equity = empire.get("total_equity", sum(acc.get("current_equity", 0) for acc in accounts))
-            total_withdrawable = empire.get("total_withdrawable", sum(acc.get("withdrawable_balance", 0) for acc in accounts))
-            gf_balance = gf_balance_mv if gf_balance_mv is not None else 0.0
-
-            # Extra fallback for GF using live transactions (if MV fails)
-            if gf_balance == 0:
-                gf_trans = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
-                gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_trans)
-
-            # Final safety: force correct count
-            if total_accounts != actual_total_accounts:
-                st.info(f"Note: Adjusted account count to actual table value ({actual_total_accounts})")
-                total_accounts = actual_total_accounts
-
+                contributors = acc.get("contributors_v2") or acc.get("contributors", [])
+                for c in contributors:
+                    units = c.get("units", 0)
+                    php_per_unit = c.get("php_per_unit", 0)
+                    total_funded_php += units * php_per_unit
+           
             return (
                 accounts, profits, distributions,
                 total_accounts, total_equity, total_withdrawable,
                 gf_balance, total_gross, total_distributed,
-                client_summary.get("total_client_balances", 0.0),
-                participant_shares, total_funded_php
+                total_client_balances, participant_shares, total_funded_php
             )
-
         except Exception as e:
-            st.error(f"Dashboard fetch error: {str(e)} — Showing fallback values")
-            accounts = supabase.table("ftmo_accounts").select("*").execute().data or []
-            return (
-                accounts, [], [],
-                len(accounts), 0.0, 0.0,
-                0.0, 0.0, 0.0,
-                0.0, {}, 0
-            )
-
+            st.error(f"Summary fetch error: {e}")
+            return [], [], [], 0, 0, 0, 0, 0, 0, 0, {}, 0
+  
     (accounts, profits, distributions,
      total_accounts, total_equity, total_withdrawable,
      gf_balance, total_gross, total_distributed,
      total_client_balances, participant_shares, total_funded_php) = fetch_empire_summary()
-
-    # ====================== PROFESSIONAL METRICS GRID ======================
+  
+    # ====================== PROFESSIONAL METRICS GRID (INSTANT MV TOTALS) ======================
     st.markdown(f"""
     <div style="display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -832,15 +816,16 @@ if selected == "🏠 Dashboard":
             <h2 style="margin:0.5rem 0 0; font-size:2.4rem; color:#00ffaa;">${total_distributed:,.0f}</h2>
         </div>
         <div class="glass-card" style="text-align:center; padding:1.5rem;">
-            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Client Balances</h4>
+            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Client Balances (Auto)</h4>
             <h2 style="margin:0.5rem 0 0; font-size:2.4rem; color:#ffd700;">${total_client_balances:,.0f}</h2>
         </div>
         <div class="glass-card" style="text-align:center; padding:1.5rem;">
-            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Growth Fund</h4>
+            <h4 style="opacity:0.8; margin:0; font-size:1rem;">Growth Fund (Auto)</h4>
             <h2 style="margin:0.5rem 0 0; font-size:2.8rem; color:#ffd700;">${gf_balance:,.0f}</h2>
         </div>
     </div>
     """, unsafe_allow_html=True)
+  
     # ====================== QUICK ACTIONS ======================
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -872,11 +857,11 @@ if selected == "🏠 Dashboard":
             </p>
         </div>
         """, unsafe_allow_html=True)
- 
+  
     # ====================== EMPIRE FLOW TREES ======================
     st.subheader("🌳 Empire Flow Trees (Realtime Auto-Sync)")
     tab_emp1, tab_emp2 = st.tabs(["Participant Shares Distribution", "Contributor Funding Flow (PHP)"])
- 
+  
     with tab_emp1:
         if participant_shares:
             labels = ["Empire Shares"] + list(participant_shares.keys())
@@ -889,7 +874,7 @@ if selected == "🏠 Dashboard":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No distributions yet • Activates with first profit")
- 
+  
     with tab_emp2:
         funded_by_contributor = {}
         for acc in accounts:
@@ -900,7 +885,7 @@ if selected == "🏠 Dashboard":
                 php = units * php_per_unit
                 name = c.get("display_name") or c.get("name", "Unknown")
                 funded_by_contributor[name] = funded_by_contributor.get(name, 0) + php
-     
+      
         if funded_by_contributor:
             labels = ["Empire Funded (PHP)"] + list(funded_by_contributor.keys())
             values = list(funded_by_contributor.values())
@@ -912,7 +897,7 @@ if selected == "🏠 Dashboard":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No contributors yet")
- 
+  
     # ====================== LIVE ACCOUNTS WITH MINI-TREES ======================
     st.subheader("📊 Live Accounts (Realtime Metrics & Trees)")
     if accounts:
@@ -921,7 +906,7 @@ if selected == "🏠 Dashboard":
             contributors = acc.get("contributors_v2") or acc.get("contributors", [])
             total_funded_php_acc = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors)
             phase_emoji = {"Challenge P1": "🔴", "Challenge P2": "🟡", "Verification": "🟠", "Funded": "🟢", "Scaled": "💎"}.get(acc["current_phase"], "⚪")
-         
+          
             st.markdown(f"""
             <div class='glass-card' style='padding:2rem;'>
                 <h3>{phase_emoji} {acc['name']}</h3>
@@ -933,7 +918,7 @@ if selected == "🏠 Dashboard":
                 </div>
             </div>
             """, unsafe_allow_html=True)
-         
+          
             tab1, tab2 = st.tabs(["Participants Tree", "Contributors Tree (PHP)"])
             with tab1:
                 participants = acc.get("participants_v2") or acc.get("participants", [])
@@ -959,7 +944,7 @@ if selected == "🏠 Dashboard":
         st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("No accounts yet • Launch first to activate full realtime flow")
- 
+  
     # ====================== CLIENT BALANCES (OWNER/ADMIN ONLY - INSTANT MV) ======================
     if current_role in ["owner", "admin"]:
         st.subheader("👥 Team Client Balances (Realtime Auto)")
@@ -968,9 +953,7 @@ if selected == "🏠 Dashboard":
         if clients:
             client_df = pd.DataFrame([{"Client": u["full_name"], "Balance": f"${u.get('balance', 0):,.2f}"} for u in clients])
             st.dataframe(client_df, use_container_width=True, hide_index=True)
-        else:
-            st.info("No clients yet")
- 
+  
     # ====================== MOTIVATIONAL CLOSE ======================
     st.markdown(f"""
     <div class='glass-card' style='padding:4rem; text-align:center; margin:4rem 0; border: 2px solid {accent_color};'>
@@ -983,14 +966,15 @@ if selected == "🏠 Dashboard":
         <h2 style="color:#ffd700;">👑 KMFX Pro • Cloud Edition 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== FTMO ACCOUNTS PAGE - FULL LATEST FIXED (100% REALTIME, CLEAN, FAST, NO CACHE ISSUES, v2 PRIORITY, BULLETPROOF) ======================
+# ====================== PART 4: FTMO ACCOUNTS PAGE (FINAL SUPER ADVANCED - FIXED SUBMIT & COLUMN VALUE ERROR) ======================
+# ====================== FTMO ACCOUNTS PAGE - FULL LATEST UNIFIED TREE WITH CONTRIBUTOR POOL ======================
 elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
-    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified profit tree (include 'Contributor Pool' row) • Edit all % freely • Must sum exactly 100% • Contributors dropdown registered only • Auto pro-rata from Contributor Pool % • Realtime previews • Full validation • Instant sync • UUID v2 active (bulletproof balance sync).**")
+    st.markdown("**Empire core: Owner/Admin launch, edit, delete accounts • Clients view shared participation • Unified profit tree (include 'Contributor Pool' row) • Edit all % freely • Must sum exactly 100% • Contributors dropdown registered only • Auto pro-rata from Contributor Pool % • Real-time previews • Full validation • Instant sync • UUID v2 active (bulletproof balance sync).**")
  
     current_role = st.session_state.get("role", "guest")
  
-    # NO CACHE → always fresh realtime data (matches dashboard style)
+    @st.cache_data(ttl=60)
     def fetch_all_data():
         accounts_resp = supabase.table("ftmo_accounts").select("*").order("created_date", desc=True).execute()
         users_resp = supabase.table("users").select("id, full_name, role, balance, title").execute()
@@ -999,12 +983,12 @@ elif selected == "📊 FTMO Accounts":
     accounts, all_users = fetch_all_data()
  
     # ============ DISPLAY MAPS FOR TITLED NAMES + UUID v2 SUPPORT ============
-    user_id_to_display = {}  # str(uuid) → "Name (Title)"
-    display_to_user_id = {}  # "Name (Title)" → str(uuid) or None (for specials)
-    user_id_to_full_name = {}  # str(uuid) → "Name"
+    user_id_to_display = {} # str(uuid) → "Name (Title)"
+    display_to_user_id = {} # "Name (Title)" → str(uuid) or None (for specials)
+    user_id_to_full_name = {} # str(uuid) → "Name"
    
     for u in all_users:
-        if u["role"] in ["client", "owner"]:  # Include owner for "King Minted"
+        if u["role"] == "client" or u["role"] == "owner": # Include owner for "King Minted"
             str_id = str(u["id"])
             display = u["full_name"]
             if u.get("title"):
@@ -1019,11 +1003,11 @@ elif selected == "📊 FTMO Accounts":
         display_to_user_id[s] = None
    
     participant_options = special_options + list(display_to_user_id.keys())
-    contributor_options = list(user_id_to_display.values())  # Only real users
+    contributor_options = list(user_id_to_display.values()) # Only real users for contributors
    
     # Owner display fallback
     owner_display = next((d for d, uid in display_to_user_id.items() if uid and next((uu for uu in all_users if str(uu["id"]) == uid and uu["role"] == "owner"), None)), "King Minted")
- 
+   
     if current_role in ["owner", "admin"]:
         with st.expander("➕ Launch New FTMO Account", expanded=True):
             with st.form("create_account_form", clear_on_submit=True):
@@ -1073,7 +1057,7 @@ elif selected == "📊 FTMO Accounts":
               
                 contributor_share_pct = contrib_rows.iloc[0]["percentage"] if len(contrib_rows) == 1 else 0.0
               
-                # Manual custom names handling
+                # Manual custom names
                 manual_inputs = []
                 for idx, row in edited_tree.iterrows():
                     if row["display_name"] == "Manual Payout (Temporary)":
@@ -1101,7 +1085,7 @@ elif selected == "📊 FTMO Accounts":
                     total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                     st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
              
-                tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree Preview", "Contributors Funding Tree Preview"])
+                tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                 with tab_prev1:
                     labels = ["Gross Profit"]
                     for _, row in edited_tree.iterrows():
@@ -1110,10 +1094,8 @@ elif selected == "📊 FTMO Accounts":
                             d = "Contributor Pool (pro-rata)"
                         labels.append(f"{d} ({row['percentage']:.1f}%)")
                     values = edited_tree["percentage"].tolist()
-                    fig = go.Figure(data=[go.Sankey(
-                        node=dict(pad=15, thickness=20, label=labels),
-                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                    )])
+                    fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                    link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                     fig.update_layout(font=dict(color="black"))
                     st.plotly_chart(fig, use_container_width=True)
                 with tab_prev2:
@@ -1122,10 +1104,8 @@ elif selected == "📊 FTMO Accounts":
                         if not valid.empty:
                             labels = ["Funded (PHP)"] + [f"{row['display_name']} ({row['units']} units @ ₱{row['php_per_unit']:,.0f}/unit)" for _, row in valid.iterrows()]
                             values = (valid["units"] * valid["php_per_unit"]).tolist()
-                            fig = go.Figure(data=[go.Sankey(
-                                node=dict(pad=15, thickness=20, label=labels),
-                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                            )])
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                             fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
              
@@ -1200,6 +1180,7 @@ elif selected == "📊 FTMO Accounts":
                            
                             st.success("Account launched successfully! 🎉")
                             st.balloons()
+                            st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Failed to launch account: {str(e)}")
@@ -1226,10 +1207,8 @@ elif selected == "📊 FTMO Accounts":
                                 display = "Contributor Pool (pro-rata)"
                             labels.append(f"{display} ({p['percentage']:.1f}%)")
                         values = [p["percentage"] for p in participants]
-                        fig = go.Figure(data=[go.Sankey(
-                            node=dict(pad=15, thickness=20, label=labels),
-                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                        )])
+                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                         fig.update_layout(font=dict(color="black"))
                         st.plotly_chart(fig, use_container_width=True)
                     with tab2:
@@ -1240,10 +1219,8 @@ elif selected == "📊 FTMO Accounts":
                                 display = user_id_to_display.get(c.get("user_id"), c.get("name", "Unknown")) if use_v2 else c.get("name", "Unknown")
                                 labels.append(f"{display} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)")
                                 values.append(c.get("units", 0) * c.get("php_per_unit", 0))
-                            fig = go.Figure(data=[go.Sankey(
-                                node=dict(pad=15, thickness=20, label=labels),
-                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                            )])
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                             fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
                         else:
@@ -1260,6 +1237,7 @@ elif selected == "📊 FTMO Accounts":
                             try:
                                 supabase.table("ftmo_accounts").delete().eq("id", acc["id"]).execute()
                                 st.success("Account removed")
+                                st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
@@ -1286,7 +1264,7 @@ elif selected == "📊 FTMO Accounts":
                         st.subheader("🌳 Unified Profit Distribution Tree (%)")
                         st.info("**Include 'Contributor Pool' row** • Edit all % freely • Total must be exactly 100%")
                       
-                        # Load current tree - prefer v2, fallback + auto-migrate
+                        # Load current tree - prefer v2, fallback to old + auto-migrate path
                         use_v2 = bool(cur.get("participants_v2"))
                         if use_v2:
                             current_part = pd.DataFrame(cur.get("participants_v2", []))
@@ -1294,19 +1272,24 @@ elif selected == "📊 FTMO Accounts":
                                 lambda row: row.get("display_name") or user_id_to_display.get(row.get("user_id"), "Unknown"), axis=1
                             )
                         else:
+                            # Legacy migration path
                             legacy_part = pd.DataFrame(cur.get("participants", []))
                             legacy_part["display_name"] = legacy_part["name"].apply(
                                 lambda n: next((d for d, uid in display_to_user_id.items() if user_id_to_full_name.get(uid) == n), n)
                             )
                             current_part = legacy_part[["display_name", "role", "percentage"]].copy()
-                            st.info("🔄 Legacy → saving will migrate to v2")
+                            st.info("🔄 Legacy account detected — saving will migrate to v2 permanently")
                       
-                        # Auto-add missing Contributor Pool
+                        # Auto-add Contributor Pool if missing (for full compatibility)
                         if "Contributor Pool" not in current_part["display_name"].values:
                             contrib_pct = cur.get("contributor_share_pct", 30.0)
-                            contrib_row = pd.DataFrame([{"display_name": "Contributor Pool", "role": "Funding Contributors (pro-rata)", "percentage": contrib_pct}])
+                            contrib_row = pd.DataFrame([{
+                                "display_name": "Contributor Pool",
+                                "role": "Funding Contributors (pro-rata)",
+                                "percentage": contrib_pct
+                            }])
                             current_part = pd.concat([contrib_row, current_part], ignore_index=True)
-                            st.info(f"Auto-added missing Contributor Pool ({contrib_pct:.1f}%)")
+                            st.info(f"Auto-added missing 'Contributor Pool' row ({contrib_pct:.1f}%)")
                       
                         edited_tree = st.data_editor(
                             current_part[["display_name", "role", "percentage"]],
@@ -1349,7 +1332,7 @@ elif selected == "📊 FTMO Accounts":
                                 lambda n: next((d for d, uid in display_to_user_id.items() if user_id_to_full_name.get(uid) == n), n)
                             )
                             current_contrib = legacy_contrib[["display_name", "units", "php_per_unit"]].copy()
-                            st.info("🔄 Legacy contributors → saving will migrate to v2")
+                            st.info("🔄 Legacy contributors — saving will migrate to v2")
                        
                         edited_contrib = st.data_editor(
                             current_contrib[["display_name", "units", "php_per_unit"]],
@@ -1367,7 +1350,7 @@ elif selected == "📊 FTMO Accounts":
                             total_php = (edited_contrib["units"] * edited_contrib["php_per_unit"]).sum()
                             st.metric("Total Funded (PHP)", f"₱{total_php:,.0f}")
                       
-                        tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree Preview", "Contributors Funding Tree Preview"])
+                        tab_prev1, tab_prev2 = st.tabs(["Unified Profit Tree", "Contributors Funding Tree"])
                         with tab_prev1:
                             labels = ["Gross Profit"]
                             for _, row in edited_tree.iterrows():
@@ -1376,10 +1359,8 @@ elif selected == "📊 FTMO Accounts":
                                     d = "Contributor Pool (pro-rata)"
                                 labels.append(f"{d} ({row['percentage']:.1f}%)")
                             values = edited_tree["percentage"].tolist()
-                            fig = go.Figure(data=[go.Sankey(
-                                node=dict(pad=15, thickness=20, label=labels),
-                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                            )])
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                             fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
                         with tab_prev2:
@@ -1388,10 +1369,8 @@ elif selected == "📊 FTMO Accounts":
                                 if not valid.empty:
                                     labels = ["Funded (PHP)"] + [f"{row['display_name']} ({row['units']} units @ ₱{row['php_per_unit']:,.0f}/unit)" for _, row in valid.iterrows()]
                                     values = (valid["units"] * valid["php_per_unit"]).tolist()
-                                    fig = go.Figure(data=[go.Sankey(
-                                        node=dict(pad=15, thickness=20, label=labels),
-                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                                    )])
+                                    fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                                    link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                                     fig.update_layout(font=dict(color="black"))
                                     st.plotly_chart(fig, use_container_width=True)
                       
@@ -1406,7 +1385,7 @@ elif selected == "📊 FTMO Accounts":
                                     st.error("Total % not 100%")
                                 else:
                                     try:
-                                        # Force v2 on save
+                                        # Build v2 (always forced on save)
                                         final_part_v2 = []
                                         for row in edited_tree.to_dict(orient="records"):
                                             display = row["display_name"]
@@ -1431,7 +1410,7 @@ elif selected == "📊 FTMO Accounts":
                                                 "php_per_unit": row["php_per_unit"]
                                             })
                                        
-                                        # Keep old for backward compat
+                                        # Backward old (kept for now)
                                         final_part_old = []
                                         for p in final_part_v2:
                                             name = user_id_to_full_name.get(p["user_id"], p["display_name"]) if p["user_id"] else p["display_name"]
@@ -1456,9 +1435,10 @@ elif selected == "📊 FTMO Accounts":
                                             "contributor_share_pct": contributor_share_pct
                                         }).eq("id", eid).execute()
                                        
-                                        st.success("Account updated + migrated to v2! 🎉")
+                                        st.success("Account updated + fully migrated to v2! 🎉")
                                         del st.session_state.edit_acc_id
                                         del st.session_state.edit_acc_data
+                                        st.cache_data.clear()
                                         st.rerun()
                                     except Exception as e:
                                         st.error(f"Error: {str(e)}")
@@ -1470,36 +1450,27 @@ elif selected == "📊 FTMO Accounts":
         else:
             st.info("No accounts yet")
  
-    # ==================== CLIENT VIEW (REALTIME TITLES & TREES) ====================
+    # ==================== CLIENT VIEW ====================
     else:
         my_name = st.session_state.full_name
         my_accounts = []
         for a in accounts:
             participants = a.get("participants_v2") or a.get("participants", [])
-            if any(
-                p.get("display_name") == my_name or 
-                p.get("name") == my_name or 
-                user_id_to_full_name.get(p.get("user_id")) == my_name 
-                for p in participants
-            ):
+            if any(p.get("display_name") == my_name or p.get("name") == my_name or
+                   user_id_to_full_name.get(p.get("user_id")) == my_name for p in participants):
                 my_accounts.append(a)
        
         st.subheader(f"Your Shared Accounts ({len(my_accounts)})")
         if my_accounts:
             for acc in my_accounts:
                 participants = acc.get("participants_v2") or acc.get("participants", [])
-                my_pct = next((
-                    p["percentage"] for p in participants if
-                    p.get("display_name") == my_name or 
-                    p.get("name") == my_name or 
-                    user_id_to_full_name.get(p.get("user_id")) == my_name
-                ), 0)
+                my_pct = next((p["percentage"] for p in participants if
+                               p.get("display_name") == my_name or p.get("name") == my_name or
+                               user_id_to_full_name.get(p.get("user_id")) == my_name), 0)
                
                 contributors = acc.get("contributors_v2") or acc.get("contributors", [])
-                my_funded_php = sum(
-                    c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors
-                    if user_id_to_full_name.get(c.get("user_id")) == my_name or c.get("name") == my_name
-                )
+                my_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors
+                                    if user_id_to_full_name.get(c.get("user_id")) == my_name or c.get("name") == my_name)
                
                 with st.expander(f"🌟 {acc['name']} • Your Share: {my_pct:.1f}% • Your Funded ₱{my_funded_php:,.0f}", expanded=True):
                     st.markdown(f"**Phase:** {acc['current_phase']} • **Equity:** ${acc.get('current_equity', 0):,.0f}")
@@ -1512,10 +1483,8 @@ elif selected == "📊 FTMO Accounts":
                                 display = "Contributor Pool (pro-rata)"
                             labels.append(f"{display} ({p['percentage']:.1f}%)")
                         values = [p["percentage"] for p in participants]
-                        fig = go.Figure(data=[go.Sankey(
-                            node=dict(pad=15, thickness=20, label=labels),
-                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                        )])
+                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                         fig.update_layout(font=dict(color="black"))
                         st.plotly_chart(fig, use_container_width=True)
                     with tab2:
@@ -1526,10 +1495,8 @@ elif selected == "📊 FTMO Accounts":
                                 display = user_id_to_display.get(c.get("user_id"), c.get("name", "Unknown"))
                                 labels.append(f"{display} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)")
                                 values.append(c.get("units", 0) * c.get("php_per_unit", 0))
-                            fig = go.Figure(data=[go.Sankey(
-                                node=dict(pad=15, thickness=20, label=labels),
-                                link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                            )])
+                            fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                             fig.update_layout(font=dict(color="black"))
                             st.plotly_chart(fig, use_container_width=True)
                         else:
@@ -1551,10 +1518,8 @@ elif selected == "📊 FTMO Accounts":
                             display = "Contributor Pool (pro-rata)"
                         labels.append(f"{display} ({p['percentage']:.1f}%)")
                     values = [p["percentage"] for p in participants]
-                    fig = go.Figure(data=[go.Sankey(
-                        node=dict(pad=15, thickness=20, label=labels),
-                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                    )])
+                    fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                    link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                     fig.update_layout(font=dict(color="black"))
                     st.plotly_chart(fig, use_container_width=True)
                 with tab2:
@@ -1566,10 +1531,8 @@ elif selected == "📊 FTMO Accounts":
                             display = user_id_to_display.get(c.get("user_id"), c.get("name", "Unknown"))
                             labels.append(f"{display} ({c.get('units', 0)} units @ ₱{c.get('php_per_unit', 0):,.0f}/unit)")
                             values.append(c.get("units", 0) * c.get("php_per_unit", 0))
-                        fig = go.Figure(data=[go.Sankey(
-                            node=dict(pad=15, thickness=20, label=labels),
-                            link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values)
-                        )])
+                        fig = go.Figure(data=[go.Sankey(node=dict(pad=15, thickness=20, label=labels),
+                                                        link=dict(source=[0]*len(values), target=list(range(1, len(values)+1)), value=values))])
                         fig.update_layout(font=dict(color="black"))
                         st.plotly_chart(fig, use_container_width=True)
                     else:
@@ -1577,10 +1540,10 @@ elif selected == "📊 FTMO Accounts":
  
     if not accounts:
         st.info("No accounts in empire yet")
-# ====================== PROFIT SHARING PAGE - FULL LATEST FIXED (100% REALTIME, CLEAN, FAST, BULLETPROOF v2 SYNC, AUTO-EMAIL PERFECT) ======================
+# ====================== PROFIT SHARING PAGE - BULLETPROOF BALANCE SYNC + AUTO-EMAIL (GMAIL/STREAMLIT CLOUD FIX) ======================
 elif selected == "💰 Profit Sharing":
     st.header("Profit Sharing & Auto-Distribution 💰")
-    st.markdown("**Empire scaling engine: Input FTMO withdrawable profit → Auto-split & distribute using stored v2 tree • Bulletproof UUID balance updates • Premium HTML auto-email to ALL involved • Realtime preview • Instant sync across dashboard/balances/GF.**")
+    st.markdown("**Empire scaling engine: Input FTMO withdrawable profit → Auto-split & distribute using stored tree • 100% UUID v2 for bulletproof balance updates • Auto-email premium HTML breakdown to ALL involved members • Realtime preview • Instant sync.**")
     
     current_role = st.session_state.get("role", "guest")
     if current_role not in ["owner", "admin"]:
@@ -1591,7 +1554,7 @@ elif selected == "💰 Profit Sharing":
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
 
-    # NO CACHE → always fresh realtime data (accounts, users, trees)
+    @st.cache_data(ttl=60)
     def fetch_profit_data():
         accounts = supabase.table("ftmo_accounts").select(
             "id, name, current_phase, current_equity, unit_value, "
@@ -1617,23 +1580,23 @@ elif selected == "💰 Profit Sharing":
     accounts, raw_users, user_id_to_display, user_id_to_email, user_id_to_balance = fetch_profit_data()
 
     if not accounts:
-        st.info("No accounts yet — launch first in FTMO Accounts.")
+        st.info("No accounts yet.")
         st.stop()
 
     account_options = {f"{a['name']} • Phase: {a['current_phase']} • Equity ${a.get('current_equity', 0):,.0f} • Contributor Pool: {a.get('contributor_share_pct', 0):.1f}%": a for a in accounts}
-    selected_key = st.selectbox("Select Account for Profit Recording", list(account_options.keys()))
+    selected_key = st.selectbox("Select Account", list(account_options.keys()))
     acc = account_options[selected_key]
     acc_id = acc["id"]
     acc_name = acc["name"]
     unit_value = acc.get("unit_value", 3000.0)
 
-    # FORCE v2 ONLY (safe check)
+    # FORCE v2 ONLY
     participants = acc.get("participants_v2", [])
     contributors = acc.get("contributors_v2", [])
     contributor_share_pct = acc.get("contributor_share_pct", 0)
 
     if not participants:
-        st.error("Account missing v2 participants data • Re-edit in FTMO Accounts to migrate.")
+        st.error("Account missing participants_v2 data • Re-edit account in FTMO Accounts page to migrate to v2")
         st.stop()
 
     st.info(f"**Recording for:** {acc_name} | Contributor Pool: {contributor_share_pct:.1f}% | UUID v2: Active (perfect sync + auto-email)")
@@ -1645,18 +1608,18 @@ elif selected == "💰 Profit Sharing":
         with col2:
             record_date = st.date_input("Record Date", datetime.date.today())
 
-        # Stored v2 tree preview (with titles)
-        st.subheader("Stored Unified Profit Tree (Edit in FTMO Accounts)")
+        # Stored tree preview
+        st.subheader("Stored Unified Profit Tree (Edit in FTMO Accounts page)")
         part_df = pd.DataFrame([
             {
-                "Name": user_id_to_display.get(p.get("user_id"), p.get("display_name", "Unknown")),
+                "Name": user_id_to_display.get(p.get("user_id"), "Unknown"),
                 "Role": p.get("role", ""),
                 "%": f"{p['percentage']:.1f}"
             } for p in participants
         ])
         st.dataframe(part_df, use_container_width=True, hide_index=True)
 
-        # Previews + involved users collection
+        # Previews + collect involved user_ids for email
         contrib_preview = []
         part_preview = []
         involved_user_ids = set()
@@ -1680,9 +1643,9 @@ elif selected == "💰 Profit Sharing":
             if not user_id:
                 continue
             involved_user_ids.add(user_id)
-            display = user_id_to_display.get(user_id, p.get("display_name", "Unknown"))
+            display = user_id_to_display.get(user_id, "Unknown")
             share = gross_profit * (p["percentage"] / 100)
-            if "growth fund" in display.lower() or "gf" in display.lower():
+            if "growth fund" in display.lower():
                 gf_add += share
             part_preview.append({"Name": display, "%": f"{p['percentage']:.1f}", "Share": f"${share:,.2f}"})
 
@@ -1703,7 +1666,7 @@ elif selected == "💰 Profit Sharing":
         col_p2.metric("Contributor Pool Total", f"${contributor_pool:,.2f}")
         col_p3.metric("Units Generated", f"{units:.2f}")
 
-        # Sankey preview (safe & clean)
+        # Sankey preview (safe numeric values)
         labels = [f"Gross Profit ${gross_profit:,.0f}"]
         values = []
         source = []
@@ -1736,7 +1699,7 @@ elif selected == "💰 Profit Sharing":
             node=dict(pad=20, thickness=30, label=labels, color=["#00ffaa"] + ["#ffd700"]*len(contrib_preview) + [accent_primary]*len(part_preview)),
             link=dict(source=source, target=target, value=values)
         )])
-        fig.update_layout(title_text="Realtime Distribution Flow Preview", height=600)
+        fig.update_layout(title_text="Realtime Direct Distribution Flow", height=600)
         st.plotly_chart(fig, use_container_width=True)
 
         submitted = st.form_submit_button("🚀 Record Profit & Execute Auto-Distribution", type="primary", use_container_width=True)
@@ -1784,16 +1747,16 @@ elif selected == "💰 Profit Sharing":
                             current_bal = user_id_to_balance.get(user_id, 0)
                             new_bal = current_bal + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user_id).execute()
-                            updated.append(f"{display_name} +${share:,.2f}")
+                            updated.append(f"{display_name} +${share:,.2f} (contributor)")
 
                     # Direct participants
                     for p in participants:
                         user_id = p.get("user_id")
                         if not user_id:
                             continue
-                        display_name = user_id_to_display.get(user_id, p.get("display_name", "Unknown"))
+                        display_name = user_id_to_display.get(user_id, "Unknown")
                         share = gross_profit * (p["percentage"] / 100)
-                        is_gf = "growth fund" in display_name.lower() or "gf" in display_name.lower()
+                        is_gf = "growth fund" in display_name.lower()
 
                         distributions.append({
                             "profit_id": profit_id,
@@ -1809,7 +1772,7 @@ elif selected == "💰 Profit Sharing":
                             current_bal = user_id_to_balance.get(user_id, 0)
                             new_bal = current_bal + share
                             supabase.table("users").update({"balance": new_bal}).eq("id", user_id).execute()
-                            updated.append(f"{display_name} +${share:,.2f}")
+                            updated.append(f"{display_name} +${share:,.2f} (participant)")
 
                     if distributions:
                         supabase.table("profit_distributions").insert(distributions).execute()
@@ -1824,7 +1787,7 @@ elif selected == "💰 Profit Sharing":
                             "recorded_by": st.session_state.full_name
                         }).execute()
 
-                    # ==================== AUTO HTML EMAIL (RELIABLE ON STREAMLIT CLOUD) ====================
+                    # ==================== AUTO EMAIL BREAKDOWN (RELIABLE GMAIL/STREAMLIT FIX) ====================
                     date_str = record_date.strftime("%B %d, %Y")
                     html_breakdown = f"""
                     <html>
@@ -1832,7 +1795,7 @@ elif selected == "💰 Profit Sharing":
                         <div style="max-width: 800px; margin: auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                             <h1 style="color: #00ffaa; text-align: center;">🚀 KMFX Profit Distribution Report</h1>
                             <h2 style="text-align: center;">Account: {acc_name} • Date: {date_str}</h2>
-                            <p style="font-size: 1.2rem; text-align: center;">Gross Profit: <strong>${gross_profit:,.2f}</strong></p>
+                            <p style="font-size: 1.2rem; text-align: center;">Gross Profit Received: <strong>${gross_profit:,.2f}</strong></p>
                             <p style="font-size: 1.2rem; text-align: center;">Contributor Pool ({contributor_share_pct:.1f}%): <strong>${contributor_pool:,.2f}</strong></p>
                             <p style="font-size: 1.2rem; text-align: center;">Units Generated: <strong>{units:.2f}</strong></p>
                             <h3>Contributor Pool Breakdown</h3>
@@ -1865,7 +1828,7 @@ elif selected == "💰 Profit Sharing":
                     st.subheader("Profit Distribution Breakdown (Auto-Sent via Email)")
                     st.markdown(html_breakdown, unsafe_allow_html=True)
 
-                    # RELIABLE EMAIL SEND (Port 587 + STARTTLS - proven on Streamlit Cloud)
+                    # FIXED RELIABLE EMAIL SEND (Port 587 + STARTTLS - works perfectly on Streamlit Cloud)
                     sender_email = os.getenv("EMAIL_SENDER")
                     sender_password = os.getenv("EMAIL_PASSWORD")
                     sent_count = 0
@@ -1873,6 +1836,7 @@ elif selected == "💰 Profit Sharing":
 
                     if sender_email and sender_password and involved_user_ids:
                         try:
+                            # Reliable connection for Streamlit Cloud
                             server = smtplib.SMTP("smtp.gmail.com", 587)
                             server.ehlo()
                             server.starttls()
@@ -1892,24 +1856,28 @@ elif selected == "💰 Profit Sharing":
                                         server.sendmail(sender_email, email, msg.as_string())
                                         sent_count += 1
                                     except Exception as e:
-                                        failed_details.append(f"{display_name}: {str(e)}")
+                                        error_msg = str(e)
+                                        failed_details.append(f"{display_name}: {error_msg}")
+                                        st.warning(f"Failed for {display_name}: {error_msg}")
                             server.quit()
 
                             if sent_count > 0:
-                                st.success(f"Breakdown emailed to {sent_count} members! 🚀")
+                                st.success(f"Breakdown successfully emailed to {sent_count} members! 🚀")
                             if failed_details:
-                                st.warning("Some emails failed — check member emails in Team Management")
+                                st.error("Some emails failed — check member email addresses")
                         except Exception as login_e:
-                            st.error(f"SMTP Error: {str(login_e)}")
-                            st.info("Fix: Use Gmail App Password (16-digit) + correct EMAIL_SENDER in secrets")
+                            full_error = str(login_e)
+                            st.error(f"SMTP Connection/Login Failed: {full_error}")
+                            st.info("Common fixes: Use 16-digit Gmail App Password • Enable 2FA • Correct EMAIL_SENDER")
                     else:
-                        st.warning("Email skipped — add EMAIL_SENDER/PASSWORD secrets or member emails")
-                        st.info("Copy HTML above for manual send")
+                        st.warning("Email not sent — Missing secrets in Streamlit Cloud or no member emails")
+                        st.info("Copy breakdown above for manual send")
 
-                    st.success(f"Profit recorded & distributed! Updated: {', '.join(updated) or 'GF only'}")
+                    st.success(f"Profit recorded & distributed! Updated balances: {', '.join(updated) or 'None'}")
+                    st.cache_data.clear()
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Recording error: {str(e)}")
+                    st.error(f"Error recording profit: {str(e)}")
 # ====================== MY PROFILE PAGE - FULL FINAL LATEST (WITH SELF QR GENERATE/REGENERATE) ======================
 elif selected == "👤 My Profile":
     # SAFE ROLE CHECK
