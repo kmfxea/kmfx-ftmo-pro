@@ -14,22 +14,34 @@ from io import BytesIO
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import uuid
-# Global fix: lahat ng timestamp na may format na YYYY-MM-DDTHH:MM:SS na lalabas sa page
-# ay papalitan ng Philippine Time gamit ang browser (mas mabilis, walang pytz sa server)
+# === TEMPORARY GLOBAL TIME FIX - PHILIPPINE TIME ===
 st.markdown("""
+<style>
+    /* Optional: gawing mas malinaw ang timestamp para madaling makita kung na-update */
+    .timestamp-fix { color: #00ffaa; font-weight: bold; }
+</style>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Hanapin lahat ng text na mukhang ISO timestamp (hal. 2026-02-04T14:37:22)
-    const timeElements = document.querySelectorAll('p, span, div, small, caption, td, th');
-    timeElements.forEach(el => {
-        let text = el.innerText.trim();
-        if (text.match(/\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:?\\d{0,2}(Z)?/)) {
+function fixTimestamps() {
+    // Hanapin lahat ng text nodes na may possible ISO timestamp
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+
+    let node;
+    while (node = walker.nextNode()) {
+        let text = node.nodeValue.trim();
+        if (text.match(/\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}(:\\d{2})?(Z)?/)) {
             try {
-                // Parse bilang UTC
-                let date = new Date(text);
-                if (!isNaN(date)) {
-                    // Convert to Asia/Manila (UTC+8)
-                    let options = {
+                // Subukan i-parse bilang date
+                let iso = text.replace(" ", "T"); // kung may space sa halip na T
+                let date = new Date(iso);
+                if (!isNaN(date.getTime())) {
+                    // Convert to PHT
+                    let pht = date.toLocaleString('en-PH', {
                         timeZone: 'Asia/Manila',
                         year: 'numeric',
                         month: 'short',
@@ -37,14 +49,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: true
-                    };
-                    let formatted = date.toLocaleString('en-US', options);
-                    // Palitan ang orihinal na text
-                    el.innerText = el.innerText.replace(text, formatted);
+                    });
+                    // Palitan ang text
+                    node.nodeValue = node.nodeValue.replace(text, pht);
                 }
             } catch(e) {}
         }
-    });
+    }
+}
+
+// I-run pagkatapos mag-load + may delay para siguradong na-render na lahat
+window.addEventListener('load', function() {
+    setTimeout(fixTimestamps, 800);
+    // I-run ulit after 2 seconds para sa dynamic content
+    setTimeout(fixTimestamps, 2000);
 });
 </script>
 """, unsafe_allow_html=True)
