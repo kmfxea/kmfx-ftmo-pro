@@ -670,9 +670,9 @@ if st.session_state.get("show_full_journey", False):
     # 2019-2021 – Pandemic Wins
     st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
     col_klever1, col_klever2 = st.columns(2)
-    with col_klever1:
+with col_klever1:
         #st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
-    with col_klever2:
+with col_klever2:
         st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
     st.write("""
     Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
@@ -693,9 +693,9 @@ if st.session_state.get("show_full_journey", False):
     # 2025-2026 – FTMO Challenges
     st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
     col_ftmo1, col_ftmo2 = st.columns(2)
-    with col_ftmo1:
+with col_ftmo1:
         #st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
-    with col_ftmo2:
+with col_ftmo2:
         st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
     st.write("""
     Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
