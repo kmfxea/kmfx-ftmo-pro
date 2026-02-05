@@ -652,7 +652,7 @@ if st.session_state.get("show_full_journey", False):
     
     # 2014 – Discovery
     st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
-    #st.image("assets/journey_2014.png", use_container_width=True, caption="My early days discovering PSE while working in Saudi (replace with your photo/screenshot)")
+    # st.image("assets/journey_2014.png", use_container_width=True, caption="My early days discovering PSE while working in Saudi")
     st.write("""
     Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market. 
     Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy. 
@@ -661,7 +661,7 @@ if st.session_state.get("show_full_journey", False):
     
     # 2017 – Crypto Boom
     st.markdown("<h3 style='color:{accent_gold};'>2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
-    #st.image("assets/journey_2017.png", use_container_width=True, caption="Bitcoin boom days (add your crypto screenshot or family photo here)")
+    # st.image("assets/journey_2017.png", use_container_width=True, caption="Bitcoin boom days")
     st.write("""
     Umuwi ako para mag-family (30+ na si misis 😊). Noon din sumabog ang Bitcoin sa ₱1M — dun na ako na-hook sa crypto (24/7 market vs PSE hours).
     Ginamit ko yung stock learnings ko, pero newbie pa rin: na-scam sa sites like Auroramining, tried futures, manalo-natatalo. Walang solid strategy o discipline pa.
@@ -670,10 +670,12 @@ if st.session_state.get("show_full_journey", False):
     # 2019-2021 – Pandemic Wins
     st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
     col_klever1, col_klever2 = st.columns(2)
-with col_klever1:
-        #st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
-with col_klever2:
-        st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
+    with col_klever1:
+        # st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
+        st.caption("(Placeholder for Klever gains screenshot)")
+    with col_klever2:
+        # st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
+        st.caption("(Placeholder for crash lesson screenshot)")
     st.write("""
     Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
     Pero glitch sa platform — half lang nabalik. Realization: May pera talaga sa market kung may **right strategy + discipline + emotion control**. 
@@ -682,7 +684,8 @@ with col_klever2:
     
     # 2024-2025 – Forex & EA Building
     st.markdown("<h3 style='color:{accent_gold};'>2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
-    #st.image("assets/journey_ea_build.png", use_container_width=True, caption="Self-studying MQL5 and building KMFX EA")
+    # st.image("assets/journey_ea_build.png", use_container_width=True, caption="Self-studying MQL5 and building KMFX EA")
+    st.caption("(Placeholder for EA building screenshot)")
     st.write("""
     Nauso ang AI → naisip ko ang Expert Advisor. Self-study MQL5 for almost 1 year. Pinagsama ko lahat ng natutunan since 2014.
     Nakita ko: Professional trader = strategy + risk management + psychology. Goal ko na maging ganun.
@@ -693,17 +696,19 @@ with col_klever2:
     # 2025-2026 – FTMO Challenges
     st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
     col_ftmo1, col_ftmo2 = st.columns(2)
-with col_ftmo1:
-        #st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
-with col_ftmo2:
-        st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
+    with col_ftmo1:
+        # st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+        st.caption("(Placeholder for Phase 1 pass)")
+    with col_ftmo2:
+        # st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
+        st.caption("(Placeholder for current challenge)")
     st.write("""
     Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
     Phase 2: Failed dahil emotional intervention (galaw ko yung system). Lesson: Full trust lang — "run and forget" mode.
     Jan 2026: New challenge, full hands-off. Comeback stronger.
     """)
     
-    # Realization & Vision
+    # Realization & Vision (IMAGE KEPT ACTIVE)
     st.markdown("<h3 style='color:{accent_gold};'>Realization & Future Vision</h3>", unsafe_allow_html=True)
     st.image("assets/journey_vision.png", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
     st.write("""
