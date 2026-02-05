@@ -690,7 +690,7 @@ if not st.session_state.authenticated:
             st.image("assets/ftmo.jpeg", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
             st.caption("(Placeholder for Phase 1 pass)")
         with col_ftmo2:
-            # st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
+            st.image("assets/ongoing.jpg", use_container_width=True, caption="Current challenge - full trust mode")
             st.caption("(Placeholder for current challenge)")
         st.write("""
         Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
