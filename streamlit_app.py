@@ -532,7 +532,7 @@ header { visibility: hidden !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# === CUSTOM LOADING OVERLAY WITH SMALL CENTERED LOGO ===
+# === CUSTOM LOADING OVERLAY WITH SMALL CENTERED LOGO (FIXED - NO STUCK) ===
 st.markdown(f"""
 <style>
 #kmfx-loader {{
@@ -547,7 +547,7 @@ st.markdown(f"""
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.8s ease-out;
+    transition: opacity 1s ease-out;
 }}
 #kmfx-loader img {{
     width: 120px;
@@ -574,15 +574,14 @@ st.markdown(f"""
 </div>
 
 <script>
-    window.addEventListener('load', function() {{
-        setTimeout(function() {{
-            const loader = document.getElementById('kmfx-loader');
-            if (loader) {{
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 800);
-            }}
-        }}, 1200);
-    }});
+    // FIXED: Pure timeout - hindi na umaasa sa 'load' event
+    setTimeout(function() {{
+        const loader = document.getElementById('kmfx-loader');
+        if (loader) {{
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 1000); // smooth fade out
+        }}
+    }}, 3000); // 3 seconds total (adjust kung mabilis/mabagal loading mo)
 </script>
 """, unsafe_allow_html=True)
 
