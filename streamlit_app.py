@@ -515,80 +515,29 @@ if not st.session_state.authenticated:
     if st.session_state.get("theme") != "dark":
         st.session_state.theme = "dark"
         st.rerun()  # Reload once to apply dark theme immediately
+
     # ====================== PUBLIC LANDING PAGE (DARK MODE + LOGO AT TOP, ZERO SPACE) ======================
-
-# GLOBAL FIX: Zero top space + hide Streamlit bar
-st.markdown("""
-<style>
-/* Remove all top space */
-.block-container {
-    padding-top: 0rem !important;
-    margin-top: 0rem !important;
-}
-.main > div {
-    padding-top: 0rem !important;
-}
-header { visibility: hidden !important; }
-</style>
-""", unsafe_allow_html=True)
-
-# === CUSTOM LOADING OVERLAY WITH SMALL CENTERED LOGO (FIXED - NO STUCK) ===
-st.markdown(f"""
-<style>
-#kmfx-loader {{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #0a0d14;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 1s ease-out;
-}}
-#kmfx-loader img {{
-    width: 120px;
-    height: auto;
-    margin-bottom: 2rem;
-    animation: pulse 2s infinite;
-}}
-#kmfx-loader p {{
-    color: {accent_primary};
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-}}
-@keyframes pulse {{
-    0% {{ transform: scale(1); }}
-    50% {{ transform: scale(1.08); }}
-    100% {{ transform: scale(1); }}
-}}
-</style>
-
-<div id="kmfx-loader">
-    <img src="assets/logo.png" alt="KMFX Logo">
-    <p>Loading Elite Empire...</p>
-</div>
-
-<script>
-    // FIXED: Pure timeout - hindi na umaasa sa 'load' event
-    setTimeout(function() {{
-        const loader = document.getElementById('kmfx-loader');
-        if (loader) {{
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 1000); // smooth fade out
-        }}
-    }}, 3000); // 3 seconds total (adjust kung mabilis/mabagal loading mo)
-</script>
-""", unsafe_allow_html=True)
-
-# === LOGO AT VERY TOP (centered, large, responsive) ===
-logo_col = st.columns([1, 6, 1])[1]  # ← WALANG INDENT DITO (aligned sa st.markdown sa itaas)
-with logo_col:
-    st.image("assets/logo.png")
+   
+    # GLOBAL FIX: Zero top space + hide Streamlit bar
+    st.markdown("""
+    <style>
+    /* Remove all top space */
+    .block-container {
+        padding-top: 0rem !important;
+        margin-top: 0rem !important;
+    }
+    .main > div {
+        padding-top: 0rem !important;
+    }
+    header { visibility: hidden !important; }
+    </style>
+    """, unsafe_allow_html=True)
+    
+   
+    # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
+    logo_col = st.columns([1, 6, 1])[1] # Slightly wider middle column for better logo size
+    with logo_col:
+        st.image("assets/logo.png") # No use_column_width → no warning, still large & responsive
    
     # Original content (centered)
     st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
