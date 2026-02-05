@@ -530,6 +530,24 @@ if not st.session_state.authenticated:
     logo_col = st.columns([1, 6, 1])[1] # Slightly wider middle column for better logo size
     with logo_col:
         st.image("assets/logo.png") # No use_column_width → no warning, still large & responsive
+        # Inside the public landing block, after logo and before metrics
+# Language Switcher for public page
+if "language" not in st.session_state:
+    st.session_state.language = "Tagalog"
+
+st.markdown('<div class="language-switcher">', unsafe_allow_html=True)
+chosen_public = st.selectbox(
+    "🌐 Language",
+    options=["Tagalog", "English"],
+    index=0 if st.session_state.language == "Tagalog" else 1,
+    label_visibility="collapsed",
+    key="lang_switch_public"
+)
+st.markdown('</div>', unsafe_allow_html=True)
+
+if chosen_public != st.session_state.language:
+    st.session_state.language = chosen_public
+    st.rerun()
    
     # Original content (centered)
     st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
@@ -725,7 +743,7 @@ if not st.session_state.authenticated:
     st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
     # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
     st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
-    st.markdown("<h2 class='gold-text' style='text-align:center;'>Bakit Pumili ng KMFX EA?</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text' style='text-align:center;'>Why Choose KMFX EA?</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; opacity:0.9; font-size:1.2rem; margin-bottom:2rem;'>Hindi lang EA — ito yung automated system na galing sa totoong journey, pinatunayan sa FTMO, at built with discipline + faith.</p>", unsafe_allow_html=True)
 
     cols = st.columns(3)
@@ -802,7 +820,7 @@ if not st.session_state.authenticated:
 
     # ====================== MALALIM & TRANSPARENT NA FAQs ======================
     st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
-    st.markdown("<h2 class='gold-text' style='text-align:center;'>Mga Malalim na Tanong Tungkol sa KMFX EA</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text' style='text-align:center;'>In-Depth Questions About KMFX EA</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; opacity:0.9; margin-bottom:2rem;'>Diretsong sagot sa mga tanong na tinatanong ng mga seryosong traders — walang paligoy-ligoy, puro facts at transparency.</p>", unsafe_allow_html=True)
 
     with st.expander("1. Ano ang edge ng KMFX EA kumpara sa ibang Gold EAs sa market?"):
@@ -1005,6 +1023,43 @@ with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
 
 # Announcement Banner (unchanged - already good)
+# <<< ILAGAY DITO ANG LANGUAGE SWITCHER >>>
+# Language Management
+if "language" not in st.session_state:
+    st.session_state.language = "Tagalog"
+
+# Fixed top-right switcher
+st.markdown("""
+<style>
+    .language-switcher {
+        position: fixed !important;
+        top: 15px !important;
+        right: 20px !important;
+        z-index: 9999 !important;
+        background: rgba(255,255,255,0.95) !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 20px rgba(0,255,170,0.4) !important;
+        border: 1px solid #00ffaa !important;
+        font-weight: 600;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="language-switcher">', unsafe_allow_html=True)
+chosen_lang = st.selectbox(
+    "🌐 Language",
+    options=["Tagalog", "English"],
+    index=0 if st.session_state.language == "Tagalog" else 1,
+    label_visibility="collapsed",
+    key="lang_switch_main"
+)
+st.markdown('</div>', unsafe_allow_html=True)
+
+if chosen_lang != st.session_state.language:
+    st.session_state.language = chosen_lang
+    st.rerun()
+# <<< END OF LANGUAGE SWITCHER >>>
 try:
     ann = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute().data[0]
     st.markdown(f"""
