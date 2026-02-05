@@ -718,69 +718,83 @@ if not st.session_state.authenticated:
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
-    # ====================== ADVANCED FAQS ======================
+    # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
 st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
-st.markdown("<h2 class='gold-text' style='text-align:center;'>Frequently Asked Questions</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; opacity:0.9; margin-bottom:2rem;'>Mga karaniwang tanong mula sa mga baguhan hanggang sa mga sumubok na ng iba pang EA.</p>", unsafe_allow_html=True)
+st.markdown("<h2 class='gold-text' style='text-align:center;'>Bakit Pumili ng KMFX EA?</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; opacity:0.9; font-size:1.2rem; margin-bottom:2rem;'>Hindi lang EA — ito yung automated system na galing sa totoong journey, pinatunayan sa FTMO, at built with discipline + faith.</p>", unsafe_allow_html=True)
 
-with st.expander("1. Safe ba talaga ang KMFX EA sa FTMO o prop firms?"):
-    st.write("""
-    Oo — strict 1% risk per trade, walang martingale/grid/high-risk strategies. 
-    Na-prove na sa real FTMO 10K Challenge: Phase 1 passed in 13 days (+10.41%, 2.98% max DD). 
-    May locked version para sa challenges para hindi ma-violate rules.
-    """)
+cols = st.columns(3)
+benefits = [
+    {
+        "emoji": "👑",
+        "title": "100% Hands-Off Automation",
+        "points": [
+            "Run and forget — walang kailangang galawin pag naka-set na",
+            "Removes emotions completely (yung pinakamalaking killer sa trading)",
+            "Pure MQL5 logic + strict risk rules = consistent execution"
+        ]
+    },
+    {
+        "emoji": "📈",
+        "title": "Gold (XAUUSD) Focused Edge",
+        "points": [
+            "Optimized for Gold volatility — best market para sa scalping & swing",
+            "+3,071% 5-Year Backtest • +187% 2025 • Low DD <3%",
+            "Proven sa real FTMO challenge (Phase 1 passed in 13 days!)"
+        ]
+    },
+    {
+        "emoji": "🔒",
+        "title": "Prop Firm Ready & Safe",
+        "points": [
+            "FTMO-compatible — strict no-martingale, no-grid, 1% risk per trade",
+            "Locked version para sa challenges • Flexible personal version",
+            "Full transparency: journey, stats, at community pioneer sharing"
+        ]
+    },
+    {
+        "emoji": "🙏",
+        "title": "Built by Faith & Real Experience",
+        "points": [
+            "Galing sa 12 taon na totoong trading journey (2014 hanggang 2026)",
+            "Hindi basta code — may purpose: tulungan ang marami sa financial freedom",
+            "Discipline + surrender to God's plan = sustainable success"
+        ]
+    },
+    {
+        "emoji": "🤝",
+        "title": "Pioneer Community & Sharing",
+        "points": [
+            "Early believers get proportional profit share (30% pool)",
+            "Real accountability group — testers, pioneers, at future foundation",
+            "Hindi solo — sama-sama tayo sa pag-scale ng empire"
+        ]
+    },
+    {
+        "emoji": "💰",
+        "title": "Passive Income + Legacy Vision",
+        "points": [
+            "Goal: true passive income para mas maraming time sa pamilya at Lord",
+            "Dream: KMFX EA Foundations — turuan ang aspiring traders maging pro",
+            "Built by faith, shared for generations — legacy na hindi matitigil"
+        ]
+    }
+]
 
-with st.expander("2. Bakit focused lang sa Gold (XAUUSD)?"):
-    st.write("""
-    Gold may pinakamagandang volatility at opportunity para sa scalping/swing sa current market. 
-    Mas predictable ang patterns kumpara sa forex pairs o indices. 
-    Backtest 5 years: +3,071% with controlled drawdown.
-    """)
-
-with st.expander("3. Paano kung matalo ulit? May risk ba?"):
-    st.write("""
-    Trading may risk — kahit automated. Kaya 1% lang risk per trade + strict DD limits. 
-    Hindi guaranteed profit, pero designed para tumagal at mag-recover sa drawdowns. 
-    Yung pinakaimportante: full trust sa system, wag galawin pag naka-run na.
-    """)
-
-with st.expander("4. Paano sumali bilang Pioneer o client?"):
-    st.write("""
-    Sa ngayon, pioneer-only muna (early believers na nag-contribute sa challenge fund). 
-    ₱1,000 per unit → proportional share sa 30% profit pool. 
-    Future: open na sa mas marami pag funded na at stable. Message muna sa group o admin.
-    """)
-
-with st.expander("5. May manual intervention ba o pwede bang i-tweak?"):
-    st.write("""
-    Sa prop challenge: 100% no intervention — run and forget lang. 
-    Sa personal version (future): pwede i-adjust pero recommended wag galawin para sa best results. 
-    Yung failure sa Phase 2 dahil sa emotional tweak — lesson learned.
-    """)
-
-with st.expander("6. Paano kung scam 'to katulad ng iba?"):
-    st.write("""
-    Transparent journey since 2014 — lahat ng stats, losses, wins, at FTMO cert visible. 
-    Walang hidden fees, walang promise ng "sure win". 
-    Built by faith at real experience, hindi para mang-scam. Pioneer community mismo ang witness.
-    """)
-
-with st.expander("7. Magkano ang potential monthly income?"):
-    st.write("""
-    Depende sa account size, market condition, at units mo. 
-    Sa backtest/real runs: consistent gains pero walang fixed amount. 
-    Goal: passive income para mas maraming time sa pamilya at Lord, hindi instant rich.
-    """)
-
-with st.expander("8. Paano kung gusto ko matuto mag-trade din manually?"):
-    st.write("""
-    KMFX EA Foundations (future dream) — tutulungan kita maging professional trader. 
-    Pero una, gamitin muna ang automated system para makabuild ng capital at discipline. 
-    Trading is 80% psychology — kaya importante yung emotion control muna.
-    """)
+for i, benefit in enumerate(benefits):
+    with cols[i % 3]:
+        st.markdown(f"""
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:3rem; margin-bottom:1rem;'>{benefit['emoji']}</div>
+            <h4 style='color:{accent_gold}; margin:0.5rem 0;'>{benefit['title']}</h4>
+            <ul style='text-align:left; padding-left:1.2rem; margin:0;'>
+                {''.join(f'<li style="margin:0.4rem 0; font-size:0.95rem;">{p}</li>' for p in benefit['points'])}
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
-    # ====================== ADVANCED & MALUPIT NA FAQs (UPDATED - OPEN & TRANSPARENT) ======================
+    # ====================== MALALIM & TRANSPARENT NA FAQs ======================
 st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
 st.markdown("<h2 class='gold-text' style='text-align:center;'>Mga Malalim na Tanong Tungkol sa KMFX EA</h2>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; opacity:0.9; margin-bottom:2rem;'>Diretsong sagot sa mga tanong na tinatanong ng mga seryosong traders — walang paligoy-ligoy, puro facts at transparency.</p>", unsafe_allow_html=True)
@@ -819,7 +833,7 @@ with st.expander("4. Paano kung magbago ang market behavior ng Gold?"):
 
 with st.expander("5. Paano sumali o makakuha ng access sa KMFX EA?"):
     st.write("""
-    - Sa ngayon, available sa community members at trusted users na sumali sa vision
+    - Available sa community members at trusted users na sumali sa vision
     - May profit-sharing model base sa contribution at participation
     - Para sa interesadong sumali: message sa group o admin para sa details at verification
     - Goal: i-scale responsibly para mapanatili ang performance at transparency
