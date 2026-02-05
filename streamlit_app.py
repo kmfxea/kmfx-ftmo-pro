@@ -700,7 +700,7 @@ if not st.session_state.authenticated:
         
         # Realization & Vision (IMAGE KEPT ACTIVE)
         st.markdown("<h3 style='color:{accent_gold};'>Realization & Future Vision</h3>", unsafe_allow_html=True)
-        st.image("assets/journey_vision.png", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
+        st.image("assets/journey_vision.jpg", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
         st.write("""
         Since 2014, alam ko na may **big plan si God** para sa'kin — kaya ako na-involve sa market. Purpose ko na 'to.
         KMFX EA para makatulong sa maraming tao. Dream: Build **KMFX EA Foundations** — guide aspiring traders to become professionals.
