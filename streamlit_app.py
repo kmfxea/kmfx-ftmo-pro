@@ -515,24 +515,24 @@ if not st.session_state.authenticated:
     if st.session_state.get("theme") != "dark":
         st.session_state.theme = "dark"
         st.rerun()  # Reload once to apply dark theme immediately
-
     # ====================== PUBLIC LANDING PAGE (DARK MODE + LOGO AT TOP, ZERO SPACE) ======================
-   
-    # GLOBAL FIX: Zero top space + hide Streamlit bar
-    st.markdown("""
-    <style>
-    /* Remove all top space */
-    .block-container {
-        padding-top: 0rem !important;
-        margin-top: 0rem !important;
-    }
-    .main > div {
-        padding-top: 0rem !important;
-    }
-    header { visibility: hidden !important; }
-    </style>
-    """, unsafe_allow_html=True)
-    # === CUSTOM LOADING OVERLAY WITH SMALL CENTERED LOGO ===
+
+# GLOBAL FIX: Zero top space + hide Streamlit bar
+st.markdown("""
+<style>
+/* Remove all top space */
+.block-container {
+    padding-top: 0rem !important;
+    margin-top: 0rem !important;
+}
+.main > div {
+    padding-top: 0rem !important;
+}
+header { visibility: hidden !important; }
+</style>
+""", unsafe_allow_html=True)
+
+# === CUSTOM LOADING OVERLAY WITH SMALL CENTERED LOGO ===
 st.markdown(f"""
 <style>
 #kmfx-loader {{
@@ -585,11 +585,11 @@ st.markdown(f"""
     }});
 </script>
 """, unsafe_allow_html=True)
-   
-    # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
-    logo_col = st.columns([1, 6, 1])[1] # Slightly wider middle column for better logo size
-    with logo_col:
-        st.image("assets/logo.png") # No use_column_width → no warning, still large & responsive
+
+# === LOGO AT VERY TOP (centered, large, responsive) ===
+logo_col = st.columns([1, 6, 1])[1]  # ← WALANG INDENT DITO (aligned sa st.markdown sa itaas)
+with logo_col:
+    st.image("assets/logo.png")
    
     # Original content (centered)
     st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
