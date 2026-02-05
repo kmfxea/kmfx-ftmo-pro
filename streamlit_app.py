@@ -794,7 +794,8 @@ for i, benefit in enumerate(benefits):
         """, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
-    # ====================== MALALIM & TRANSPARENT NA FAQs ======================
+
+# ====================== MALALIM & TRANSPARENT NA FAQs ======================
 st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
 st.markdown("<h2 class='gold-text' style='text-align:center;'>Mga Malalim na Tanong Tungkol sa KMFX EA</h2>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; opacity:0.9; margin-bottom:2rem;'>Diretsong sagot sa mga tanong na tinatanong ng mga seryosong traders — walang paligoy-ligoy, puro facts at transparency.</p>", unsafe_allow_html=True)
