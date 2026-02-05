@@ -637,6 +637,92 @@ if not st.session_state.authenticated:
     """)
 
     st.markdown("</div>", unsafe_allow_html=True)
+    # ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
+st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:3rem;'>", unsafe_allow_html=True)
+st.markdown(f"<h2 class='gold-text'>Want the Full Story Behind KMFX EA?</h2>", unsafe_allow_html=True)
+st.markdown("<p style='font-size:1.4rem; opacity:0.9;'>From OFW in Saudi to building an automated empire — built by faith, lessons, and persistence.</p>", unsafe_allow_html=True)
+
+if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", use_container_width=True):
+    st.session_state.show_full_journey = True
+
+if st.session_state.get("show_full_journey", False):
+    st.markdown("<div class='glass-card' style='padding:3rem; margin:3rem 0;'>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-style:italic;'>Ako si Mark Jeff Blando (Codename: Kingminted) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system. Ito ang kwento ko, built by faith, shared for generations.</p>", unsafe_allow_html=True)
+    
+    # 2014 – Discovery
+    st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
+    #st.image("assets/journey_2014.png", use_container_width=True, caption="My early days discovering PSE while working in Saudi (replace with your photo/screenshot)")
+    st.write("""
+    Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market. 
+    Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy. 
+    Mix emotions: sobrang saya pag nanalo, lungkot pag natalo. Naging kaibigan ko sina Ramil, Mheg, Christy noong 2016 era. Hindi pa seryoso noon, pero dun na nagsimula ang passion.
+    """)
+    
+    # 2017 – Crypto Boom
+    st.markdown("<h3 style='color:{accent_gold};'>2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
+    #st.image("assets/journey_2017.png", use_container_width=True, caption="Bitcoin boom days (add your crypto screenshot or family photo here)")
+    st.write("""
+    Umuwi ako para mag-family (30+ na si misis 😊). Noon din sumabog ang Bitcoin sa ₱1M — dun na ako na-hook sa crypto (24/7 market vs PSE hours).
+    Ginamit ko yung stock learnings ko, pero newbie pa rin: na-scam sa sites like Auroramining, tried futures, manalo-natatalo. Walang solid strategy o discipline pa.
+    """)
+    
+    # 2019-2021 – Pandemic Wins
+    st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
+    col_klever1, col_klever2 = st.columns(2)
+    with col_klever1:
+        #st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
+    with col_klever2:
+        st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
+    st.write("""
+    Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
+    Pero glitch sa platform — half lang nabalik. Realization: May pera talaga sa market kung may **right strategy + discipline + emotion control**. 
+    90% ng traders natatalo dahil sa emotions, hindi sa strategy. After 2021 crash (BTC 60k → 20k), lumayo muna ako.
+    """)
+    
+    # 2024-2025 – Forex & EA Building
+    st.markdown("<h3 style='color:{accent_gold};'>2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
+    #st.image("assets/journey_ea_build.png", use_container_width=True, caption="Self-studying MQL5 and building KMFX EA")
+    st.write("""
+    Nauso ang AI → naisip ko ang Expert Advisor. Self-study MQL5 for almost 1 year. Pinagsama ko lahat ng natutunan since 2014.
+    Nakita ko: Professional trader = strategy + risk management + psychology. Goal ko na maging ganun.
+    January 2025: KMFX EA (Kingminted Forex EA) fully working — focused on Gold (XAUUSD).
+    Testing with Weber, Jai, Sheldon, Ramil. Pioneer community formed end of 2025.
+    """)
+    
+    # 2025-2026 – FTMO Challenges
+    st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
+    col_ftmo1, col_ftmo2 = st.columns(2)
+    with col_ftmo1:
+        #st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+    with col_ftmo2:
+        st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
+    st.write("""
+    Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
+    Phase 2: Failed dahil emotional intervention (galaw ko yung system). Lesson: Full trust lang — "run and forget" mode.
+    Jan 2026: New challenge, full hands-off. Comeback stronger.
+    """)
+    
+    # Realization & Vision
+    st.markdown("<h3 style='color:{accent_gold};'>Realization & Future Vision</h3>", unsafe_allow_html=True)
+    st.image("assets/journey_vision.png", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
+    st.write("""
+    Since 2014, alam ko na may **big plan si God** para sa'kin — kaya ako na-involve sa market. Purpose ko na 'to.
+    KMFX EA para makatulong sa maraming tao. Dream: Build **KMFX EA Foundations** — guide aspiring traders to become professionals.
+    Bigger dream: Passive income para sa lahat → financial freedom, more time for Lord, family, peaceful life.
+    
+    **KMFX EA: Built by Faith, Shared for Generations**
+    
+    — Mark Jeff Blando | Founder & Developer | Since 2014
+    """)
+    
+    if st.button("Close Journey", use_container_width=True):
+        st.session_state.show_full_journey = False
+        st.rerun()
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
     # Progress Timeline
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
