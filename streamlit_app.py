@@ -718,6 +718,153 @@ if not st.session_state.authenticated:
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
+    # ====================== ADVANCED FAQS ======================
+st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
+st.markdown("<h2 class='gold-text' style='text-align:center;'>Frequently Asked Questions</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; opacity:0.9; margin-bottom:2rem;'>Mga karaniwang tanong mula sa mga baguhan hanggang sa mga sumubok na ng iba pang EA.</p>", unsafe_allow_html=True)
+
+with st.expander("1. Safe ba talaga ang KMFX EA sa FTMO o prop firms?"):
+    st.write("""
+    Oo — strict 1% risk per trade, walang martingale/grid/high-risk strategies. 
+    Na-prove na sa real FTMO 10K Challenge: Phase 1 passed in 13 days (+10.41%, 2.98% max DD). 
+    May locked version para sa challenges para hindi ma-violate rules.
+    """)
+
+with st.expander("2. Bakit focused lang sa Gold (XAUUSD)?"):
+    st.write("""
+    Gold may pinakamagandang volatility at opportunity para sa scalping/swing sa current market. 
+    Mas predictable ang patterns kumpara sa forex pairs o indices. 
+    Backtest 5 years: +3,071% with controlled drawdown.
+    """)
+
+with st.expander("3. Paano kung matalo ulit? May risk ba?"):
+    st.write("""
+    Trading may risk — kahit automated. Kaya 1% lang risk per trade + strict DD limits. 
+    Hindi guaranteed profit, pero designed para tumagal at mag-recover sa drawdowns. 
+    Yung pinakaimportante: full trust sa system, wag galawin pag naka-run na.
+    """)
+
+with st.expander("4. Paano sumali bilang Pioneer o client?"):
+    st.write("""
+    Sa ngayon, pioneer-only muna (early believers na nag-contribute sa challenge fund). 
+    ₱1,000 per unit → proportional share sa 30% profit pool. 
+    Future: open na sa mas marami pag funded na at stable. Message muna sa group o admin.
+    """)
+
+with st.expander("5. May manual intervention ba o pwede bang i-tweak?"):
+    st.write("""
+    Sa prop challenge: 100% no intervention — run and forget lang. 
+    Sa personal version (future): pwede i-adjust pero recommended wag galawin para sa best results. 
+    Yung failure sa Phase 2 dahil sa emotional tweak — lesson learned.
+    """)
+
+with st.expander("6. Paano kung scam 'to katulad ng iba?"):
+    st.write("""
+    Transparent journey since 2014 — lahat ng stats, losses, wins, at FTMO cert visible. 
+    Walang hidden fees, walang promise ng "sure win". 
+    Built by faith at real experience, hindi para mang-scam. Pioneer community mismo ang witness.
+    """)
+
+with st.expander("7. Magkano ang potential monthly income?"):
+    st.write("""
+    Depende sa account size, market condition, at units mo. 
+    Sa backtest/real runs: consistent gains pero walang fixed amount. 
+    Goal: passive income para mas maraming time sa pamilya at Lord, hindi instant rich.
+    """)
+
+with st.expander("8. Paano kung gusto ko matuto mag-trade din manually?"):
+    st.write("""
+    KMFX EA Foundations (future dream) — tutulungan kita maging professional trader. 
+    Pero una, gamitin muna ang automated system para makabuild ng capital at discipline. 
+    Trading is 80% psychology — kaya importante yung emotion control muna.
+    """)
+
+st.markdown("</div>", unsafe_allow_html=True)
+    # ====================== ADVANCED & MALUPIT NA FAQs (UPDATED - OPEN & TRANSPARENT) ======================
+st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
+st.markdown("<h2 class='gold-text' style='text-align:center;'>Mga Malalim na Tanong Tungkol sa KMFX EA</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; opacity:0.9; margin-bottom:2rem;'>Diretsong sagot sa mga tanong na tinatanong ng mga seryosong traders — walang paligoy-ligoy, puro facts at transparency.</p>", unsafe_allow_html=True)
+
+with st.expander("1. Ano ang edge ng KMFX EA kumpara sa ibang Gold EAs sa market?"):
+    st.write("""
+    - Tunay na focused sa XAUUSD volatility patterns na pinag-aralan mula 2021–2025 backtests
+    - Walang over-optimization — daan-daang forward tests + real FTMO challenge proof
+    - 1% strict risk + dynamic filters para sa news spikes (hindi basta indicator-based)
+    - Galing sa 12 taon na personal trading journey, hindi copy-paste o generic code
+    """)
+
+with st.expander("2. Paano n'yo napatunayan na hindi overfitted yung strategy?"):
+    st.write("""
+    - 5-Year Backtest (2021–2025): +3,071% na may realistic slippage & spread
+    - Out-of-sample forward testing 2025: consistent gains sa live-like conditions
+    - Real FTMO Phase 1 pass (13 days, +10.41%, 2.98% DD) — hindi lang curve-fitted
+    - Strict walk-forward validation, walang look-ahead bias o magic parameters
+    """)
+
+with st.expander("3. Ano ang worst-case drawdown scenario base sa history?"):
+    st.write("""
+    - Max historical DD sa backtest: ~12–15% sa malalakas na Gold crashes (2022 bear market)
+    - Real FTMO run: 2.98% max DD lang (conservative live settings)
+    - Built-in recovery filters: kung tumaas ang DD, nagti-tighten ang entries
+    - Designed para tumagal — hindi blow-up kahit sa prolonged sideways o volatility spikes
+    """)
+
+with st.expander("4. Paano kung magbago ang market behavior ng Gold?"):
+    st.write("""
+    - May adaptive filters (news volatility, session checks, momentum rules)
+    - Regular forward testing at community feedback para ma-spot agad ang weaknesses
+    - Hindi static — pinagsama price action + risk management na flexible sa conditions
+    - Long-term: future updates may mas advanced adaptation (pero priority muna stability)
+    """)
+
+with st.expander("5. Paano sumali o makakuha ng access sa KMFX EA?"):
+    st.write("""
+    - Sa ngayon, available sa community members at trusted users na sumali sa vision
+    - May profit-sharing model base sa contribution at participation
+    - Para sa interesadong sumali: message sa group o admin para sa details at verification
+    - Goal: i-scale responsibly para mapanatili ang performance at transparency
+    """)
+
+with st.expander("6. May plan ba kayo magdagdag ng ibang pairs (EURUSD, indices, crypto)?"):
+    st.write("""
+    - Sa ngayon: Gold lang muna para focused at optimized (pinakamagandang results)
+    - Future versions: possible multi-pair pag na-master na ang Gold edge
+    - Priority: stability at low drawdown kaysa magmadali sa maraming instruments
+    """)
+
+with st.expander("7. Paano kung gusto kong i-backtest o i-verify mismo yung performance?"):
+    st.write("""
+    - Pwede — may documented stats, sample reports, at live metrics sa dashboard
+    - FTMO Phase 1 certificate + backtest summary visible sa community
+    - Hindi full code release (security), pero transparent sa key performance data
+    - Sumali sa community para makita real-time results sa actual accounts
+    """)
+
+with st.expander("8. Ano ang exit strategy kung biglang magbago ang market o mag-fail?"):
+    st.write("""
+    - Auto DD limits + manual override option (pero recommended wag gamitin sa live)
+    - Growth Fund buffer para sa reinvestment sa new challenges kung kailangan
+    - Community feedback loop — kung consistent na underperform, titigil o i-a-adjust
+    - Long-term mindset: sustainable passive income, hindi get-rich-quick
+    """)
+
+with st.expander("9. Paano nyo pinoprotektahan ang system laban sa copy-paste o piracy?"):
+    st.write("""
+    - Encrypted license key (XOR + unique per user/account)
+    - MT5 login binding option para ma-lock sa specific accounts
+    - Revoke capability kung may violation o unauthorized use
+    - Community-first approach: trusted users muna para mapanatili ang integrity
+    """)
+
+with st.expander("10. Ano ang ultimate vision mo para sa KMFX EA sa susunod na 5–10 taon?"):
+    st.write("""
+    - Build KMFX EA Foundations: education at tools para sa aspiring Pinoy traders
+    - Scale sa multiple funded accounts + real personal at community portfolios
+    - Create legacy: passive income para sa marami, mas maraming oras sa pamilya at pananampalataya
+    - Patunayan na possible ang consistent trading gamit discipline, automation, at God's plan
+    """)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
     # Progress Timeline (same indentation level as Portfolio Story)
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
