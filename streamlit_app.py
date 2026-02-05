@@ -687,7 +687,7 @@ if not st.session_state.authenticated:
         st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
         col_ftmo1, col_ftmo2 = st.columns(2)
         with col_ftmo1:
-            # st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+            st.image("assets/ftmo.jpeg", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
             st.caption("(Placeholder for Phase 1 pass)")
         with col_ftmo2:
             # st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
