@@ -560,24 +560,20 @@ if not st.session_state.authenticated:
    
     # =====================================================================================================
 
-    # Portfolio Story
+        # Portfolio Story
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.markdown("<h2 class='gold-text'>Origin & Motivation (2024)</h2>", unsafe_allow_html=True)
     st.write("""
     Noong 2024, frustrated ako sa manual trading — paulit-ulit na losses dahil sa emotions, lack of discipline, at timing issues. Realization: "Kung hindi professional, maloloss ka lang sa market."
-
     Decided to build my own Expert Advisor (EA) to remove human error, achieve consistency, and become a professional trader through automation.
-
     Early inspiration from ~2016 trading days, sharing ideas with friend Ramil.
     """)
-
     st.markdown("<h2 class='gold-text'>Development Phase (2024)</h2>", unsafe_allow_html=True)
     st.write("""
     - Full year of self-study in MQL5 programming
     - Trial-and-error: Combined multiple indicators, price action rules, risk management filters
     - Hundreds of backtests, forward tests, debugging — almost 1 year of experiment before stability
     """)
-
     st.markdown("<h2 class='gold-text'>Official Launch & Early Testing (2025)</h2>", unsafe_allow_html=True)
     st.write("""
     - January 2025: Breakthrough — EA fully functional and running smoothly. Officially named KMFX EA
@@ -585,7 +581,6 @@ if not st.session_state.authenticated:
     - September 2025: Formed KMFX EA TESTER group (initial: Weber — most active, Ramil, Sheldon, Jai). ~2 months forward testing with multiple trials and real-time feedback
     - Late 2025 (Oct-Dec): Mastered backtesting — ran historical data from 2021–2025. Game-changer: Quickly spotted weaknesses, polished entries/exits, filters for gold spikes/news volatility
     """)
-
     st.markdown("<h2 class='gold-text'>Major Milestones & Tools (2025)</h2>", unsafe_allow_html=True)
     st.write("""
     - October 15, 2025: Launched sleek KMFX EA MT5 Client Tracker dashboard at kmfxea.streamlit.app — premium portal for performance tracking (owner, admin, client logins)
@@ -593,7 +588,6 @@ if not st.session_state.authenticated:
       - Profit sharing: 30% of profits proportional to units
       - Thank you to: Mark, Jai, Doc, Weber (2 units), Don, Mark Fernandez (3 units), Ramil, Cristy, Meg, Roland, Mila, Malruz, Julius, Joshua
     """)
-
     st.markdown("<h2 class='gold-text'>FTMO Prop Firm Journey – First Attempt (Dec 2025 - Jan 2026)</h2>", unsafe_allow_html=True)
     st.write("""
     - December 13, 2025: Started FTMO 10K Challenge (Plan A, real evaluation)
@@ -602,7 +596,6 @@ if not st.session_state.authenticated:
       - Stats snapshot: $10,000 → $11,040.58 (+10.41% gain), 2.98% max drawdown, 118 trades (longs only, 52% win rate), +12,810.8 pips, profit factor 1.52
       - Avg trade: 43 minutes (scalping-style on gold volatility)
     """)
-
     st.markdown("<h2 class='gold-text'>Phase 2 (Verification) Attempt</h2>", unsafe_allow_html=True)
     st.write("""
     - Goal: 5% profit target, same strict risk limits (5% daily / 10% overall loss)
@@ -611,14 +604,12 @@ if not st.session_state.authenticated:
     - Big Lesson: Trust the System No Matter What. Emotions are the real enemy; the EA is solid when left alone
     - Turned failure into life rebuild: Discipline, patience, surrender to God's plan — applied to trading AND personal life
     """)
-
     st.markdown("<h2 class='gold-text'>Current Attempt (Jan 2026)</h2>", unsafe_allow_html=True)
     st.write("""
     - New FTMO 10K Challenge (Phase 1) ongoing
     - Full trust mode: 100% hands-off — no tweaks, no manual trades, pure automated execution
     - Confidence: Previous pass + untouched sims prove the edge. Goal: Pass with consistency, low DD, then Verification → funded account
     """)
-
     st.markdown("<h2 class='gold-text'>Dual Product Evolution (2026)</h2>", unsafe_allow_html=True)
     st.write("""
     - Prop Firm Version (KMFX EA – Locked): For FTMO/challenges only — personal use, strict no-intervention during evaluations
@@ -627,7 +618,6 @@ if not st.session_state.authenticated:
       - Future: Deployable on personal accounts, potential for clients/pioneers (with sharing or access via dashboard)
       - Advantage: Separate from prop rules — flexible for real-money growth
     """)
-
     st.markdown("<h2 class='gold-text'>Performance Proof</h2>", unsafe_allow_html=True)
     st.write("""
     - FTMO Phase 1 Passed: +10.41%, 2.98% max DD
@@ -635,104 +625,103 @@ if not st.session_state.authenticated:
     - 5-Year Backtest (2021-2025): +3,071%
     - Safety First: 1% risk per trade, no martingale/grid, controlled drawdown
     """)
-
     st.markdown("</div>", unsafe_allow_html=True)
+
     # ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
-st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:3rem;'>", unsafe_allow_html=True)
-st.markdown(f"<h2 class='gold-text'>Want the Full Story Behind KMFX EA?</h2>", unsafe_allow_html=True)
-st.markdown("<p style='font-size:1.4rem; opacity:0.9;'>From OFW in Saudi to building an automated empire — built by faith, lessons, and persistence.</p>", unsafe_allow_html=True)
+    st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:3rem;'>", unsafe_allow_html=True)
+    st.markdown(f"<h2 class='gold-text'>Want the Full Story Behind KMFX EA?</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:1.4rem; opacity:0.9;'>From OFW in Saudi to building an automated empire — built by faith, lessons, and persistence.</p>", unsafe_allow_html=True)
 
-if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", use_container_width=True):
-    st.session_state.show_full_journey = True
+    if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", use_container_width=True):
+        st.session_state.show_full_journey = True
 
-if st.session_state.get("show_full_journey", False):
-    st.markdown("<div class='glass-card' style='padding:3rem; margin:3rem 0;'>", unsafe_allow_html=True)
-    st.markdown("<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-style:italic;'>Ako si Mark Jeff Blando (Codename: Kingminted) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system. Ito ang kwento ko, built by faith, shared for generations.</p>", unsafe_allow_html=True)
-    
-    # 2014 – Discovery
-    st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
-    # st.image("assets/journey_2014.png", use_container_width=True, caption="My early days discovering PSE while working in Saudi")
-    st.write("""
-    Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market. 
-    Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy. 
-    Mix emotions: sobrang saya pag nanalo, lungkot pag natalo. Naging kaibigan ko sina Ramil, Mheg, Christy noong 2016 era. Hindi pa seryoso noon, pero dun na nagsimula ang passion.
-    """)
-    
-    # 2017 – Crypto Boom
-    st.markdown("<h3 style='color:{accent_gold};'>2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
-    # st.image("assets/journey_2017.png", use_container_width=True, caption="Bitcoin boom days")
-    st.write("""
-    Umuwi ako para mag-family (30+ na si misis 😊). Noon din sumabog ang Bitcoin sa ₱1M — dun na ako na-hook sa crypto (24/7 market vs PSE hours).
-    Ginamit ko yung stock learnings ko, pero newbie pa rin: na-scam sa sites like Auroramining, tried futures, manalo-natatalo. Walang solid strategy o discipline pa.
-    """)
-    
-    # 2019-2021 – Pandemic Wins
-    st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
-    col_klever1, col_klever2 = st.columns(2)
-    with col_klever1:
-        # st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
-        st.caption("(Placeholder for Klever gains screenshot)")
-    with col_klever2:
-        # st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
-        st.caption("(Placeholder for crash lesson screenshot)")
-    st.write("""
-    Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
-    Pero glitch sa platform — half lang nabalik. Realization: May pera talaga sa market kung may **right strategy + discipline + emotion control**. 
-    90% ng traders natatalo dahil sa emotions, hindi sa strategy. After 2021 crash (BTC 60k → 20k), lumayo muna ako.
-    """)
-    
-    # 2024-2025 – Forex & EA Building
-    st.markdown("<h3 style='color:{accent_gold};'>2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
-    # st.image("assets/journey_ea_build.png", use_container_width=True, caption="Self-studying MQL5 and building KMFX EA")
-    st.caption("(Placeholder for EA building screenshot)")
-    st.write("""
-    Nauso ang AI → naisip ko ang Expert Advisor. Self-study MQL5 for almost 1 year. Pinagsama ko lahat ng natutunan since 2014.
-    Nakita ko: Professional trader = strategy + risk management + psychology. Goal ko na maging ganun.
-    January 2025: KMFX EA (Kingminted Forex EA) fully working — focused on Gold (XAUUSD).
-    Testing with Weber, Jai, Sheldon, Ramil. Pioneer community formed end of 2025.
-    """)
-    
-    # 2025-2026 – FTMO Challenges
-    st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
-    col_ftmo1, col_ftmo2 = st.columns(2)
-    with col_ftmo1:
-        # st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
-        st.caption("(Placeholder for Phase 1 pass)")
-    with col_ftmo2:
-        # st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
-        st.caption("(Placeholder for current challenge)")
-    st.write("""
-    Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
-    Phase 2: Failed dahil emotional intervention (galaw ko yung system). Lesson: Full trust lang — "run and forget" mode.
-    Jan 2026: New challenge, full hands-off. Comeback stronger.
-    """)
-    
-    # Realization & Vision (IMAGE KEPT ACTIVE)
-    st.markdown("<h3 style='color:{accent_gold};'>Realization & Future Vision</h3>", unsafe_allow_html=True)
-    st.image("assets/journey_vision.png", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
-    st.write("""
-    Since 2014, alam ko na may **big plan si God** para sa'kin — kaya ako na-involve sa market. Purpose ko na 'to.
-    KMFX EA para makatulong sa maraming tao. Dream: Build **KMFX EA Foundations** — guide aspiring traders to become professionals.
-    Bigger dream: Passive income para sa lahat → financial freedom, more time for Lord, family, peaceful life.
-    
-    **KMFX EA: Built by Faith, Shared for Generations**
-    
-    — Mark Jeff Blando | Founder & Developer | Since 2014
-    """)
-    
-    if st.button("Close Journey", use_container_width=True):
-        st.session_state.show_full_journey = False
-        st.rerun()
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+    if st.session_state.get("show_full_journey", False):
+        st.markdown("<div class='glass-card' style='padding:3rem; margin:3rem 0;'>", unsafe_allow_html=True)
+        st.markdown("<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center; font-style:italic;'>Ako si Mark Jeff Blando (Codename: Kingminted) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system. Ito ang kwento ko, built by faith, shared for generations.</p>", unsafe_allow_html=True)
+        
+        # 2014 – Discovery
+        st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
+        # st.image("assets/journey_2014.png", use_container_width=True, caption="My early days discovering PSE while working in Saudi")
+        st.write("""
+        Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market.
+        Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy.
+        Mix emotions: sobrang saya pag nanalo, lungkot pag natalo. Naging kaibigan ko sina Ramil, Mheg, Christy noong 2016 era. Hindi pa seryoso noon, pero dun na nagsimula ang passion.
+        """)
+        
+        # 2017 – Crypto Boom
+        st.markdown("<h3 style='color:{accent_gold};'>2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
+        # st.image("assets/journey_2017.png", use_container_width=True, caption="Bitcoin boom days")
+        st.write("""
+        Umuwi ako para mag-family (30+ na si misis 😊). Noon din sumabog ang Bitcoin sa ₱1M — dun na ako na-hook sa crypto (24/7 market vs PSE hours).
+        Ginamit ko yung stock learnings ko, pero newbie pa rin: na-scam sa sites like Auroramining, tried futures, manalo-natatalo. Walang solid strategy o discipline pa.
+        """)
+        
+        # 2019-2021 – Pandemic Wins
+        st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
+        col_klever1, col_klever2 = st.columns(2)
+        with col_klever1:
+            # st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
+            st.caption("(Placeholder for Klever gains screenshot)")
+        with col_klever2:
+            # st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
+            st.caption("(Placeholder for crash lesson screenshot)")
+        st.write("""
+        Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
+        Pero glitch sa platform — half lang nabalik. Realization: May pera talaga sa market kung may **right strategy + discipline + emotion control**.
+        90% ng traders natatalo dahil sa emotions, hindi sa strategy. After 2021 crash (BTC 60k → 20k), lumayo muna ako.
+        """)
+        
+        # 2024-2025 – Forex & EA Building
+        st.markdown("<h3 style='color:{accent_gold};'>2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
+        # st.image("assets/journey_ea_build.png", use_container_width=True, caption="Self-studying MQL5 and building KMFX EA")
+        st.caption("(Placeholder for EA building screenshot)")
+        st.write("""
+        Nauso ang AI → naisip ko ang Expert Advisor. Self-study MQL5 for almost 1 year. Pinagsama ko lahat ng natutunan since 2014.
+        Nakita ko: Professional trader = strategy + risk management + psychology. Goal ko na maging ganun.
+        January 2025: KMFX EA (Kingminted Forex EA) fully working — focused on Gold (XAUUSD).
+        Testing with Weber, Jai, Sheldon, Ramil. Pioneer community formed end of 2025.
+        """)
+        
+        # 2025-2026 – FTMO Challenges
+        st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
+        col_ftmo1, col_ftmo2 = st.columns(2)
+        with col_ftmo1:
+            # st.image("assets/journey_ftmo_phase1.png", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+            st.caption("(Placeholder for Phase 1 pass)")
+        with col_ftmo2:
+            # st.image("assets/journey_ftmo_current.png", use_container_width=True, caption="Current challenge - full trust mode")
+            st.caption("(Placeholder for current challenge)")
+        st.write("""
+        Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
+        Phase 2: Failed dahil emotional intervention (galaw ko yung system). Lesson: Full trust lang — "run and forget" mode.
+        Jan 2026: New challenge, full hands-off. Comeback stronger.
+        """)
+        
+        # Realization & Vision (IMAGE KEPT ACTIVE)
+        st.markdown("<h3 style='color:{accent_gold};'>Realization & Future Vision</h3>", unsafe_allow_html=True)
+        st.image("assets/journey_vision.png", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
+        st.write("""
+        Since 2014, alam ko na may **big plan si God** para sa'kin — kaya ako na-involve sa market. Purpose ko na 'to.
+        KMFX EA para makatulong sa maraming tao. Dream: Build **KMFX EA Foundations** — guide aspiring traders to become professionals.
+        Bigger dream: Passive income para sa lahat → financial freedom, more time for Lord, family, peaceful life.
+        
+        **KMFX EA: Built by Faith, Shared for Generations**
+        
+        — Mark Jeff Blando | Founder & Developer | Since 2014
+        """)
+        
+        if st.button("Close Journey", use_container_width=True):
+            st.session_state.show_full_journey = False
+            st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
 
-    # Progress Timeline
+    # Progress Timeline (same indentation level as Portfolio Story)
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.markdown("<h2 class='gold-text'>Empire Progress Timeline</h2>", unsafe_allow_html=True)
-
     timeline = [
         ("2024", "Origin & Development", "Frustration with manual trading → Full year MQL5 self-study → Trial-and-error building the EA"),
         ("Early 2025", "Breakthrough", "EA fully functional → Official KMFX EA name → Focused on XAUUSD"),
@@ -741,10 +730,8 @@ st.markdown("</div>", unsafe_allow_html=True)
         ("Phase 2", "Key Lesson", "Emotional failure → Learned to trust the system completely"),
         ("Jan 2026", "Current Challenge", "New FTMO 10K • Full hands-off mode • On track for funded account")
     ]
-
     for date, title, desc in timeline:
         st.markdown(f"<div class='timeline-card'><h3 class='gold-text'>{date} — {title}</h3><p>{desc}</p></div>", unsafe_allow_html=True)
-
     st.markdown("</div>", unsafe_allow_html=True)
 
     # Member Login CTA
@@ -753,36 +740,30 @@ st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<p style='font-size:1.4rem;'>Access your elite dashboard, balance, shares, and tools</p>", unsafe_allow_html=True)
     if st.button("Member Login →", type="primary", use_container_width=True):
         st.session_state.show_login = True
-
     if st.session_state.get("show_login"):
         col1, col2, col3 = st.columns([1, 4, 1])
         with col2:
             st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
             tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
-
             with tab_owner:
                 with st.form("login_form_owner"):
                     username = st.text_input("Username", placeholder="Owner username", key="owner_user")
                     password = st.text_input("Password", type="password", key="owner_pwd")
                     if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
                         login_user(username, password)
-
             with tab_admin:
                 with st.form("login_form_admin"):
                     username = st.text_input("Username", placeholder="Admin username", key="admin_user")
                     password = st.text_input("Password", type="password", key="admin_pwd")
                     if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
                         login_user(username, password)
-
             with tab_client:
                 with st.form("login_form_client"):
                     username = st.text_input("Username", placeholder="Your username", key="client_user")
                     password = st.text_input("Password", type="password", key="client_pwd")
                     if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
                         login_user(username, password)
-
             st.markdown("</div>", unsafe_allow_html=True)
-
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
