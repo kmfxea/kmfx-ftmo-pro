@@ -471,26 +471,33 @@ if qr_token and not st.session_state.get("authenticated", False):
         st.error("QR login failed")
 
 # Login helper
-def login_user(username, password):
+def login_user(username, password, expected_role=None):
     try:
         response = supabase.table("users").select("password, full_name, role").eq("username", username.lower()).execute()
         if response.data:
             user = response.data[0]
+            
+            # Check password
             if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+                actual_role = user["role"]
+                
+                # NEW: Role validation per tab
+                if expected_role and actual_role != expected_role:
+                    st.error(f"This login tab is for {expected_role.title()} accounts only. Please use the correct tab.")
+                    return
+                
+                # Success - set session
                 st.session_state.authenticated = True
                 st.session_state.username = username.lower()
                 st.session_state.full_name = user["full_name"] or username
-                st.session_state.role = user["role"]
-               
-                # 🔥 AUTO LIGHT MODE + FORCE DASHBOARD ON EVERY SUCCESSFUL LOGIN
+                st.session_state.role = actual_role
+              
+                # AUTO LIGHT MODE + FORCE DASHBOARD
                 st.session_state.theme = "light"
-                st.session_state.selected_page = "🏠 Dashboard"  # ← Importanteng reset para sa correct role pages
-               
-                log_action("Login Successful", f"User: {username} | Role: {user['role']}")
-                
-                # Success message para sa user
+                st.session_state.selected_page = "🏠 Dashboard"
+              
+                log_action("Login Successful", f"User: {username} | Role: {actual_role}")
                 st.success(f"Welcome back, {st.session_state.full_name}! 👑 Role: {st.session_state.role.title()}")
-                
                 st.rerun()
             else:
                 st.error("Invalid password")
@@ -525,6 +532,59 @@ if not st.session_state.authenticated:
     header { visibility: hidden !important; }
     </style>
     """, unsafe_allow_html=True)
+    # === CUSTOM LOADING OVERLAY WITH SMALL CENTERED LOGO ===
+st.markdown(f"""
+<style>
+#kmfx-loader {{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0a0d14;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease-out;
+}}
+#kmfx-loader img {{
+    width: 120px;
+    height: auto;
+    margin-bottom: 2rem;
+    animation: pulse 2s infinite;
+}}
+#kmfx-loader p {{
+    color: {accent_primary};
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}}
+@keyframes pulse {{
+    0% {{ transform: scale(1); }}
+    50% {{ transform: scale(1.08); }}
+    100% {{ transform: scale(1); }}
+}}
+</style>
+
+<div id="kmfx-loader">
+    <img src="assets/logo.png" alt="KMFX Logo">
+    <p>Loading Elite Empire...</p>
+</div>
+
+<script>
+    window.addEventListener('load', function() {{
+        setTimeout(function() {{
+            const loader = document.getElementById('kmfx-loader');
+            if (loader) {{
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 800);
+            }}
+        }}, 1200);
+    }});
+</script>
+""", unsafe_allow_html=True)
    
     # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
     logo_col = st.columns([1, 6, 1])[1] # Slightly wider middle column for better logo size
@@ -901,36 +961,44 @@ if not st.session_state.authenticated:
         st.markdown(f"<div class='timeline-card'><h3 class='gold-text'>{date} — {title}</h3><p>{desc}</p></div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # Member Login CTA
+      # Member Login CTA
     st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>", unsafe_allow_html=True)
     st.markdown(f"<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
     st.markdown("<p style='font-size:1.4rem;'>Access your elite dashboard, balance, shares, and tools</p>", unsafe_allow_html=True)
+    
     if st.button("Member Login →", type="primary", use_container_width=True):
         st.session_state.show_login = True
+    
     if st.session_state.get("show_login"):
         col1, col2, col3 = st.columns([1, 4, 1])
         with col2:
             st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+            
             tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
+            
             with tab_owner:
                 with st.form("login_form_owner"):
-                    username = st.text_input("Username", placeholder="Owner username", key="owner_user")
+                    username = st.text_input("Username", placeholder="Owner username (e.g. kingminted)", key="owner_user")
                     password = st.text_input("Password", type="password", key="owner_pwd")
                     if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
-                        login_user(username, password)
+                        login_user(username, password, expected_role="owner")
+            
             with tab_admin:
                 with st.form("login_form_admin"):
                     username = st.text_input("Username", placeholder="Admin username", key="admin_user")
                     password = st.text_input("Password", type="password", key="admin_pwd")
                     if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
-                        login_user(username, password)
+                        login_user(username, password, expected_role="admin")
+            
             with tab_client:
                 with st.form("login_form_client"):
                     username = st.text_input("Username", placeholder="Your username", key="client_user")
                     password = st.text_input("Password", type="password", key="client_pwd")
                     if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
-                        login_user(username, password)
+                        login_user(username, password, expected_role="client")
+            
             st.markdown("</div>", unsafe_allow_html=True)
+    
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
