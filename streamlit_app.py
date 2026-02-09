@@ -656,8 +656,6 @@ if not st.session_state.authenticated:
         # 2014 – Discovery
         st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
         # st.image("assets/saudi1.jpg", use_container_width=True, caption="My early days discovering PSE while working in Saudi")
-         st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
-        # st.image("assets/saudi2.jpg", use_container_width=True, caption="My early days discovering PSE while working in Saudi")
         st.write("""
         Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market.
         Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy.
