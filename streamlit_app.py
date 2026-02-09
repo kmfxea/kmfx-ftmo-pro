@@ -14,6 +14,7 @@ from io import BytesIO
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import uuid
+from PIL import Image
 # === TEMPORARY GLOBAL TIME FIX - PHILIPPINE TIME ===
 st.markdown("""
 <style>
@@ -115,6 +116,30 @@ def upload_to_supabase(file, bucket: str, folder: str = "", use_signed_url: bool
     except Exception as e:
         st.error(f"Upload failed for {file.name}: {str(e)}")
         raise
+        # === IMAGE RESIZE HELPER (for timeline photos, testimonials, etc.) ===
+def make_same_size(image_path, target_width=800, target_height=500):
+    """
+    Center-crops and resizes image to exact same dimensions (no distortion).
+    Adjust target_width/height as needed (e.g., 700, 450 or 600, 400).
+    """
+    img = Image.open(image_path)
+    target_ratio = target_width / target_height
+    img_ratio = img.width / img.height
+    
+    if img_ratio > target_ratio:  # too wide → crop sides
+        new_width = int(img.height * target_ratio)
+        left = (img.width - new_width) // 2
+        img = img.crop((left, 0, left + new_width, img.height))
+    elif img_ratio < target_ratio:  # too tall → crop top/bottom
+        new_height = int(img.width / target_ratio)
+        top = (img.height - new_height) // 2
+        img = img.crop((0, top, img.width, top + new_height))
+    
+    img = img.resize((target_width, target_height), Image.LANCZOS)
+    return img
+
+# Theme & Colors (ilagay dito sa top, after supabase)
+accent_primary = "#00ffaa"
         # Theme & Colors (ilagay dito sa top, after supabase)
 accent_primary = "#00ffaa"
 accent_gold = "#ffd700"
@@ -656,10 +681,15 @@ if not st.session_state.authenticated:
         # 2014 – Discovery
         st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
         col_saudi1, col_saudi2 = st.columns(2)
+
         with col_saudi1:
-            st.image("assets/saudi1.jpg", use_container_width=True, caption="Team Saudi Boys")
+            img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=500)
+            st.image(img1, use_container_width=True, caption="Team Saudi Boys")
+
         with col_saudi2:
-            st.image("assets/saudi2.jpg", use_container_width=True, caption="Selfie with Stc Cap")
+            img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=500)
+            st.image(img2, use_container_width=True, caption="Selfie with Stc Cap")
+
         st.write("""
         Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market.
         Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy.
