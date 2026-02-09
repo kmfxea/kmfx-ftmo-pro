@@ -698,7 +698,15 @@ if not st.session_state.authenticated:
         
         # 2017 – Crypto Boom
         st.markdown("<h3 style='color:{accent_gold};'>2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
-        # st.image("assets/journey_2017.png", use_container_width=True, caption="Bitcoin boom days")
+        col_saudi1, col_saudi2 = st.columns(2)
+
+        with col_saudi1:
+            img1 = make_same_size("assets/family1.jpg", target_width=800, target_height=700)
+            st.image(img1, use_container_width=True, caption="Date with her")
+
+        with col_saudi2:
+            img2 = make_same_size("assets/family2.jpg", target_width=800, target_height=700)
+            st.image(img2, use_container_width=True, caption="Selfie My Family")
         st.write("""
         Umuwi ako para mag-family (30+ na si misis 😊). Noon din sumabog ang Bitcoin sa ₱1M — dun na ako na-hook sa crypto (24/7 market vs PSE hours).
         Ginamit ko yung stock learnings ko, pero newbie pa rin: na-scam sa sites like Auroramining, tried futures, manalo-natatalo. Walang solid strategy o discipline pa.
