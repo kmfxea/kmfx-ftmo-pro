@@ -683,11 +683,11 @@ if not st.session_state.authenticated:
         col_saudi1, col_saudi2 = st.columns(2)
 
         with col_saudi1:
-            img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=500)
+            img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=700)
             st.image(img1, use_container_width=True, caption="Team Saudi Boys")
 
         with col_saudi2:
-            img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=500)
+            img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=700)
             st.image(img2, use_container_width=True, caption="Selfie with Stc Cap")
 
         st.write("""
