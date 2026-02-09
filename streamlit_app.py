@@ -714,13 +714,15 @@ if not st.session_state.authenticated:
         
         # 2019-2021 – Pandemic Wins
         st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
-        col_klever1, col_klever2 = st.columns(2)
-        with col_klever1:
-            # st.image("assets/journey_klever1.png", use_container_width=True, caption="Klever token gains (before glitch)")
-            st.caption("(Placeholder for Klever gains screenshot)")
-        with col_klever2:
-            # st.image("assets/journey_klever2.png", use_container_width=True, caption="Big lesson from the crash")
-            st.caption("(Placeholder for crash lesson screenshot)")
+        col_saudi1, col_saudi2 = st.columns(2)
+
+        with col_saudi1:
+            img1 = make_same_size("assets/klever1.jpg", target_width=800, target_height=700)
+            st.image(img1, use_container_width=True, caption="Part of Gain almost 20k$+ Max gain ")
+
+        with col_saudi2:
+            img2 = make_same_size("assets/klever2.jpg", target_width=800, target_height=700)
+            st.image(img2, use_container_width=True, caption="Klever Exchange Set Buy Sell Instant")
         st.write("""
         Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
         Pero glitch sa platform — half lang nabalik. Realization: May pera talaga sa market kung may **right strategy + discipline + emotion control**.
