@@ -1139,14 +1139,25 @@ if st.session_state.get("show_full_journey", False):
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) ======================
+# ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) - FULLY SAFE VERSION ======================
+# Fixed na — walang AttributeError ever, kahit fresh load o walang login pa
+# Added safe defaults + .get() para sa full_name at role
+
 with st.sidebar:
-    st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
+    # SAFE USER INFO DISPLAY — no error kahit walang value pa sa session_state
+    full_name = st.session_state.get("full_name", "Mark Jeff Blando 👑")
+    role = st.session_state.get("role", "owner")  # default mo muna as owner, or "client" kung gusto mo
+
+    st.markdown(f"<h3 style='text-align:center; font-size:1.8rem;'>👤 {full_name}</h3>", unsafe_allow_html=True)
+    st.markdown(
+        f"<p style='text-align:center; color:{accent_primary}; font-size:1.2rem;'><strong>{role.title()}</strong></p>",
+        unsafe_allow_html=True
+    )
     st.divider()
-    
-    current_role = st.session_state.role
-    
+
+    # Safe current_role with fallback
+    current_role = st.session_state.get("role", "owner").lower()  # lowercase para consistent sa checks
+
     if current_role == "client":
         pages = [
             "🏠 Dashboard", "👤 My Profile", "📊 FTMO Accounts", "💰 Profit Sharing",
@@ -1170,28 +1181,33 @@ with st.sidebar:
         ]
     else:
         pages = ["🏠 Dashboard"]  # Fallback safety
-    
+
     # Safe default + tamper protection
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
-    
+
     # Safe radio with fallback index
+    try:
+        index = pages.index(st.session_state.selected_page)
+    except ValueError:
+        index = 0  # fallback to first page
+
     selected = st.radio(
         "Navigation",
         pages,
-        index=pages.index(st.session_state.selected_page),
+        index=index,
         label_visibility="collapsed"
     )
     st.session_state.selected_page = selected
-    
+
     st.divider()
-    
+
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
-    
+
     if st.button("🚪 Logout", use_container_width=True, type="secondary"):
-        log_action("Logout", f"User: {st.session_state.username}")
+        log_action("Logout", f"User: {st.session_state.get('username', 'Unknown')}")
         st.session_state.clear()
         st.rerun()
 
