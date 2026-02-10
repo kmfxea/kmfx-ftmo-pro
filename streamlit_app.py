@@ -691,9 +691,10 @@ if not st.session_state.authenticated:
             st.image(img2, use_container_width=True, caption="Selfie with Stc Cap")
 
         st.write("""
-        Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market.
-        Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy.
-        Mix emotions: sobrang saya pag nanalo, lungkot pag natalo. Naging kaibigan ko sina Ramil, Mheg, Christy noong 2016 era. Hindi pa seryoso noon, pero dun na nagsimula ang passion.
+        Noong 2014, nandoon ako sa Saudi Arabia bilang Telecom Technician sa STC (Saudi Telecom Company). Everyday routine: work sa site, init ng desert, pero tuwing Friday—off day ko—may oras akong mag-explore online. Nag-start ako mag-search ng ways para magdagdag ng income, kasi alam mo naman OFW life: padala sa pamilya, savings, pero gusto ko rin ng something para sa future.
+        Dun ko natuklasan ang Philippine stock market. Nagbukas ako ng account sa First Metro Securities (First Metro Sec), nag-download ng app, nagbasa ng news, PSE index, at sinubukan lahat ng basic strategies—buy low sell high, follow tips sa forums, kahit trial-and-error pa.
+        Emotions? Grabe mix: Sobrang saya kapag green ang portfolio, parang nanalo sa lotto! Pero kapag red at natalo, lungkot talaga, iniisip ko "sayang 'yung overtime ko." Paulit-ulit 'yun—wins, losses, lessons. Hindi pa seryoso noon, more like hobby lang habang nasa abroad, pero dun talaga nagsimula ang passion ko sa trading.
+        Around 2016 era, naging close friends ko sina Ramil, Mheg, at Christy. Nagsha-share kami ng ideas sa chat, nagpapasa ng stock picks, nagdi-discuss ng charts kahit liblib na oras. Yun 'yung simula ng "team" feeling—hindi pa pro, pero may spark na. Little did I know, 'yung mga ganung simple na usapan ang magiging foundation ng KMFX EA years later.
         """)
         
         # 2017 – Crypto Boom
