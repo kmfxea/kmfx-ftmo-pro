@@ -666,252 +666,115 @@ if not st.session_state.authenticated:
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
-st.markdown("""
-<div class='glass-card' style='text-align:center; margin:6rem 0; padding:4rem; border-radius:20px; box-shadow:0 8px 32px rgba(255,215,0,0.1); background:rgba(0,0,0,0.4);'>
-    <h2 class='gold-text' style='font-size:2.8rem; margin-bottom:1rem; text-shadow:0 2px 10px rgba(255,215,0,0.3);'>
-        Want the Full Story Behind KMFX EA?
-    </h2>
-    <p style='font-size:1.6rem; opacity:0.9; line-height:1.8; max-width:800px; margin:0 auto 2.5rem;'>
-        From OFW in Saudi to building an automated empire — <strong>built by faith, lessons, and persistence</strong>.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:3rem;'>", unsafe_allow_html=True)
+    st.markdown(f"<h2 class='gold-text'>Want the Full Story Behind KMFX EA?</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:1.4rem; opacity:0.9;'>From OFW in Saudi to building an automated empire — built by faith, lessons, and persistence.</p>", unsafe_allow_html=True)
 
-if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", use_container_width=True, key="open_journey"):
-    st.session_state.show_full_journey = True
+    if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", use_container_width=True):
+        st.session_state.show_full_journey = True
 
-if st.session_state.get("show_full_journey", False):
-    st.markdown("""
-    <div class='glass-card journey-container' style='padding:4rem; margin:4rem 0; border-radius:20px; background:rgba(0,0,0,0.5); box-shadow:0 10px 40px rgba(0,0,0,0.3);'>
-        <h1 class='gold-text' style='text-align:center; font-size:3.2rem; margin-bottom:1.5rem; text-shadow:0 3px 15px rgba(255,215,0,0.4);'>
-            My Trading Journey: From 2014 to KMFX EA 2026 👑
-        </h1>
-        <p style='text-align:center; font-style:italic; font-size:1.55rem; opacity:0.9; line-height:1.9; max-width:950px; margin:0 auto 4rem;'>
-            Ako si <strong>Mark Jeff Blando</strong> (Codename: <em>Kingminted</em>) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system.<br><br>
-            Ito ang kwento ko — <strong>built by faith, shared for generations</strong>.
-        </p>
-        <hr style='border:1px solid rgba(255,215,0,0.3); margin:4rem 0;'>
-    """, unsafe_allow_html=True)
+    if st.session_state.get("show_full_journey", False):
+        st.markdown("<div class='glass-card' style='padding:3rem; margin:3rem 0;'>", unsafe_allow_html=True)
+        st.markdown("<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center; font-style:italic;'>Ako si Mark Jeff Blando (Codename: Kingminted) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system. Ito ang kwento ko, built by faith, shared for generations.</p>", unsafe_allow_html=True)
+        
+        # 2014 – Discovery
+        st.markdown("<h3 style='color:{accent_gold};'>2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
+        col_saudi1, col_saudi2 = st.columns(2)
 
-    # 2014 – Discovery
-    st.markdown("""
-    <h2 style='color:{accent_gold}; font-size:2.5rem; text-align:center; margin:3rem 0 1.5rem;'>
-        🌍 2014: The Beginning in Saudi Arabia
-    </h2>
-    <p style='text-align:center; font-size:1.35rem; opacity:0.8; margin-bottom:2.5rem;'>
-        Kung saan nagsimula ang lahat — sa init ng desert, sa off-day na Friday, at sa unang click sa stock market.
-    </p>
-    """, unsafe_allow_html=True)
+        with col_saudi1:
+            img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=700)
+            st.image(img1, use_container_width=True, caption="Team Saudi Boys")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=700)
-        st.image(img1, use_container_width=True, caption="Team Saudi Boys 🇸🇦")
-    with col2:
-        img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=700)
-        st.image(img2, use_container_width=True, caption="Selfie with STC Cap")
+        with col_saudi2:
+            img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=700)
+            st.image(img2, use_container_width=True, caption="Selfie with Stc Cap")
 
-    st.markdown("""
-    <div style='font-size:1.28rem; line-height:2; max-width:950px; margin:3rem auto; text-align:justify;'>
-        <p>Noong <strong>2014</strong>, nandoon ako sa Saudi Arabia bilang Telecom Technician sa STC. Araw-araw: site work, init ng desert, pawis, at overtime. Pero tuwing <em>Friday — off day ko</em> — may oras akong mag-explore online.</p>
+        st.write("""
+        Bilang Telecom Technician sa STC Saudi Arabia, tuwing Friday off ko, nag-search online ako at natuklasan ang Philippine stock market.
+        Nag-create ako ng account sa First Metro Sec, nagsimulang magbasa ng news, at sinubukan lahat ng strategy.
+        Mix emotions: sobrang saya pag nanalo, lungkot pag natalo. Naging kaibigan ko sina Ramil, Mheg, Christy noong 2016 era. Hindi pa seryoso noon, pero dun na nagsimula ang passion.
+        """)
         
-        <p>Doon ko natuklasan ang <strong>Philippine stock market</strong>. Nagbukas ako ng account sa First Metro Sec, nag-download ng app, nagbasa ng news, PSE index, at sinubukan lahat ng basic — buy low sell high, tips sa forums, trial-and-error.</p>
-        
-        <p>Emotions? <strong>Grabe.</strong> Sobrang saya kapag green ang portfolio — parang nanalo sa lotto! Pero kapag red? Lungkot talaga, iniisip ko, “Sayang ‘yung overtime ko.” Paulit-ulit ‘yun — wins, losses, lessons.</p>
-        
-        <p>Around 2016, naging close friends ko sina Ramil, Mheg, at Christy. Nagsha-share kami ng ideas sa chat, nagpapasa ng stock picks, nagdi-discuss ng charts kahit liblib na oras. Yun ‘yung simula ng <strong>“team” feeling</strong> — hindi pa pro, pero may spark na.</p>
-        
-        <p style='font-style:italic; text-align:center; margin:2rem 0;'>
-            Little did I know, ‘yung mga simpleng usapan na ‘yun ang magiging foundation ng KMFX EA years later.
-        </p>
-    </div>
-    <hr style='border:1px dashed rgba(255,215,0,0.25); margin:5rem 0;'>
-    """, unsafe_allow_html=True)
+        # 2017 – Crypto Boom
+        st.markdown("<h3 style='color:{accent_gold};'>2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
+        col_saudi1, col_saudi2 = st.columns(2)
 
-    # 2017 – Crypto Boom
-    st.markdown("""
-    <h2 style='color:{accent_gold}; font-size:2.5rem; text-align:center; margin:3rem 0 1.5rem;'>
-        🏠 2017: Umuwi sa Pinas at Crypto Era
-    </h2>
-    <p style='text-align:center; font-size:1.35rem; opacity:0.8; margin-bottom:2.5rem;'>
-        Fresh start sa family life — at ang unang malaking wave ng crypto.
-    </p>
-    """, unsafe_allow_html=True)
+        with col_saudi1:
+            img1 = make_same_size("assets/family1.jpg", target_width=800, target_height=700)
+            st.image(img1, use_container_width=True, caption="Date with her")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        img1 = make_same_size("assets/family1.jpg", target_width=800, target_height=700)
-        st.image(img1, use_container_width=True, caption="Date with her ❤️")
-    with col2:
-        img2 = make_same_size("assets/family2.jpg", target_width=800, target_height=700)
-        st.image(img2, use_container_width=True, caption="Selfie My Family 👨‍👩‍👧")
+        with col_saudi2:
+            img2 = make_same_size("assets/family2.jpg", target_width=800, target_height=700)
+            st.image(img2, use_container_width=True, caption="Selfie My Family")
+        st.write("""
+        Umuwi ako para mag-family (30+ na si misis 😊). Noon din sumabog ang Bitcoin sa ₱1M — dun na ako na-hook sa crypto (24/7 market vs PSE hours).
+        Ginamit ko yung stock learnings ko, pero newbie pa rin: na-scam sa sites like Auroramining, tried futures, manalo-natatalo. Walang solid strategy o discipline pa.
+        """)
+        
+        # 2019-2021 – Pandemic Wins
+        st.markdown("<h3 style='color:{accent_gold};'>2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
+        col_saudi1, col_saudi2 = st.columns(2)
 
-    st.markdown("""
-    <div style='font-size:1.28rem; line-height:2; max-width:950px; margin:3rem auto; text-align:justify;'>
-        <p>Noong <strong>2017</strong>, desisyon ko na — umuwi na ako sa Pilipinas para mag-start ng family life. Matagal na rin akong OFW, at gusto ko nang makasama sila araw-araw, hindi na yung video call lang tuwing weekend.</p>
-        
-        <p>Yung feeling ng pagbalik? Airport pickup, yakap ng pamilya, settle sa Quezon City. <strong>Parang fresh start</strong> — walang desert heat, puro quality time na.</p>
-        
-        <p>Pero dun din sumabog ang <strong>crypto wave</strong>! Bitcoin skyrocket hanggang ₱1M+ — grabe ‘yung hype! 24/7 market, kaya mas madali mag-trade kahit busy sa bahay.</p>
-        
-        <p>Ginamit ko ‘yung stock learnings ko, pero newbie pa rin. Na-scam ako sa Auroramining, sinubukan futures — leverage, high risk. Walang solid strategy pa, emosyon pa rin ang nagdedesisyon: FOMO, panic, revenge trading.</p>
-        
-        <p style='font-style:italic; text-align:center; margin:2rem 0;'>
-            Yung mga losses at scams na ‘yun ang magiging stepping stones para sa KMFX EA — natuto akong tanggalin emotions at mag-build ng system.
-        </p>
-    </div>
-    <hr style='border:1px dashed rgba(255,215,0,0.25); margin:5rem 0;'>
-    """, unsafe_allow_html=True)
+        with col_saudi1:
+            img1 = make_same_size("assets/klever1.jpg", target_width=800, target_height=700)
+            st.image(img1, use_container_width=True, caption="Part of Gain almost 20k$+ Max gain ")
 
-    # 2019–2021 – Pandemic Wins
-    st.markdown("""
-    <h2 style='color:{accent_gold}; font-size:2.5rem; text-align:center; margin:3rem 0 1.5rem;'>
-        🦠 2019–2021: Pandemic Days & Biggest Lessons
-    </h2>
-    <p style='text-align:center; font-size:1.35rem; opacity:0.8; margin-bottom:2.5rem;'>
-        Lockdown, family time, at ang pinakamalaking realization sa trading.
-    </p>
-    """, unsafe_allow_html=True)
+        with col_saudi2:
+            img2 = make_same_size("assets/klever2.jpg", target_width=800, target_height=700)
+            st.image(img2, use_container_width=True, caption="Klever Exchange Set Buy Sell Instant")
+        st.write("""
+        Natagpuan ko ang Klever token — ginamit ko yung "Ninja Move" (set buy, instant sell sa target). Sobrang laki ng gains, kasama kapatid kong si Michael.
+        Pero glitch sa platform — half lang nabalik. Realization: May pera talaga sa market kung may **right strategy + discipline + emotion control**.
+        90% ng traders natatalo dahil sa emotions, hindi sa strategy. After 2021 crash (BTC 60k → 20k), lumayo muna ako.
+        """)
+        
+        # 2024-2025 – Forex & EA Building
+        st.markdown("<h3 style='color:{accent_gold};'>2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
+        # st.image("assets/journey_ea_build.png", use_container_width=True, caption="Self-studying MQL5 and building KMFX EA")
+        st.caption("(Placeholder for EA building screenshot)")
+        st.write("""
+        Nauso ang AI → naisip ko ang Expert Advisor. Self-study MQL5 for almost 1 year. Pinagsama ko lahat ng natutunan since 2014.
+        Nakita ko: Professional trader = strategy + risk management + psychology. Goal ko na maging ganun.
+        January 2025: KMFX EA (Kingminted Forex EA) fully working — focused on Gold (XAUUSD).
+        Testing with Weber, Jai, Sheldon, Ramil. Pioneer community formed end of 2025.
+        """)
+        
+        # 2025-2026 – FTMO Challenges
+        st.markdown("<h3 style='color:{accent_gold};'>2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
+        col_ftmo1, col_ftmo2 = st.columns(2)
+        with col_ftmo1:
+            st.image("assets/ftmo.jpeg", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+            st.caption("(Placeholder for Phase 1 pass)")
+        with col_ftmo2:
+            st.image("assets/ongoing.jpg", use_container_width=True, caption="Current challenge - full trust mode")
+            st.caption("(Placeholder for current challenge)")
+        st.write("""
+        Dec 2025: First 10K challenge — **Passed Phase 1 in 13 days!** (+10.41%, 2.98% DD).
+        Phase 2: Failed dahil emotional intervention (galaw ko yung system). Lesson: Full trust lang — "run and forget" mode.
+        Jan 2026: New challenge, full hands-off. Comeback stronger.
+        """)
+        
+        # Realization & Vision (IMAGE KEPT ACTIVE)
+        st.markdown("<h3 style='color:{accent_gold};'>Realization & Future Vision</h3>", unsafe_allow_html=True)
+        st.image("assets/journey_vision.jpg", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
+        st.write("""
+        Since 2014, alam ko na may **big plan si God** para sa'kin — kaya ako na-involve sa market. Purpose ko na 'to.
+        KMFX EA para makatulong sa maraming tao. Dream: Build **KMFX EA Foundations** — guide aspiring traders to become professionals.
+        Bigger dream: Passive income para sa lahat → financial freedom, more time for Lord, family, peaceful life.
+        
+        **KMFX EA: Built by Faith, Shared for Generations**
+        
+        — Mark Jeff Blando | Founder & Developer | Since 2014
+        """)
+        
+        if st.button("Close Journey", use_container_width=True):
+            st.session_state.show_full_journey = False
+            st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        img1 = make_same_size("assets/klever1.jpg", target_width=800, target_height=700)
-        st.image(img1, use_container_width=True, caption="Part of Gain — almost 20k$+ Max 🔥")
-    with col2:
-        img2 = make_same_size("assets/klever2.jpg", target_width=800, target_height=700)
-        st.image(img2, use_container_width=True, caption="Klever Exchange — Set Buy Sell Instant")
-
-    st.markdown("""
-    <div style='font-size:1.28rem; line-height:2; max-width:950px; margin:3rem auto; text-align:justify;'>
-        <p>Noong <strong>2019 hanggang 2021</strong>, dumating ang pandemic — isa sa pinakamahaba sa mundo. Lahat kami nasa bahay, walang labas, puro quarantine.</p>
-        
-        <p>Pero sa gitna ng gulo, natagpuan ko ‘yung <strong>Klever token (KLV)</strong>. May “Ninja Move” feature — set buy order tapos instant sell sa target. Parang automated quick flips.</p>
-        
-        <p>Ginawa ko ‘yun religiously, at sobrang laki ng gains! Kasama ko pa si Michael — nag-team up kami, nag-celebrate sa chat kapag green. Feeling namin jackpot!</p>
-        
-        <p>Pero bigla, glitch sa platform — half lang ng profits ‘yung nabalik. Sakit sa puso ‘yun, pero dun dumating ang <strong>pinakamalaking realization</strong>: May pera talaga sa market kung may right strategy + discipline + emotion control.</p>
-        
-        <p>After the 2021 crash — BTC from 60k down to 20k — sobrang sakit. Dun ako nag-decide: lumayo muna, mag-reflect, at mag-build ng mas matibay na foundation.</p>
-        
-        <p style='font-style:italic; text-align:center; margin:2rem 0;'>
-            From home setups, laptop sa kama, hanggang sa pag-unawa na automation + no-emotion ang susi.
-        </p>
-    </div>
-    <hr style='border:1px dashed rgba(255,215,0,0.25); margin:5rem 0;'>
-    """, unsafe_allow_html=True)
-
-    # 2024–2025 – Forex & EA Building
-    st.markdown("""
-    <h2 style='color:{accent_gold}; font-size:2.5rem; text-align:center; margin:3rem 0 1.5rem;'>
-        🤖 2024–2025: The Professional Shift
-    </h2>
-    <p style='text-align:center; font-size:1.35rem; opacity:0.8; margin-bottom:2.5rem;'>
-        Self-study, coding nights, at ang kapanganakan ng KMFX EA.
-    </p>
-    """, unsafe_allow_html=True)
-
-    st.caption("📸 Screenshot of MQL5 coding sessions & EA development (placeholder)")
-
-    st.markdown("""
-    <div style='font-size:1.28rem; line-height:2; max-width:950px; margin:3rem auto; text-align:justify;'>
-        <p>Noong <strong>2024–2025</strong>, nauso talaga ang AI sa lahat. Nakita ko ‘yung potential: bakit hindi gamitin ‘yung tech para tanggalin ‘yung human weaknesses?</p>
-        
-        <p>Buong halos isang taon akong nag-self-study ng <strong>MQL5 programming</strong>. Gabi-gabi, after work at family time, nakaupo sa laptop — nagbabasa, nanonood, nagko-code, nagde-debug.</p>
-        
-        <p>Pinagsama ko lahat ng natutunan ko mula 2014: stock basics, crypto volatility, pandemic lessons, Klever moves, at lahat ng sakit sa manual trading.</p>
-        
-        <p>Narealize ko ‘yung formula ng professional trader:<br>
-        • Solid strategy<br>
-        • Iron-clad risk management (1% risk per trade)<br>
-        • Psychology — discipline, patience, trust the system</p>
-        
-        <p><strong>January 2025: Breakthrough!</strong> Fully working na ‘yung KMFX EA — focused sa Gold (XAUUSD).</p>
-        
-        <p>Agad ko sinimulan ang testing kasama sina Weber, Jai, Sheldon, Ramil. End of 2025: Pioneer community formed — mga believers na naging part ng journey.</p>
-        
-        <p style='font-style:italic; text-align:center; margin:2rem 0;'>
-            Parang rebirth. Mula sa losses dati, hanggang sa pagbuo ng tool na makakatulong sa marami. Built by faith, fueled by persistence.
-        </p>
-    </div>
-    <hr style='border:1px dashed rgba(255,215,0,0.25); margin:5rem 0;'>
-    """, unsafe_allow_html=True)
-
-    # 2025–2026 – FTMO Challenges
-    st.markdown("""
-    <h2 style='color:{accent_gold}; font-size:2.5rem; text-align:center; margin:3rem 0 1.5rem;'>
-        🏆 2025–2026: FTMO Challenges & Comeback
-    </h2>
-    <p style='text-align:center; font-size:1.35rem; opacity:0.8; margin-bottom:2.5rem;'>
-        Pro validation, hard reset, at full trust mode.
-    </p>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image("assets/ftmo.jpeg", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
-    with col2:
-        st.image("assets/ongoing.jpg", use_container_width=True, caption="Current challenge — full trust mode 🚀")
-
-    st.markdown("""
-    <div style='font-size:1.28rem; line-height:2; max-width:950px; margin:3rem auto; text-align:justify;'>
-        <p>End of 2025 hanggang 2026: Ready na akong subukan sa <strong>FTMO</strong>. Goal: funded account para patunayan na live market-proof ang EA.</p>
-        
-        <p><strong>December 13–26, 2025:</strong> PASSED Phase 1 sa 13 days!<br>
-        +10.41% gain, max drawdown 2.98%, 118 trades, +12,810 pips.</p>
-        
-        <p>Pero Phase 2: Natumba ako — emotional intervention. Failed.</p>
-        
-        <p>Key insight: Untouched simulation run = madali sanang na-pass. Emotions ang tunay na kalaban.</p>
-        
-        <p><strong>January 2026:</strong> New challenge — 100% hands-off, pure automated. Confidence high. Comeback stronger.</p>
-        
-        <p style='font-style:italic; text-align:center; margin:2rem 0;'>
-            Hindi na ‘to para sa ego — para sa legacy, community, at financial freedom na makatulong sa marami. Built by faith, tested by fire.
-        </p>
-    </div>
-    <hr style='border:1px dashed rgba(255,215,0,0.25); margin:5rem 0;'>
-    """, unsafe_allow_html=True)
-
-    # Realization & Vision
-    st.markdown("""
-    <h2 style='color:{accent_gold}; font-size:2.5rem; text-align:center; margin:3rem 0 2rem;'>
-        ✨ Realization & Future Vision
-    </h2>
-    """, unsafe_allow_html=True)
-
-    st.image("assets/journey_vision.jpg", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
-
-    st.markdown("""
-    <div style='font-size:1.35rem; line-height:2.1; max-width:950px; margin:4rem auto; text-align:center;'>
-        <p><strong>Mula noong 2014</strong>, ramdam na ramdam ko na may malaking plano si Lord para sa akin.</p>
-        
-        <p>Lahat ng losses, scams, emotional rollercoasters, pandemic gains, at failures sa FTMO — lahat ‘yun part ng preparation. Purpose ko na ‘to.</p>
-        
-        <p>Kaya binuo ko ang <strong>KMFX EA</strong> — hindi lang bot, kundi tool na tanggalin ang human error at bigyan ng consistency.</p>
-        
-        <p><em>Built by faith, tested by fire, at ngayon ready na ibahagi.</em></p>
-        
-        <p style='font-size:1.6rem; margin:3rem 0; font-weight:bold;'>
-            Dream ko ngayon:<br>
-            • KMFX EA Foundations — buong gabay para sa mga baguhan<br>
-            • Passive income na para sa lahat na sumali at naniwala<br>
-            • Financial freedom na magbibigay ng peace of mind, oras sa Panginoon at pamilya
-        </p>
-        
-        <p style='font-size:1.55rem; margin-top:4rem;'>
-            <strong>KMFX EA: Built by Faith, Shared for Generations</strong><br>
-            — Mark Jeff Blando | Founder & Developer | 2014 hanggang ngayon 👑
-        </p>
-    </div>
-    
-    <div style='text-align:center; margin:5rem 0 3rem;'>
-    """, unsafe_allow_html=True)
-
-    if st.button("✨ Close Journey", use_container_width=True, type="secondary"):
-        st.session_state.show_full_journey = False
-        st.rerun()
-
-    st.markdown("</div></div>", unsafe_allow_html=True)  # Close journey container and glass-card
+    st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
     # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
     st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
     st.markdown("<h2 class='gold-text' style='text-align:center;'>Why Choose KMFX EA?</h2>", unsafe_allow_html=True)
@@ -1133,15 +996,8 @@ if st.session_state.get("show_full_journey", False):
 
 # ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) ======================
 with st.sidebar:
-    # Safe defaults — hindi na mag-e-error kahit walang value pa sa session_state
-    full_name = st.session_state.get("full_name", "Mark Jeff Blando 👑")
-    role = st.session_state.get("role", "Founder & Developer")  # Adjust default kung iba ang usual role mo
-    
-    st.markdown(f"<h3 style='text-align:center; font-size:1.8rem;'>👤 {full_name}</h3>", unsafe_allow_html=True)
-    st.markdown(
-        f"<p style='text-align:center; color:{accent_primary}; font-size:1.2rem;'><strong>{role.title()}</strong></p>",
-        unsafe_allow_html=True
-    )
+    st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
     st.divider()
     
     current_role = st.session_state.role
