@@ -911,7 +911,7 @@ if st.session_state.get("show_full_journey", False):
         st.session_state.show_full_journey = False
         st.rerun()
 
-    st.markdown("</div></div>", unsafe_allow_html=True)  # Close journey container and outer div
+    st.markdown("</div></div>", unsafe_allow_html=True)  # Close journey container and glass-card
     # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
     st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
     st.markdown("<h2 class='gold-text' style='text-align:center;'>Why Choose KMFX EA?</h2>", unsafe_allow_html=True)
