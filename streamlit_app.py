@@ -1133,8 +1133,15 @@ if st.session_state.get("show_full_journey", False):
 
 # ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) ======================
 with st.sidebar:
-    st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
-    st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
+    # Safe defaults — hindi na mag-e-error kahit walang value pa sa session_state
+    full_name = st.session_state.get("full_name", "Mark Jeff Blando 👑")
+    role = st.session_state.get("role", "Founder & Developer")  # Adjust default kung iba ang usual role mo
+    
+    st.markdown(f"<h3 style='text-align:center; font-size:1.8rem;'>👤 {full_name}</h3>", unsafe_allow_html=True)
+    st.markdown(
+        f"<p style='text-align:center; color:{accent_primary}; font-size:1.2rem;'><strong>{role.title()}</strong></p>",
+        unsafe_allow_html=True
+    )
     st.divider()
     
     current_role = st.session_state.role
