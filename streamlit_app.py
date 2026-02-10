@@ -914,7 +914,7 @@ Confidence high. Comeback stronger — para sa legacy, community, financial free
 
     # Realization & Vision
     st.markdown(
-        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        f"<h3 style='color:{accent_gold}; text-align:center'>"
         "✨ Realization & Future Vision</h3>",
         unsafe_allow_html=True,
     )
