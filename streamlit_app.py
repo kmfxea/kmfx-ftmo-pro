@@ -912,21 +912,21 @@ Confidence high. Comeback stronger — para sa legacy, community, financial free
 *Built by faith, tested by fire.*
     """)
 
-    # Realization & Vision
-st.markdown(
-    f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
-    "✨ Realization & Future Vision</h3>",
-    unsafe_allow_html=True,
-)
+        # Realization & Vision (nasa loob na ng full journey — last section bago ang Close button)
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "✨ Realization & Future Vision</h3>",
+        unsafe_allow_html=True,
+    )
 
-# No cropping — direct full original image (preserves aspect ratio, responsive)
-st.image(
-    "assets/journey_vision.jpg",
-    use_container_width=True,
-    caption="Built by Faith, Shared for Generations 👑"
-)
+    # No cropping — direct full original image (buong-buo, preserves aspect ratio, responsive)
+    st.image(
+        "assets/journey_vision.jpg",
+        use_container_width=True,
+        caption="Built by Faith, Shared for Generations 👑"
+    )
 
-st.write("""
+    st.write("""
 **Mula noong 2014**, ramdam na ramdam ko na may malaking plano si Lord para sa akin.
 
 Hindi aksidente 'yung involvement ko sa market — stocks, crypto, gold, highs at lows.
@@ -952,13 +952,13 @@ Na patunayan na kapag may faith, discipline, at tamang system — kaya baguhin a
 **KMFX EA: Built by Faith, Shared for Generations**
 
 — Mark Jeff Blando | Founder & Developer | 2014 hanggang ngayon 👑
-""")
+    """)
 
-if st.button("Close Journey", use_container_width=True):
-    st.session_state.show_full_journey = False
-    st.rerun()
+    if st.button("Close Journey", use_container_width=True):
+        st.session_state.show_full_journey = False
+        st.rerun()
 
-st.markdown("</div>", unsafe_allow_html=True)  # Close full journey card
+    st.markdown("</div>", unsafe_allow_html=True)  # Close full journey card (glass-card)
 # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
 st.markdown(
     "<div class='glass-card' style='margin:4rem 0; padding:3rem;'>",
