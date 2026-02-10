@@ -957,11 +957,133 @@ Na patunayan na kapag may faith, discipline, at tamang system — kaya baguhin a
     st.markdown("</div>", unsafe_allow_html=True)  # Close full journey card
 
 st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
-    # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
-    st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
-    st.markdown("<h2 class='gold-text' style='text-align:center;'>Why Choose KMFX EA?</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; opacity:0.9; font-size:1.2rem; margin-bottom:2rem;'>Hindi lang EA — ito yung automated system na galing sa totoong journey, pinatunayan sa FTMO, at built with discipline + faith.</p>", unsafe_allow_html=True)
+# ====================== WHY KMFX EA? - BENEFITS SECTION ======================
+# Clean, properly indented (top-level), consistent with previous sections
+# Uses glass-card wrapper, gold accents, centered layout
+# Responsive: columns stack nicely on mobile
+# Added 6 key benefits with large emojis, bold titles, and concise descriptions
+# Fully closed div
 
+st.markdown(
+    "<div class='glass-card' style='margin:4rem 0; padding:3rem;'>",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    "<h2 class='gold-text' style='text-align:center;'>Why Choose KMFX EA?</h2>",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    "<p style='text-align:center; opacity:0.9; font-size:1.3rem; margin-bottom:3rem;'>"
+    "Hindi lang isa pang EA — ito ang automated system na galing sa totoong 12+ years journey, "
+    "pinatunayan sa FTMO, at ginawa with discipline, persistence, at faith.</p>",
+    unsafe_allow_html=True,
+)
+
+# Benefits grid - 3 columns on desktop, auto-stack on mobile
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown(
+        """
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:4rem; margin-bottom:1rem;'>🏆</div>
+            <h3 style='color:{accent_gold}; margin-bottom:1rem;'>Proven Performance</h3>
+            <p style='opacity:0.9; line-height:1.6;'>
+                Passed FTMO Phase 1 in just 13 days (+10.41%)<br>
+                5-Year Backtest: <strong>+3,071%</strong><br>
+                Low drawdown, consistent gains
+            </p>
+        </div>
+        """.format(accent_gold=accent_gold),
+        unsafe_allow_html=True,
+    )
+
+with col2:
+    st.markdown(
+        """
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:4rem; margin-bottom:1rem;'>🤖</div>
+            <h3 style='color:{accent_gold}; margin-bottom:1rem;'>Emotion-Free Trading</h3>
+            <p style='opacity:0.9; line-height:1.6;'>
+                Walang greed, fear, o FOMO<br>
+                Pure system execution — run and forget<br>
+                Tanggal ang #1 reason bakit natatalo ang traders
+            </p>
+        </div>
+        """.format(accent_gold=accent_gold),
+        unsafe_allow_html=True,
+    )
+
+with col3:
+    st.markdown(
+        """
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:4rem; margin-bottom:1rem;'>🛡️</div>
+            <h3 style='color:{accent_gold}; margin-bottom:1rem;'>Smart Risk Management</h3>
+            <p style='opacity:0.9; line-height:1.6;'>
+                1% risk per trade only<br>
+                No martingale, no grid<br>
+                Controlled drawdown for long-term growth
+            </p>
+        </div>
+        """.format(accent_gold=accent_gold),
+        unsafe_allow_html=True,
+    )
+
+# Second row
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown(
+        """
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:4rem; margin-bottom:1rem;'>🥇</div>
+            <h3 style='color:{accent_gold}; margin-bottom:1rem;'>Gold Specialist</h3>
+            <p style='opacity:0.9; line-height:1.6;'>
+                Fully optimized for XAUUSD volatility<br>
+                Scalping-style entries on gold spikes<br>
+                Takes advantage of the most profitable pair
+            </p>
+        </div>
+        """.format(accent_gold=accent_gold),
+        unsafe_allow_html=True,
+    )
+
+with col2:
+    st.markdown(
+        """
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:4rem; margin-bottom:1rem;'>👥</div>
+            <h3 style='color:{accent_gold}; margin-bottom:1rem;'>Community Driven</h3>
+            <p style='opacity:0.9; line-height:1.6;'>
+                Built with real feedback from pioneers<br>
+                Transparent dashboard & updates<br>
+                Shared growth — para sa lahat na naniniwala
+            </p>
+        </div>
+        """.format(accent_gold=accent_gold),
+        unsafe_allow_html=True,
+    )
+
+with col3:
+    st.markdown(
+        """
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:4rem; margin-bottom:1rem;'>✨</div>
+            <h3 style='color:{accent_gold}; margin-bottom:1rem;'>Built by Faith</h3>
+            <p style='opacity:0.9; line-height:1.6;'>
+                More than code — it's a legacy<br>
+                Discipline, patience, surrender to the plan<br>
+                Financial freedom with purpose
+            </p>
+        </div>
+        """.format(accent_gold=accent_gold),
+        unsafe_allow_html=True,
+    )
+
+st.markdown("</div>", unsafe_allow_html=True)  # Close glass-card
     cols = st.columns(3)
     benefits = [
         {
