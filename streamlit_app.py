@@ -886,7 +886,7 @@ st.markdown("<p style='text-align:center; opacity:0.9; font-size:1.2rem; margin-
 
 
 
-st.markdown("</div>", unsafe_allow_html=True)  # Close benefits card if needed
+    st.markdown("</div>", unsafe_allow_html=True)  # Close benefits card if needed
     cols = st.columns(3)
     benefits = [
         {
