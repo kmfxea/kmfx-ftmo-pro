@@ -666,32 +666,57 @@ if not st.session_state.authenticated:
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
-# Simple structure tulad ng old code mo (st.write lang, same format)
-# Pero na-enhance ang text:
-# - Better spacing (empty lines = paragraphs)
-# - Larger font feel (bold key moments)
-# - Italic reflections
-# - Short sentences for easy reading
-# Proper indentations + safe (consistent 4-space indentation, dedented multi-line strings para normal paragraphs, hindi code block)
+# Enhanced version: detailed personal journey from 2014–2026
+# Uses same styling (glass-card, gold-text, accent colors)
+# Proper 4-space indentation throughout
+# Multi-line st.write strings dedented for clean paragraph display
+# Images consistently processed where needed
+# Integrated seamlessly into public landing page (replace old static portfolio story)
 
 if "show_full_journey" not in st.session_state:
     st.session_state.show_full_journey = False
 
-st.markdown("<div class='glass-card' style='text-align:center; margin:5rem 0; padding:3rem;'>", unsafe_allow_html=True)
+# Teaser card (centered, inviting)
+st.markdown(
+    "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:3rem;'>",
+    unsafe_allow_html=True,
+)
 st.markdown(f"<h2 class='gold-text'>Want the Full Story Behind KMFX EA?</h2>", unsafe_allow_html=True)
-st.markdown("<p style='font-size:1.4rem; opacity:0.9;'>From OFW in Saudi to building an automated empire — built by faith, lessons, and persistence.</p>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='font-size:1.4rem; opacity:0.9;'>From OFW in Saudi to building an automated empire — built by faith, lessons, and persistence.</p>",
+    unsafe_allow_html=True,
+)
 
 if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", use_container_width=True):
     st.session_state.show_full_journey = True
+    st.rerun()
 
 if st.session_state.get("show_full_journey", False):
-    st.markdown("<div class='glass-card' style='padding:3rem; margin:3rem 0;'>", unsafe_allow_html=True)
-    st.markdown("<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-style:italic; font-size:1.3rem; opacity:0.9;'>Ako si <strong>Mark Jeff Blando</strong> (Codename: <em>Kingminted</em>) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system.<br><br>Ito ang kwento ko — <strong>built by faith, shared for generations</strong>.</p>", unsafe_allow_html=True)
+    # Full journey card
+    st.markdown(
+        "<div class='glass-card' style='padding:3rem; margin:3rem 0;'>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<p style='text-align:center; font-style:italic; font-size:1.3rem; opacity:0.9;'>"
+        "Ako si <strong>Mark Jeff Blando</strong> (Codename: <em>Kingminted</em>) — "
+        "simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, "
+        "at sa wakas, pagbuo ng sariling automated system.<br><br>"
+        "Ito ang kwento ko — <strong>built by faith, shared for generations</strong>.</p>",
+        unsafe_allow_html=True,
+    )
 
     # 2014 – Discovery
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🌍 2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
-    
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "🌍 2014: The Beginning in Saudi Arabia</h3>",
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns(2)
     with col1:
         img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=700)
@@ -699,7 +724,7 @@ if st.session_state.get("show_full_journey", False):
     with col2:
         img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=700)
         st.image(img2, use_container_width=True, caption="Selfie with STC Cap")
-    
+
     st.write("""
 **Noong 2014**, nandoon ako sa Saudi Arabia bilang Telecom Technician sa STC.
 
@@ -721,8 +746,12 @@ Yun 'yung simula ng **"team" feeling** — hindi pa pro, pero may spark na.
     """)
 
     # 2017 – Crypto Boom
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🏠 2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
-    
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "🏠 2017: Umuwi sa Pinas at Crypto Era</h3>",
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns(2)
     with col1:
         img1 = make_same_size("assets/family1.jpg", target_width=800, target_height=700)
@@ -730,7 +759,7 @@ Yun 'yung simula ng **"team" feeling** — hindi pa pro, pero may spark na.
     with col2:
         img2 = make_same_size("assets/family2.jpg", target_width=800, target_height=700)
         st.image(img2, use_container_width=True, caption="Selfie My Family 👨‍👩‍👧")
-    
+
     st.write("""
 **Noong 2017**, desisyon ko na — umuwi na ako sa Pilipinas para mag-start ng family life.
 
@@ -758,8 +787,12 @@ Hindi pa stable, pero 'yung fire sa trading? **Lalong lumakas.**
     """)
 
     # 2019–2021 – Pandemic Wins
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🦠 2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
-    
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "🦠 2019–2021: Pandemic Days & Biggest Lesson</h3>",
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns(2)
     with col1:
         img1 = make_same_size("assets/klever1.jpg", target_width=800, target_height=700)
@@ -767,7 +800,7 @@ Hindi pa stable, pero 'yung fire sa trading? **Lalong lumakas.**
     with col2:
         img2 = make_same_size("assets/klever2.jpg", target_width=800, target_height=700)
         st.image(img2, use_container_width=True, caption="Klever Exchange Set Buy Sell Instant")
-    
+
     st.write("""
 **Noong 2019 hanggang 2021**, dumating ang pandemic — isa sa pinakamahaba sa mundo.
 
@@ -795,9 +828,15 @@ Yung pandemic days: family time sa bahay, pero dinagdagan ng market lessons na m
     """)
 
     # 2024–2025 – Forex & EA Building
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🤖 2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
-    st.caption("(Placeholder for EA building screenshot)")
-    
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "🤖 2024–2025: The Professional Shift</h3>",
+        unsafe_allow_html=True,
+    )
+
+    # Optional: Add actual screenshot later — placeholder caption removed for cleaner look
+    st.image("assets/ea_building.jpg", use_container_width=True, caption="EA development & testing phase (2024–2025)")
+
     st.write("""
 **Noong 2024-2025**, biglang nauso ang AI sa lahat — news, work, trading.
 
@@ -826,16 +865,22 @@ End of 2025: Pioneer community formed — mga believers na sumali at naging part
     """)
 
     # 2025–2026 – FTMO Challenges
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🏆 2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
-    
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "🏆 2025–2026: FTMO Challenges & Comeback</h3>",
+        unsafe_allow_html=True,
+    )
+
     col1, col2 = st.columns(2)
     with col1:
-        st.image("assets/ftmo.jpeg", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+        img1 = make_same_size("assets/ftmo.jpeg", target_width=800, target_height=700)
+        st.image(img1, use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
     with col2:
-        st.image("assets/ongoing.jpg", use_container_width=True, caption="Current challenge - full trust mode 🚀")
-    
+        img2 = make_same_size("assets/ongoing.jpg", target_width=800, target_height=700)
+        st.image(img2, use_container_width=True, caption="Current challenge - full trust mode 🚀")
+
     st.write("""
-**First Taste of Pro Validation – Then the Hard Reset 🏆📊💪**
+**First Taste of Pro Validation – Then the Hard Reset**
 
 End of 2025 hanggang 2026: pinaka-exciting at challenging phase.
 
@@ -868,9 +913,15 @@ Confidence high. Comeback stronger — para sa legacy, community, financial free
     """)
 
     # Realization & Vision
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>✨ Realization & Future Vision</h3>", unsafe_allow_html=True)
-    st.image("assets/journey_vision.jpg", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
-    
+    st.markdown(
+        f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>"
+        "✨ Realization & Future Vision</h3>",
+        unsafe_allow_html=True,
+    )
+
+    vision_img = make_same_size("assets/journey_vision.jpg", target_width=1000, target_height=600)
+    st.image(vision_img, use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
+
     st.write("""
 **Mula noong 2014**, ramdam na ramdam ko na may malaking plano si Lord para sa akin.
 
@@ -902,8 +953,8 @@ Na patunayan na kapag may faith, discipline, at tamang system — kaya baguhin a
     if st.button("Close Journey", use_container_width=True):
         st.session_state.show_full_journey = False
         st.rerun()
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)  # Close full journey card
 
 st.markdown("</div>", unsafe_allow_html=True)  # Close teaser card
     # ====================== WHY KMFX EA? - BENEFITS SECTION ======================
