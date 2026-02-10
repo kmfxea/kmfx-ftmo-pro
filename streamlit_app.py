@@ -666,13 +666,14 @@ if not st.session_state.authenticated:
     st.markdown("</div>", unsafe_allow_html=True)
 
     # ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
-# Simple structure tulad ng old code mo (st.write lang, same format)
-# Pero na-enhance ang text: 
-# - Better spacing (empty lines = paragraphs)
-# - Larger font feel (bold key moments)
-# - Italic reflections
-# - Short sentences for easy reading
-# Proper indentations + safe
+# Enhanced version:
+# - Fixed all indentation issues (consistent 4-space indentation)
+# - Text rewritten for more professional, polished, and heartfelt tone (better Filipino grammar, flow, and structure)
+# - Improved spacing with proper <p> tags and line-height
+# - Enhanced font styling (larger base font, bold for key moments, italic for reflections)
+# - Important details highlighted in gold color ({accent_gold}) with bold + larger font
+# - Converted long st.write("""...""") to st.markdown with HTML for full styling control
+# - Kept simple structure (no complex tables or extra components)
 
 if "show_full_journey" not in st.session_state:
     st.session_state.show_full_journey = False
@@ -687,206 +688,210 @@ if st.button("👑 Read My Full Trading Journey (2014–2026)", type="primary", 
 if st.session_state.get("show_full_journey", False):
     st.markdown("<div class='glass-card' style='padding:3rem; margin:3rem 0;'>", unsafe_allow_html=True)
     st.markdown("<h2 class='gold-text' style='text-align:center;'>My Trading Journey: From 2014 to KMFX EA 2026</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-style:italic; font-size:1.3rem; opacity:0.9;'>Ako si <strong>Mark Jeff Blando</strong> (Codename: <em>Kingminted</em>) — simula 2014 hanggang ngayon 2026, pinagdaanan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, pagbuo ng sariling automated system.<br><br>Ito ang kwento ko — <strong>built by faith, shared for generations</strong>.</p>", unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <p style='text-align:center; font-style:italic; font-size:1.3rem; opacity:0.9; line-height:1.8;'>
+        Ako si <strong>Mark Jeff Blando</strong> (Codename: <em>Kingminted</em>) — mula 2014 hanggang 2026, 
+        naranasan ko ang lahat: losses, wins, scams, pandemic gains, at sa wakas, ang pagbuo ng sariling automated system.<br><br>
+        Ito ang aking kwento — <strong style='color:{accent_gold};'>built by faith, shared for generations</strong>.
+        </p>
+        """, 
+        unsafe_allow_html=True
+    )
 
     # 2014 – Discovery
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🌍 2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
-    col_saudi1, col_saudi2 = st.columns(2)
-    with col_saudi1:
+    st.markdown(f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🌍 2014: The Beginning in Saudi Arabia</h3>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
         img1 = make_same_size("assets/saudi1.jpg", target_width=800, target_height=700)
         st.image(img1, use_container_width=True, caption="Team Saudi Boys 🇸🇦")
-    with col_saudi2:
+    with col2:
         img2 = make_same_size("assets/saudi2.jpg", target_width=800, target_height=700)
         st.image(img2, use_container_width=True, caption="Selfie with STC Cap")
-    st.write("""
-    **Noong 2014**, nandoon ako sa Saudi Arabia bilang Telecom Technician sa STC.
 
-    Everyday routine: work sa site, init ng desert... pero tuwing **Friday — off day ko** — may oras akong mag-explore online.
-
-    Nag-start ako mag-search ng ways para magdagdag ng income. Alam mo naman OFW life: padala sa pamilya, savings, pero gusto ko rin ng something para sa future.
-
-    Dun ko natuklasan ang **Philippine stock market**. Nagbukas ako ng account sa First Metro Sec, nag-download ng app, nagbasa ng news, PSE index... at sinubukan lahat ng basic — buy low sell high, tips sa forums, trial-and-error.
-
-    **Emotions? Grabe.** Sobrang saya kapag green — parang nanalo sa lotto! Pero kapag red? Lungkot talaga, "sayang 'yung overtime ko."
-
-    Paulit-ulit 'yun — wins, losses, lessons. Hindi pa seryoso noon, more like hobby lang habang nasa abroad... pero dun talaga nagsimula ang passion ko sa trading.
-
-    Around 2016, naging close friends ko sina Ramil, Mheg, at Christy. Nagsha-share kami ng ideas sa chat, stock picks, charts kahit liblib na oras.
-
-    Yun 'yung simula ng **"team" feeling** — hindi pa pro, pero may spark na.
-
-    *Little did I know, 'yung mga simpleng usapan na 'yun ang magiging foundation ng KMFX EA years later.*
-    """)
+    st.markdown(
+        f"""
+        <div style='text-align: justify; line-height: 1.8; font-size: 1.15rem;'>
+        <p><strong>Noong 2014</strong>, nagtatrabaho ako sa Saudi Arabia bilang Telecom Technician sa STC.</p>
+        <p>Ang araw-araw na routine: trabaho sa site sa ilalim ng matinding init ng desert. 
+        Ngunit tuwing <strong>Biyernes — aking day off</strong> — may oras ako upang mag-explore online at maghanap ng karagdagang kita.</p>
+        <p>Bilang OFW, alam ko ang hirap: padala sa pamilya, savings, ngunit nais ko rin ng paraan para sa kinabukasan. 
+        Doon ko natuklasan ang <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>Philippine stock market</span>.</p>
+        <p>Nagbukas ako ng account sa First Metro Sec, nag-download ng app, nagbasa ng news at PSE index, 
+        at sinubukan ang mga basic: buy low sell high, tips mula sa forums, at trial-and-error.</p>
+        <p>Napakaintense ng emosyon — sobrang saya kapag green, parang nanalo sa lotto. 
+        Ngunit kapag red, malaking lungkot at pagsisisi sa mga overtime hours.</p>
+        <p>Paulit-ulit ang wins, losses, at lessons. Hindi pa seryoso noon, hobby lang habang nasa abroad, 
+        ngunit doon talaga nagsimula ang aking <strong>passion sa trading</strong>.</p>
+        <p>Noong bandang 2016, naging malapit na kaibigan ko sina Ramil, Mheg, at Christy. 
+        Nagsha-share kami ng stock picks, charts, at ideas sa chat kahit liblib ang oras.</p>
+        <p>Iyon ang simula ng <strong>\"team\" feeling</strong> — hindi pa professional, ngunit may spark na.</p>
+        <p><em>Little did I know, ang mga simpleng usapan na iyon ang magiging pundasyon ng KMFX EA sa mga susunod na taon.</em></p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
     # 2017 – Crypto Boom
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🏠 2017: Umuwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
-    col_saudi1, col_saudi2 = st.columns(2)
-    with col_saudi1:
+    st.markdown(f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🏠 2017: Pag-uwi sa Pinas at Crypto Era</h3>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
         img1 = make_same_size("assets/family1.jpg", target_width=800, target_height=700)
         st.image(img1, use_container_width=True, caption="Date with her ❤️")
-    with col_saudi2:
+    with col2:
         img2 = make_same_size("assets/family2.jpg", target_width=800, target_height=700)
         st.image(img2, use_container_width=True, caption="Selfie My Family 👨‍👩‍👧")
-    st.write("""
-    **Noong 2017**, desisyon ko na — umuwi na ako sa Pilipinas para mag-start ng family life.
 
-    Matagal na rin akong OFW, at 30+ na si misis 😊. Gusto ko nang makasama sila araw-araw, hindi na video call lang tuwing weekend.
-
-    Yung feeling ng pagbalik? Airport pickup, yakap ng pamilya, settle sa Quezon City. **Parang fresh start** — walang desert heat, puro quality time na.
-
-    Pero dun din sumabog ang **crypto wave**! Bitcoin skyrocket hanggang ₱1M+ — grabe 'yung hype!
-
-    From stock learnings ko sa PSE, na-curious ako agad. 24/7 market kasi — mas madali mag-trade kahit busy sa bahay.
-
-    Ginamit ko 'yung basics: charts, news, patterns. Pero newbie pa rin talaga ako sa crypto.
-
-    Na-scam ako sa Auroramining (fake cloud mining). Sinubukan futures — leverage, high risk, manalo bigla tapos natatalo rin agad.
-
-    Walang solid strategy pa, walang discipline. Emosyon ang nagdedesisyon: FOMO kapag pump, panic kapag dump.
-
-    Paulit-ulit na cycle ng highs at lows... pero dun talaga natuto ako ng malalim na lessons sa volatility at risk.
-
-    Yung panahon na 'yun: mix ng saya sa family life at excitement (at sakit) sa crypto world.
-
-    Hindi pa stable, pero 'yung fire sa trading? **Lalong lumakas.**
-
-    *Little did I know, 'yung mga losses at scams na 'yun ang magiging stepping stones para sa KMFX EA — natuto akong tanggalin emotions at mag-build ng system.*
-    """)
+    st.markdown(
+        f"""
+        <div style='text-align: justify; line-height: 1.8; font-size: 1.15rem;'>
+        <p><strong>Noong 2017</strong>, nagdesisyon akong umuwi na sa Pilipinas upang simulan ang buhay pamilya.</p>
+        <p>Matagal na akong OFW, at nais ko nang makasama sila araw-araw — hindi lamang sa video call tuwing weekend.</p>
+        <p>Ang pakiramdam ng pagbabalik: airport pickup, yakap ng pamilya, pag-settle sa Quezon City. 
+        <strong>Parang bagong simula</strong> — walang desert heat, puro quality time.</p>
+        <p>Ngunit sa panahong iyon din sumabog ang <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>crypto boom</span>. 
+        Umakyat ang Bitcoin hanggang mahigit ₱1M — napakalakas ng hype!</p>
+        <p>Mula sa aking natutunan sa stocks, agad akong na-curious. 24/7 ang market — perpekto para sa abalang buhay pamilya.</p>
+        <p>Ginamit ko ang mga basic: charts, news, patterns. Ngunit newbie pa rin ako sa crypto.</p>
+        <p>Na-scam ako sa Auroramining (fake cloud mining) at natuto sa futures trading — high leverage, big wins minsan, 
+        ngunit malalaking losses din. Walang solid strategy pa, walang discipline. Emosyon ang nagdikta: FOMO sa pump, panic sa dump.</p>
+        <p>Doon ako natuto ng malalim na lessons tungkol sa volatility at risk management.</p>
+        <p>Ang panahong iyon: halo ng kaligayahan sa family life at excitement (at sakit) sa crypto world. 
+        Hindi pa stable, ngunit ang aking passion sa trading? <strong>Lalong lumakas.</strong></p>
+        <p><em>Little did I know, ang mga losses at scams na iyon ang magiging stepping stones para sa KMFX EA — 
+        natuto akong alisin ang emotions at bumuo ng matibay na system.</em></p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
     # 2019–2021 – Pandemic Wins
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🦠 2019–2021: Pandemic Days & Biggest Lesson</h3>", unsafe_allow_html=True)
-    col_saudi1, col_saudi2 = st.columns(2)
-    with col_saudi1:
+    st.markdown(f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🦠 2019–2021: Pandemic Days & Biggest Lessons</h3>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
         img1 = make_same_size("assets/klever1.jpg", target_width=800, target_height=700)
         st.image(img1, use_container_width=True, caption="Part of Gain almost 20k$+ Max gain 🔥")
-    with col_saudi2:
+    with col2:
         img2 = make_same_size("assets/klever2.jpg", target_width=800, target_height=700)
         st.image(img2, use_container_width=True, caption="Klever Exchange Set Buy Sell Instant")
-    st.write("""
-    **Noong 2019 hanggang 2021**, dumating ang pandemic — isa sa pinakamahaba sa mundo.
 
-    Lahat kami nasa bahay, walang labas, puro quarantine.
-
-    Pero sa gitna ng gulo, natagpuan ko 'yung **Klever token (KLV)**. May feature na "Ninja Move" — set buy order tapos instant sell sa target. Parang automated quick flips.
-
-    Ginawa ko 'yun religiously — sobrang laki ng gains! Kasama ko si Michael, nag-team up kami, nag-celebrate sa chat kapag green. Feeling jackpot!
-
-    Yung bull run noon, parang lahat may pera. Sobrang saya — "finally, may solid way na 'to."
-
-    Pero bigla, glitch sa platform — half lang ng profits 'yung nabalik. Sakit sa puso 'yun.
-
-    Pero dun dumating ang **pinakamalaking realization**: May pera talaga sa market kung may right strategy + discipline + emotion control. Hindi sa luck o hype.
-
-    **90% ng traders natatalo** hindi dahil sa strategy — kundi sa emotions: greed, fear, FOMO, revenge trading.
-
-    Ako mismo, nahuhulog pa rin noon sa ganun.
-
-    After 2021 crash (BTC 60k → 20k) — market bloodbath. Dun ako nag-decide: lumayo muna, mag-reflect, mag-heal, mag-build ng matibay na foundation.
-
-    Yung pandemic days: family time sa bahay, pero dinagdagan ng market lessons na magiging key sa KMFX EA later.
-
-    *From home setups, laptop sa kama, hanggang sa pag-unawa na automation + no-emotion ang susi.*
-    """)
+    st.markdown(
+        f"""
+        <div style='text-align: justify; line-height: 1.8; font-size: 1.15rem;'>
+        <p><strong>Noong 2019–2021</strong>, dumating ang pandemic — isa sa pinakamahabang lockdown sa mundo.</p>
+        <p>Lahat kami nasa bahay, walang labas. Ngunit sa gitna ng krisis, natagpuan ko ang 
+        <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>Klever token (KLV)</span> at ang "Ninja Move" feature — 
+        automated quick flips na nagbigay ng malaking gains.</p>
+        <p>Kasama si Michael, religiously naming ginawa ito. Nag-celebrate kami sa chat tuwing green — 
+        <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>almost $20,000+ max gain</span>.</p>
+        <p>Ngunit biglang may glitch sa platform — half lang ng profits ang nabalik. Sakit iyon.</p>
+        <p>Doon dumating ang <strong>pinakamalaking realization</strong>: May pera talaga sa market kung may tamang strategy, 
+        discipline, at emotion control. <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>90% ng traders natatalo 
+        dahil sa emotions — greed, fear, FOMO, revenge trading</span>.</p>
+        <p>Pagkatapos ng 2021 crash (BTC mula $60K → $20K), nag-decide akong lumayo muna, mag-reflect, 
+        at magtayo ng matibay na foundation.</p>
+        <p>Ang pandemic days: quality family time sa bahay, kasabay ng malalim na market lessons na magiging susi sa KMFX EA.</p>
+        <p><em>Mula sa laptop sa kama hanggang sa pag-unawa na automation + zero emotion ang tunay na susi.</em></p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
     # 2024–2025 – Forex & EA Building
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🤖 2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
-    st.caption("(Placeholder for EA building screenshot)")
-    st.write("""
-    **Noong 2024-2025**, biglang nauso ang AI sa lahat — news, work, trading.
-
-    Nakita ko 'yung potential: bakit hindi gamitin 'yung tech para tanggalin 'yung human weaknesses? Emotions, late decisions, overtrading — lahat nawawala sa automation.
-
-    Dun ko naisip: oras na gumawa ng sariling **Expert Advisor (EA)**.
-
-    Buong halos isang taon akong nag-self-study ng **MQL5 programming**. Gabi-gabi, after work at family time — nakaupo sa laptop, nagbabasa, nanonood tutorials, nagko-code, nagde-debug.
-
-    Pinagsama ko lahat ng natutunan mula 2014: stock basics, crypto volatility, pandemic lessons, Klever moves, at lahat ng sakit sa manual trading.
-
-    Narealize ko 'yung **formula ng professional trader**:
-    - Solid strategy (entries, exits, indicators)
-    - Iron-clad risk management (1% risk per trade, no martingale)
-    - Psychology — discipline, patience, trust the system
-
-    Goal ko: maging ganun — hindi na trial-and-error trader, kundi consistent, emotion-free pro.
-
-    **January 2025: Breakthrough!** Fully working na 'yung KMFX EA — focused sa Gold (XAUUSD).
-
-    Agad testing kasama sina Weber (super active), Jai, Sheldon, Ramil. Real-time results, adjustments.
-
-    End of 2025: Pioneer community formed — mga believers na sumali at naging part ng journey.
-
-    *Parang rebirth. Mula sa losses dati, hanggang sa tool na makakatulong sa marami. Built by faith, fueled by persistence.*
-    """)
+    st.markdown(f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🤖 2024–2025: The Professional Shift</h3>", unsafe_allow_html=True)
+    st.caption("Screenshot of EA development & backtesting (placeholder)")
+    
+    st.markdown(
+        f"""
+        <div style='text-align: justify; line-height: 1.8; font-size: 1.15rem;'>
+        <p><strong>Noong 2024–2025</strong>, sumikat ang AI sa lahat ng larangan — kabilang ang trading.</p>
+        <p>Naisip ko: bakit hindi gamitin ang teknolohiya upang alisin ang human weaknesses? Emotions, late decisions, overtrading — 
+        lahat ay nawawala sa automation.</p>
+        <p>Gumugol ako ng halos isang taon sa <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>self-study ng MQL5 programming</span>. 
+        Gabi-gabi, pagkatapos ng family time, nakaupo sa laptop — tutorials, coding, debugging.</p>
+        <p>Pinagsama ko ang lahat ng natutunan mula 2014: stock basics, crypto volatility, pandemic lessons, at manual trading pains.</p>
+        <p>Naintindihan ko ang <strong>formula ng professional trader</strong>:<br>
+        • Solid strategy (entries, exits, indicators)<br>
+        • Iron-clad risk management (1% risk per trade, no martingale)<br>
+        • Psychology — discipline, patience, trust the system</p>
+        <p><span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>January 2025: Breakthrough!</span> Fully working na ang KMFX EA — 
+        focused sa Gold (XAUUSD).</p>
+        <p>Agad itong tinesting kasama sina Weber, Jai, Sheldon, at Ramil. Real-time adjustments at promising results.</p>
+        <p>By end of 2025, nabuo ang pioneer community — mga believers na sumali sa journey.</p>
+        <p><em>Parang rebirth: mula sa mga dating losses, hanggang sa tool na makakatulong sa marami. 
+        Built by faith, fueled by persistence.</em></p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
     # 2025–2026 – FTMO Challenges
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🏆 2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
-    col_ftmo1, col_ftmo2 = st.columns(2)
-    with col_ftmo1:
+    st.markdown(f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>🏆 2025–2026: FTMO Challenges & Comeback</h3>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
         st.image("assets/ftmo.jpeg", use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
-    with col_ftmo2:
+    with col2:
         st.image("assets/ongoing.jpg", use_container_width=True, caption="Current challenge - full trust mode 🚀")
-    st.write("""
-    **First Taste of Pro Validation – Then the Hard Reset 🏆📊💪**
 
-    End of 2025 hanggang 2026: pinaka-exciting at challenging phase.
-
-    After 1 year ng building at testing, ready na subukan sa **FTMO** — goal: funded account, live market proof.
-
-    December 13, 2025: Start ng first 10K Challenge.
-
-    December 26, 2025: **PASSED Phase 1 in 13 days!** +10.41% gain, 2.98% max DD.
-
-    Stats:
-    - $10,000 → $11,040.58
-    - 118 trades (longs only)
-    - 52% win rate, +12,810 pips
-    - Profit factor 1.52
-    - Avg duration ~43 minutes
-
-    "Yes, it works!" moment — share agad sa group, salamat sa testers.
-
-    Pero Phase 2: Failed — emotional intervention. Nag-adjust manually out of fear.
-
-    Key insight: Untouched sim run = +$2,000 more — madali sanang na-pass.
-
-    **Big lesson**: Emotions ang tunay na kalaban. Full trust lang — run and forget mode. Surrender sa process, tulad ng surrender sa God's plan.
-
-    January 2026: New challenge — 100% hands-off, pure automated.
-
-    Confidence high. Comeback stronger — para sa legacy, community, financial freedom.
-
-    *Built by faith, tested by fire.*
-    """)
+    st.markdown(
+        f"""
+        <div style='text-align: justify; line-height: 1.8; font-size: 1.15rem;'>
+        <p><strong>End of 2025 hanggang 2026</strong>: pinaka-exciting at challenging phase.</p>
+        <p>Pagkatapos ng isang taon ng development at testing, handa na ang KMFX EA sa ultimate test — 
+        <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>FTMO funded account</span>.</p>
+        <p><strong>December 13–26, 2025:</strong> <span style='color:{accent_gold}; font-weight:bold; font-size:1.3rem;'>PASSED Phase 1 in 13 days!</span><br>
+        • +10.41% gain<br>
+        • 2.98% max drawdown<br>
+        • $10,000 → $11,040.58<br>
+        • 118 trades (longs only)<br>
+        • 52% win rate<br>
+        • +12,810 pips<br>
+        • Profit factor 1.52<br>
+        • Average duration ~43 minutes</p>
+        <p>Malaking tagumpay — ibinahagi agad sa group, salamat sa testers.</p>
+        <p>Ngunit sa Phase 2: failed dahil sa <strong>emotional manual intervention</strong>. 
+        Natakot ako at nag-adjust — isang mali na nagkakahalaga ng libu-libong dolyar.</p>
+        <p>Key insight: Kung untouched, madali sanang na-pass. <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>
+        Emotions pa rin ang tunay na kalaban</span>.</p>
+        <p><strong>January 2026:</strong> Bagong challenge — 100% hands-off, pure automated. Full trust mode.</p>
+        <p>Confidence high. Comeback stronger — para sa legacy, community, at financial freedom.</p>
+        <p><em>Built by faith, tested by fire.</em></p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
     # Realization & Vision
-    st.markdown("<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>✨ Realization & Future Vision</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='color:{accent_gold}; text-align:center; font-size:1.8rem; margin:2rem 0;'>✨ Realization & Future Vision</h3>", unsafe_allow_html=True)
     st.image("assets/journey_vision.jpg", use_container_width=True, caption="Built by Faith, Shared for Generations 👑")
-    st.write("""
-    **Mula noong 2014**, ramdam na ramdam ko na may malaking plano si Lord para sa akin.
 
-    Hindi aksidente 'yung involvement ko sa market — stocks, crypto, gold, highs at lows.
-
-    Lahat ng losses, scams, emotional rollercoasters, pandemic gains, FTMO failures... part ng preparation.
-
-    Purpose ko na 'to — hindi lang para sa sarili ko, kundi para makatulong sa marami na nahihirapan pero may pangarap na financially free.
-
-    Kaya binuo ko ang **KMFX EA** — tool na tanggalin ang human error, bigyan ng consistency, at patunayan na kaya maging pro trader kahit nagsimula sa zero.
-
-    *Built by faith, tested by fire, ready na ibahagi.*
-
-    **Dream ko ngayon**:
-    - KMFX EA Foundations — full guide mula basics hanggang pro level
-    - Para maiwasan ng baguhan ang sakit ng ulo na pinagdaanan ko
-    - Passive income para sa lahat na sumali at naniwala
-    - Financial freedom — mas maraming oras sa Panginoon, pamilya, peaceful life
-
-    Hindi 'to tungkol sa pera lang. Tungkol sa **legacy** — makapag-iwan ng something na makakatulong sa susunod na henerasyon.
-
-    Na patunayan na kapag may faith, discipline, at tamang system — kaya baguhin ang buhay.
-
-    **KMFX EA: Built by Faith, Shared for Generations**  
-    — Mark Jeff Blando | Founder & Developer | 2014 hanggang ngayon 👑
-    """)
+    st.markdown(
+        f"""
+        <div style='text-align: justify; line-height: 1.8; font-size: 1.15rem;'>
+        <p><strong>Mula noong 2014</strong>, ramdam ko na may malaking plano ang Panginoon para sa akin.</p>
+        <p>Hindi aksidente ang lahat ng naranasan ko sa market — stocks, crypto, gold, highs at lows. 
+        Lahat ng losses, scams, emotional struggles, pandemic gains, at FTMO challenges ay bahagi ng preparation.</p>
+        <p>Ang purpose ko: hindi lamang para sa sarili, kundi upang makatulong sa mga nahihirapan ngunit may pangarap na 
+        <span style='color:{accent_gold}; font-weight:bold; font-size:1.2rem;'>magkaroon ng financial freedom</span>.</p>
+        <p>Kaya binuo ko ang <strong>KMFX EA</strong> — tool na nag-aalis ng human error, nagbibigay ng consistency, 
+        at nagpapatunay na posible ang professional trading kahit nagsimula sa zero.</p>
+        <p><em>Built by faith, tested by fire, ready to be shared.</em></p>
+        <p><strong>Ang aking pangarap ngayon:</strong><br>
+        • KMFX EA Foundations — complete guide mula basics hanggang pro level<br>
+        • Maiwasan ng baguhan ang mga sakit ng ulo na aking pinagdaanan<br>
+        • Passive income para sa lahat ng sumali at naniwala<br>
+        • Mas maraming oras sa Panginoon, pamilya, at peaceful life</p>
+        <p>Hindi ito tungkol lamang sa pera. Tungkol ito sa <strong>legacy</strong> — 
+        mag-iwan ng sistema na makakatulong sa susunod na henerasyon at patunayan na sa faith, discipline, 
+        at tamang system, posible ang pagbabago ng buhay.</p>
+        <p style='text-align:center; font-size:1.3rem; margin-top:2rem;'>
+        <strong style='color:{accent_gold};'>KMFX EA: Built by Faith, Shared for Generations</strong><br>
+        — Mark Jeff Blando | Founder & Developer | 2014–2026 👑
+        </p>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
     if st.button("Close Journey", use_container_width=True):
         st.session_state.show_full_journey = False
