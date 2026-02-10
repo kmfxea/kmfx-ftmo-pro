@@ -835,7 +835,7 @@ Yung pandemic days: family time sa bahay, pero dinagdagan ng market lessons na m
     )
 
     # Optional: Add actual screenshot later — placeholder caption removed for cleaner look
-    st.image("assets/ea_building.jpg", use_container_width=True, caption="EA development & testing phase (2024–2025)")
+    #st.image("assets/ea_building.jpg", use_container_width=True, caption="EA development & testing phase (2024–2025)")
 
     st.write("""
 **Noong 2024-2025**, biglang nauso ang AI sa lahat — news, work, trading.
@@ -874,10 +874,10 @@ End of 2025: Pioneer community formed — mga believers na sumali at naging part
     col1, col2 = st.columns(2)
     with col1:
         img1 = make_same_size("assets/ftmo.jpeg", target_width=800, target_height=700)
-        #st.image(img1, use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
+        st.image(img1, use_container_width=True, caption="Passed Phase 1 in 13 days! 🎉")
     with col2:
         img2 = make_same_size("assets/ongoing.jpg", target_width=800, target_height=700)
-        #st.image(img2, use_container_width=True, caption="Current challenge - full trust mode 🚀")
+        st.image(img2, use_container_width=True, caption="Current challenge - full trust mode 🚀")
 
     st.write("""
 **First Taste of Pro Validation – Then the Hard Reset**
