@@ -834,8 +834,13 @@ Yung pandemic days: family time sa bahay, pero dinagdagan ng market lessons na m
         unsafe_allow_html=True,
     )
 
-    # Optional: Add actual screenshot later — placeholder caption removed for cleaner look
-    #st.image("assets/ea_building.jpg", use_container_width=True, caption="EA development & testing phase (2024–2025)")
+    col1, col2 = st.columns(2)
+    with col1:
+        img1 = make_same_size("assets/ai1.jpg", target_width=800, target_height=700)
+        st.image(img1, use_container_width=True, caption="New Tech Found")
+    with col2:
+        img2 = make_same_size("assets/ai2.jpg", target_width=800, target_height=700)
+        st.image(img2, use_container_width=True, caption="Using Old Laptop to Build")
 
     st.write("""
 **Noong 2024-2025**, biglang nauso ang AI sa lahat — news, work, trading.
