@@ -597,75 +597,74 @@ if not st.session_state.authenticated:
         st.metric("Members", members_count) # Shortened label to prevent cutoff on small screens
    
     # =====================================================================================================
+# Portfolio Story
+st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+st.markdown("<h2 class='gold-text'>Origin & Motivation (2024)</h2>", unsafe_allow_html=True)
+st.write("""
+Noong 2024, frustrated ako sa manual trading — paulit-ulit na losses dahil sa emotions, lack of discipline, at timing issues. Realization: "Kung hindi professional, maloloss ka lang sa market."
+Decided to build my own Expert Advisor (EA) to remove human error, achieve consistency, and become a professional trader through automation.
+Early inspiration from ~2016 trading days, sharing ideas with friend Ramil.
+""")
+st.markdown("<h2 class='gold-text'>Development Phase (2024)</h2>", unsafe_allow_html=True)
+st.write("""
+- Full year of self-study in MQL5 programming
+- Trial-and-error: Combined multiple indicators, price action rules, risk management filters
+- Hundreds of backtests, forward tests, debugging — almost 1 year of experiment before stability
+""")
+st.markdown("<h2 class='gold-text'>Official Launch & Early Testing (2025)</h2>", unsafe_allow_html=True)
+st.write("""
+- January 2025: Breakthrough — EA fully functional and running smoothly. Officially named KMFX EA
+- Focused exclusively on XAUUSD (GOLD) for its volatility and opportunities
+- September 2025: Formed KMFX EA TESTER group (initial: Weber — most active, Ramil, Sheldon, Jai). ~2 months forward testing with multiple trials and real-time feedback
+- Late 2025 (Oct-Dec): Mastered backtesting — ran historical data from 2021–2025. Game-changer: Quickly spotted weaknesses, polished entries/exits, filters for gold spikes/news volatility
+""")
+st.markdown("<h2 class='gold-text'>Major Milestones & Tools (2025)</h2>", unsafe_allow_html=True)
+st.write("""
+- October 15, 2025: Launched sleek KMFX EA MT5 Client Tracker dashboard at kmfxea.streamlit.app — premium portal for performance tracking (owner, admin, client logins)
+- December 2025: Pioneer community formed — 14 believers contributed ₱17,000 PHP (₱1,000 per unit) to fund the real challenge phase
+  - Profit sharing: 30% of profits proportional to units
+  - Thank you to: Mark, Jai, Doc, Weber (2 units), Don, Mark Fernandez (3 units), Ramil, Cristy, Meg, Roland, Mila, Malruz, Julius, Joshua
+""")
+st.markdown("<h2 class='gold-text'>FTMO Prop Firm Journey – First Attempt (Dec 2025 - Jan 2026)</h2>", unsafe_allow_html=True)
+st.write("""
+- December 13, 2025: Started FTMO 10K Challenge (Plan A, real evaluation)
+- December 26, 2025: PASSED Phase 1 (Challenge) in just ~13 days!
+  - Certificate issued: Proven profit target achieved + quality risk management
+  - Stats snapshot: $10,000 → $11,040.58 (+10.41% gain), 2.98% max drawdown, 118 trades (longs only, 52% win rate), +12,810.8 pips, profit factor 1.52
+  - Avg trade: 43 minutes (scalping-style on gold volatility)
+""")
+st.markdown("<h2 class='gold-text'>Phase 2 (Verification) Attempt</h2>", unsafe_allow_html=True)
+st.write("""
+- Goal: 5% profit target, same strict risk limits (5% daily / 10% overall loss)
+- Outcome: Failed due to emotional intervention — shaken by market noise, manually adjusted parameters and added trades
+- Key Insight: Untouched sim run (Jan 1–16, 2026) showed ~$2,000 additional gain — would have passed easily
+- Big Lesson: Trust the System No Matter What. Emotions are the real enemy; the EA is solid when left alone
+- Turned failure into life rebuild: Discipline, patience, surrender to God's plan — applied to trading AND personal life
+""")
+st.markdown("<h2 class='gold-text'>Current Attempt (Jan 2026)</h2>", unsafe_allow_html=True)
+st.write("""
+- New FTMO 10K Challenge (Phase 1) ongoing
+- Full trust mode: 100% hands-off — no tweaks, no manual trades, pure automated execution
+- Confidence: Previous pass + untouched sims prove the edge. Goal: Pass with consistency, low DD, then Verification → funded account
+""")
+st.markdown("<h2 class='gold-text'>Dual Product Evolution (2026)</h2>", unsafe_allow_html=True)
+st.write("""
+- Prop Firm Version (KMFX EA – Locked): For FTMO/challenges only — personal use, strict no-intervention during evaluations
+- Personal/Client Version (in progress): Same core strategy, but client-friendly
+  - Solid backtest results on historical GOLD data (consistent gains, controlled risk)
+  - Future: Deployable on personal accounts, potential for clients/pioneers (with sharing or access via dashboard)
+  - Advantage: Separate from prop rules — flexible for real-money growth
+""")
+st.markdown("<h2 class='gold-text'>Performance Proof</h2>", unsafe_allow_html=True)
+st.write("""
+- FTMO Phase 1 Passed: +10.41%, 2.98% max DD
+- 2025 Backtest: +187.97%
+- 5-Year Backtest (2021-2025): +3,071%
+- Safety First: 1% risk per trade, no martingale/grid, controlled drawdown
+""")
+st.markdown("</div>", unsafe_allow_html=True)
 
-        # Portfolio Story
-    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-    st.markdown("<h2 class='gold-text'>Origin & Motivation (2024)</h2>", unsafe_allow_html=True)
-    st.write("""
-    Noong 2024, frustrated ako sa manual trading — paulit-ulit na losses dahil sa emotions, lack of discipline, at timing issues. Realization: "Kung hindi professional, maloloss ka lang sa market."
-    Decided to build my own Expert Advisor (EA) to remove human error, achieve consistency, and become a professional trader through automation.
-    Early inspiration from ~2016 trading days, sharing ideas with friend Ramil.
-    """)
-    st.markdown("<h2 class='gold-text'>Development Phase (2024)</h2>", unsafe_allow_html=True)
-    st.write("""
-    - Full year of self-study in MQL5 programming
-    - Trial-and-error: Combined multiple indicators, price action rules, risk management filters
-    - Hundreds of backtests, forward tests, debugging — almost 1 year of experiment before stability
-    """)
-    st.markdown("<h2 class='gold-text'>Official Launch & Early Testing (2025)</h2>", unsafe_allow_html=True)
-    st.write("""
-    - January 2025: Breakthrough — EA fully functional and running smoothly. Officially named KMFX EA
-    - Focused exclusively on XAUUSD (GOLD) for its volatility and opportunities
-    - September 2025: Formed KMFX EA TESTER group (initial: Weber — most active, Ramil, Sheldon, Jai). ~2 months forward testing with multiple trials and real-time feedback
-    - Late 2025 (Oct-Dec): Mastered backtesting — ran historical data from 2021–2025. Game-changer: Quickly spotted weaknesses, polished entries/exits, filters for gold spikes/news volatility
-    """)
-    st.markdown("<h2 class='gold-text'>Major Milestones & Tools (2025)</h2>", unsafe_allow_html=True)
-    st.write("""
-    - October 15, 2025: Launched sleek KMFX EA MT5 Client Tracker dashboard at kmfxea.streamlit.app — premium portal for performance tracking (owner, admin, client logins)
-    - December 2025: Pioneer community formed — 14 believers contributed ₱17,000 PHP (₱1,000 per unit) to fund the real challenge phase
-      - Profit sharing: 30% of profits proportional to units
-      - Thank you to: Mark, Jai, Doc, Weber (2 units), Don, Mark Fernandez (3 units), Ramil, Cristy, Meg, Roland, Mila, Malruz, Julius, Joshua
-    """)
-    st.markdown("<h2 class='gold-text'>FTMO Prop Firm Journey – First Attempt (Dec 2025 - Jan 2026)</h2>", unsafe_allow_html=True)
-    st.write("""
-    - December 13, 2025: Started FTMO 10K Challenge (Plan A, real evaluation)
-    - December 26, 2025: PASSED Phase 1 (Challenge) in just ~13 days!
-      - Certificate issued: Proven profit target achieved + quality risk management
-      - Stats snapshot: $10,000 → $11,040.58 (+10.41% gain), 2.98% max drawdown, 118 trades (longs only, 52% win rate), +12,810.8 pips, profit factor 1.52
-      - Avg trade: 43 minutes (scalping-style on gold volatility)
-    """)
-    st.markdown("<h2 class='gold-text'>Phase 2 (Verification) Attempt</h2>", unsafe_allow_html=True)
-    st.write("""
-    - Goal: 5% profit target, same strict risk limits (5% daily / 10% overall loss)
-    - Outcome: Failed due to emotional intervention — shaken by market noise, manually adjusted parameters and added trades
-    - Key Insight: Untouched sim run (Jan 1–16, 2026) showed ~$2,000 additional gain — would have passed easily
-    - Big Lesson: Trust the System No Matter What. Emotions are the real enemy; the EA is solid when left alone
-    - Turned failure into life rebuild: Discipline, patience, surrender to God's plan — applied to trading AND personal life
-    """)
-    st.markdown("<h2 class='gold-text'>Current Attempt (Jan 2026)</h2>", unsafe_allow_html=True)
-    st.write("""
-    - New FTMO 10K Challenge (Phase 1) ongoing
-    - Full trust mode: 100% hands-off — no tweaks, no manual trades, pure automated execution
-    - Confidence: Previous pass + untouched sims prove the edge. Goal: Pass with consistency, low DD, then Verification → funded account
-    """)
-    st.markdown("<h2 class='gold-text'>Dual Product Evolution (2026)</h2>", unsafe_allow_html=True)
-    st.write("""
-    - Prop Firm Version (KMFX EA – Locked): For FTMO/challenges only — personal use, strict no-intervention during evaluations
-    - Personal/Client Version (in progress): Same core strategy, but client-friendly
-      - Solid backtest results on historical GOLD data (consistent gains, controlled risk)
-      - Future: Deployable on personal accounts, potential for clients/pioneers (with sharing or access via dashboard)
-      - Advantage: Separate from prop rules — flexible for real-money growth
-    """)
-    st.markdown("<h2 class='gold-text'>Performance Proof</h2>", unsafe_allow_html=True)
-    st.write("""
-    - FTMO Phase 1 Passed: +10.41%, 2.98% max DD
-    - 2025 Backtest: +187.97%
-    - 5-Year Backtest (2021-2025): +3,071%
-    - Safety First: 1% risk per trade, no martingale/grid, controlled drawdown
-    """)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
+# ====================== MY FULL TRADING JOURNEY - EXPANDABLE SECTION ======================
 if "show_full_journey" not in st.session_state:
     st.session_state.show_full_journey = False
 
@@ -884,80 +883,77 @@ st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", u
 st.markdown("<h2 class='gold-text' style='text-align:center;'>Why Choose KMFX EA?</h2>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; opacity:0.9; font-size:1.2rem; margin-bottom:2rem;'>Hindi lang EA — ito yung automated system na galing sa totoong journey, pinatunayan sa FTMO, at built with discipline + faith.</p>", unsafe_allow_html=True)
 
+cols = st.columns(3)
+benefits = [
+    {
+        "emoji": "👑",
+        "title": "100% Hands-Off Automation",
+        "points": [
+            "Run and forget — walang kailangang galawin pag naka-set na",
+            "Removes emotions completely (yung pinakamalaking killer sa trading)",
+            "Pure MQL5 logic + strict risk rules = consistent execution"
+        ]
+    },
+    {
+        "emoji": "📈",
+        "title": "Gold (XAUUSD) Focused Edge",
+        "points": [
+            "Optimized for Gold volatility — best market para sa scalping & swing",
+            "+3,071% 5-Year Backtest • +187% 2025 • Low DD <3%",
+            "Proven sa real FTMO challenge (Phase 1 passed in 13 days!)"
+        ]
+    },
+    {
+        "emoji": "🔒",
+        "title": "Prop Firm Ready & Safe",
+        "points": [
+            "FTMO-compatible — strict no-martingale, no-grid, 1% risk per trade",
+            "Locked version para sa challenges • Flexible personal version",
+            "Full transparency: journey, stats, at community pioneer sharing"
+        ]
+    },
+    {
+        "emoji": "🙏",
+        "title": "Built by Faith & Real Experience",
+        "points": [
+            "Galing sa 12 taon na totoong trading journey (2014 hanggang 2026)",
+            "Hindi basta code — may purpose: tulungan ang marami sa financial freedom",
+            "Discipline + surrender to God's plan = sustainable success"
+        ]
+    },
+    {
+        "emoji": "🤝",
+        "title": "Pioneer Community & Sharing",
+        "points": [
+            "Early believers get proportional profit share (30% pool)",
+            "Real accountability group — testers, pioneers, at future foundation",
+            "Hindi solo — sama-sama tayo sa pag-scale ng empire"
+        ]
+    },
+    {
+        "emoji": "💰",
+        "title": "Passive Income + Legacy Vision",
+        "points": [
+            "Goal: true passive income para mas maraming time sa pamilya at Lord",
+            "Dream: KMFX EA Foundations — turuan ang aspiring traders maging pro",
+            "Built by faith, shared for generations — legacy na hindi matitigil"
+        ]
+    }
+]
 
+for i, benefit in enumerate(benefits):
+    with cols[i % 3]:
+        st.markdown(f"""
+        <div style='text-align:center; padding:1.5rem;'>
+            <div style='font-size:3rem; margin-bottom:1rem;'>{benefit['emoji']}</div>
+            <h4 style='color:{accent_gold}; margin:0.5rem 0;'>{benefit['title']}</h4>
+            <ul style='text-align:left; padding-left:1.2rem; margin:0;'>
+                {''.join(f'<li style="margin:0.4rem 0; font-size:0.95rem;">{p}</li>' for p in benefit['points'])}
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)  # Close benefits card if needed
-    cols = st.columns(3)
-    benefits = [
-        {
-            "emoji": "👑",
-            "title": "100% Hands-Off Automation",
-            "points": [
-                "Run and forget — walang kailangang galawin pag naka-set na",
-                "Removes emotions completely (yung pinakamalaking killer sa trading)",
-                "Pure MQL5 logic + strict risk rules = consistent execution"
-            ]
-        },
-        {
-            "emoji": "📈",
-            "title": "Gold (XAUUSD) Focused Edge",
-            "points": [
-                "Optimized for Gold volatility — best market para sa scalping & swing",
-                "+3,071% 5-Year Backtest • +187% 2025 • Low DD <3%",
-                "Proven sa real FTMO challenge (Phase 1 passed in 13 days!)"
-            ]
-        },
-        {
-            "emoji": "🔒",
-            "title": "Prop Firm Ready & Safe",
-            "points": [
-                "FTMO-compatible — strict no-martingale, no-grid, 1% risk per trade",
-                "Locked version para sa challenges • Flexible personal version",
-                "Full transparency: journey, stats, at community pioneer sharing"
-            ]
-        },
-        {
-            "emoji": "🙏",
-            "title": "Built by Faith & Real Experience",
-            "points": [
-                "Galing sa 12 taon na totoong trading journey (2014 hanggang 2026)",
-                "Hindi basta code — may purpose: tulungan ang marami sa financial freedom",
-                "Discipline + surrender to God's plan = sustainable success"
-            ]
-        },
-        {
-            "emoji": "🤝",
-            "title": "Pioneer Community & Sharing",
-            "points": [
-                "Early believers get proportional profit share (30% pool)",
-                "Real accountability group — testers, pioneers, at future foundation",
-                "Hindi solo — sama-sama tayo sa pag-scale ng empire"
-            ]
-        },
-        {
-            "emoji": "💰",
-            "title": "Passive Income + Legacy Vision",
-            "points": [
-                "Goal: true passive income para mas maraming time sa pamilya at Lord",
-                "Dream: KMFX EA Foundations — turuan ang aspiring traders maging pro",
-                "Built by faith, shared for generations — legacy na hindi matitigil"
-            ]
-        }
-    ]
-
-    for i, benefit in enumerate(benefits):
-        with cols[i % 3]:
-            st.markdown(f"""
-            <div style='text-align:center; padding:1.5rem;'>
-                <div style='font-size:3rem; margin-bottom:1rem;'>{benefit['emoji']}</div>
-                <h4 style='color:{accent_gold}; margin:0.5rem 0;'>{benefit['title']}</h4>
-                <ul style='text-align:left; padding-left:1.2rem; margin:0;'>
-                    {''.join(f'<li style="margin:0.4rem 0; font-size:0.95rem;">{p}</li>' for p in benefit['points'])}
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)  # Close benefits card
 
     # ====================== MALALIM & TRANSPARENT NA FAQs ======================
     st.markdown("<div class='glass-card' style='margin:4rem 0; padding:2.5rem;'>", unsafe_allow_html=True)
