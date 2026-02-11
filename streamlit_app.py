@@ -450,12 +450,14 @@ st.markdown(f"""
         fill: black !important;
         color: black !important;
     }}
-    /* SIDEBAR COLLAPSE FIX */
-    section[data-testid="stSidebar"][aria-expanded="false"] {{
-        width: 0 !important;
-        min-width: 0 !important;
-        overflow: hidden !important;
-    }}
+    /* SIDEBAR COLLAPSE FIX - REMOVE OR COMMENT THIS ENTIRE BLOCK */
+    /*
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    }
+    */
     [data-testid="collapsedControl"] {{
         position: fixed !important;
         left: 0 !important;
