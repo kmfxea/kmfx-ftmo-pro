@@ -166,7 +166,7 @@ st.set_page_config(
     page_title="KMFX EA - Elite Empire",
     page_icon="👑",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Local folders
