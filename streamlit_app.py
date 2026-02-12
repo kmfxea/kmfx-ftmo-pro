@@ -1407,6 +1407,8 @@ except Exception:
         """,
         unsafe_allow_html=True,
     )
+    # AUTH PROTECTION - stop rendering for public users
+st.stop()
 if selected == "🏠 Dashboard":
     st.header("Elite Empire Command Center 🚀")
     st.markdown("**Realtime, fully automatic empire overview**")
