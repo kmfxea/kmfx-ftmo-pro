@@ -1221,7 +1221,7 @@ st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
 # === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE, NO TOGGLE) ===
-    st.markdown(
+st.markdown(
         "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
         unsafe_allow_html=True,
     )
