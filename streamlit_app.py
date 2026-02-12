@@ -1382,24 +1382,31 @@ if st.session_state.get("just_logged_in", False):
         unsafe_allow_html=True,
     )
     
-    # Clean separator (yung hiniling mo)
+    # Clean separator
     st.divider()
     
-    # Optional celebration
+    # Optional celebration (keep mo if gusto mo, pero pwede rin tanggalin kung nagrereset siya ng scroll)
     st.balloons()
     
-    # Force scroll to top (works perfectly in Streamlit)
+    # Force scroll to top WITH DELAY (proven fix sa Streamlit)
     st.markdown("""
     <script>
-        // Force scroll to very top (Streamlit iframe safe)
-        window.parent.document.querySelector(".main").scrollTop = 0;
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        window.scrollTo(0, 0);
+        // Delay para siguradong tapos na mag-render yung page + balloons
+        setTimeout(function() {
+            // Main Streamlit container
+            const mainContainer = window.parent.document.querySelector(".main");
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
+            // Fallbacks
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            window.scrollTo(0, 0);
+        }, 800);  // 800ms delay = sapat after balloons render
     </script>
     """, unsafe_allow_html=True)
     
-    # Reset flag so it only runs once per login
+    # Reset flag so it only runs once
     st.session_state.just_logged_in = False
 
 # Announcement Banner
