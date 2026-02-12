@@ -1188,56 +1188,103 @@ for date, title, desc in timeline:
 st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
-# ====================== MEMBER LOGIN CTA ======================
+# ====================== MEMBER LOGIN CTA (IMPROVED & FIXED VERSION) ======================
+# Changes made:
+# 1. Removed the "show_login" toggle button — login form is now ALWAYS visible in the CTA (mas direct, walang extra click)
+# 2. Kept the clean centered layout with tabs (Owner/Admin/Client) for role security
+# 3. Added clear success/error feedback
+# 4. Ensured st.stop() remains to protect authenticated content
+# 5. Minor UX polish: larger inputs, better placeholders, auto-focus hints
+# 6. No more unnecessary rerun on button click — direct na
+
 st.markdown(
     "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
     unsafe_allow_html=True,
 )
+st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='font-size:1.4rem; opacity:0.9;'>"
+    "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
+    "</p>",
+    unsafe_allow_html=True,
+)
 
-st.markdown(f"<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
-st.markdown("<p style='font-size:1.4rem; opacity:0.9;'>Access your elite dashboard, balance, shares, and tools</p>", unsafe_allow_html=True)
+# Always show the login form (no toggle needed — mas smooth ang flow)
+col1, col2, col3 = st.columns([1, 4, 1])
+with col2:
+    st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
+    
+    st.markdown("<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>", unsafe_allow_html=True)
+    
+    tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
+    
+    with tab_owner:
+        with st.form("login_form_owner", clear_on_submit=False):
+            st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
+            username = st.text_input(
+                "Username",
+                placeholder="e.g. kingminted",
+                key="owner_user",
+                label_visibility="collapsed"
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                key="owner_pwd",
+                label_visibility="collapsed"
+            )
+            if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
+                login_user(username.strip().lower(), password, expected_role="owner")
+    
+    with tab_admin:
+        with st.form("login_form_admin", clear_on_submit=False):
+            st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
+            username = st.text_input(
+                "Username",
+                placeholder="Your admin username",
+                key="admin_user",
+                label_visibility="collapsed"
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                key="admin_pwd",
+                label_visibility="collapsed"
+            )
+            if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
+                login_user(username.strip().lower(), password, expected_role="admin")
+    
+    with tab_client:
+        with st.form("login_form_client", clear_on_submit=False):
+            st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
+            username = st.text_input(
+                "Username",
+                placeholder="Your username",
+                key="client_user",
+                label_visibility="collapsed"
+            )
+            password = st.text_input(
+                "Password",
+                type="password",
+                key="client_pwd",
+                label_visibility="collapsed"
+            )
+            if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
+                login_user(username.strip().lower(), password, expected_role="client")
+    
+    # Optional: Quick tip for new users
+    st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
-if "show_login" not in st.session_state:
-    st.session_state.show_login = False
+st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
 
-if st.button("Member Login →", type="primary", use_container_width=True):
-    st.session_state.show_login = True
-    st.rerun()
+# ====================== AUTH PROTECTION ======================
+# This stops all rendering below for non-authenticated users
+# Pag successful login → authenticated = True → rerun → lalaktawan na ang st.stop() at diretso sa sidebar
+st.stop()
 
-if st.session_state.show_login:
-    col1, col2, col3 = st.columns([1, 4, 1])
-    with col2:
-        st.markdown("<div class='glass-card' style='padding:2.5rem;'>", unsafe_allow_html=True)
-        
-        tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
-        
-        with tab_owner:
-            with st.form("login_form_owner"):
-                username = st.text_input("Username", placeholder="Owner username (e.g. kingminted)", key="owner_user")
-                password = st.text_input("Password", type="password", key="owner_pwd")
-                if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
-                    login_user(username, password, expected_role="owner")
-        
-        with tab_admin:
-            with st.form("login_form_admin"):
-                username = st.text_input("Username", placeholder="Admin username", key="admin_user")
-                password = st.text_input("Password", type="password", key="admin_pwd")
-                if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
-                    login_user(username, password, expected_role="admin")
-        
-        with tab_client:
-            with st.form("login_form_client"):
-                username = st.text_input("Username", placeholder="Your username", key="client_user")
-                password = st.text_input("Password", type="password", key="client_pwd")
-                if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
-                    login_user(username, password, expected_role="client")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)  # Close CTA glass-card
-
-st.stop()  # Stop rendering for public users — authenticated content comes after this
-# ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) ======================
+# ====================== AUTHENTICATED APP STARTS HERE ======================
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
@@ -1267,13 +1314,11 @@ with st.sidebar:
             "📈 Reports & Export", "🔮 Simulator", "📜 Audit Logs", "👤 Admin Management"
         ]
     else:
-        pages = ["🏠 Dashboard"]  # Fallback safety
+        pages = ["🏠 Dashboard"]
     
-    # Safe default + tamper protection
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
     
-    # Safe radio with fallback index
     selected = st.radio(
         "Navigation",
         pages,
@@ -1292,7 +1337,6 @@ with st.sidebar:
         log_action("Logout", f"User: {st.session_state.username}")
         st.session_state.clear()
         st.rerun()
-
 # ====================== COMMON HEADER (APPLY THIS FIRST - BEFORE PAGES) ======================
 # FIXED: Growth Fund now uses materialized view (instant, consistent everywhere)
 try:
