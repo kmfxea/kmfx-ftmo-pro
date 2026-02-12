@@ -1226,7 +1226,7 @@ st.markdown(
         unsafe_allow_html=True,
     )
 st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
-    st.markdown(
+st.markdown(
         "<p style='font-size:1.4rem; opacity:0.9;'>"
         "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
         "</p>",
