@@ -480,44 +480,51 @@ if qr_token and not st.session_state.get("authenticated", False):
         resp = supabase.table("users").select("*").eq("qr_token", qr_token).execute()
         if resp.data:
             user = resp.data[0]
+            # SUCCESS - Consistent with manual login
             st.session_state.authenticated = True
-            st.session_state.username = user["username"]
-            st.session_state.full_name = user["full_name"]
+            st.session_state.username = user["username"].lower()
+            st.session_state.full_name = user["full_name"] or user["username"]
             st.session_state.role = user["role"]
+            
+            # FORCE LIGHT MODE + DASHBOARD (same as manual login)
+            st.session_state.theme = "light"
+            st.session_state.selected_page = "🏠 Dashboard"
+            
             log_action("QR Login Success", f"User: {user['full_name']}")
+            st.success(f"QR Login Successful! Welcome back, {user['full_name']}! 👑")
             st.query_params.clear()
             st.rerun()
         else:
             st.error("Invalid or revoked QR code")
-    except:
-        st.error("QR login failed")
+    except Exception as e:
+        st.error(f"QR login failed: {str(e)}")
 
-# Login helper
+# Login helper (unchanged - already perfect with role validation)
 def login_user(username, password, expected_role=None):
     try:
         response = supabase.table("users").select("password, full_name, role").eq("username", username.lower()).execute()
         if response.data:
             user = response.data[0]
-            
+           
             # Check password
             if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
                 actual_role = user["role"]
-                
-                # NEW: Role validation per tab
+               
+                # Role validation per tab
                 if expected_role and actual_role != expected_role:
                     st.error(f"This login tab is for {expected_role.title()} accounts only. Please use the correct tab.")
                     return
-                
+               
                 # Success - set session
                 st.session_state.authenticated = True
                 st.session_state.username = username.lower()
                 st.session_state.full_name = user["full_name"] or username
                 st.session_state.role = actual_role
-              
+             
                 # AUTO LIGHT MODE + FORCE DASHBOARD
                 st.session_state.theme = "light"
                 st.session_state.selected_page = "🏠 Dashboard"
-              
+             
                 log_action("Login Successful", f"User: {username} | Role: {actual_role}")
                 st.success(f"Welcome back, {st.session_state.full_name}! 👑 Role: {st.session_state.role.title()}")
                 st.rerun()
@@ -528,7 +535,7 @@ def login_user(username, password, expected_role=None):
     except Exception as e:
         st.error(f"Login error: {e}")
 
-# Auth check
+# Auth check (place this EARLY - after session init & supabase)
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -536,7 +543,7 @@ if not st.session_state.authenticated:
     # FORCE DARK MODE FOR PUBLIC LANDING PAGE ONLY
     if st.session_state.get("theme") != "dark":
         st.session_state.theme = "dark"
-        st.rerun()  # Reload once to apply dark theme immediately
+        st.rerun()  # One-time reload to apply dark theme
 
     # ====================== PUBLIC LANDING PAGE (DARK MODE + LOGO AT TOP, ZERO SPACE) ======================
    
@@ -1271,9 +1278,6 @@ with col2:
             )
             if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
                 login_user(username.strip().lower(), password, expected_role="client")
-    
-    # Optional: Quick tip for new users
-    st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
     
     st.markdown("</div>", unsafe_allow_html=True)
 
