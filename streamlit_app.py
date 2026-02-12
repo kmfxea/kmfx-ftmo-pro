@@ -563,7 +563,7 @@ def login_user(username, password, expected_role=None):
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
-# ====================== MAIN AUTH GATE ======================
+# ====================== MAIN AUTH GATE - SINGLE BLOCK FOR ALL PUBLIC CONTENT ======================
 if not st.session_state.authenticated:
     # PUBLIC ONLY: Force dark mode once
     if st.session_state.theme != "dark":
@@ -585,33 +585,29 @@ if not st.session_state.authenticated:
     </style>
     """, unsafe_allow_html=True)
 
-    # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
-    logo_col = st.columns([1, 6, 1])[1]  # Slightly wider middle column for better logo size
+    # === LOGO AT VERY TOP ===
+    logo_col = st.columns([1, 6, 1])[1]
     with logo_col:
-        st.image("assets/logo.png")  # No use_column_width → no warning, still large & responsive
+        st.image("assets/logo.png")
 
-    # Original content (centered)
+    # Hero texts + stats (keep your exact code)
     st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center; color:{text_primary};'>Automated Gold Trading for Financial Freedom</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-size:1.4rem; color:{text_muted};'>Passed FTMO Phase 1 • +3,071% 5-Year Backtest • Building Legacies of Generosity</p>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-size:1.2rem;'>Mark Jeff Blando – Founder & Developer • 2026</p>", unsafe_allow_html=True)
 
-    # Realtime Stats - FIXED QUERY + RESPONSIVE (NO TRUNCATION)
+    # Realtime Stats (your exact code)
     try:
         accounts_count = supabase.table("ftmo_accounts").select("id", count="exact").execute().count or 0
         equity_data = supabase.table("ftmo_accounts").select("current_equity").execute().data or []
         total_equity = sum(acc.get("current_equity", 0) for acc in equity_data)
-       
-        # FIXED: Correct "type, amount" format
         gf_data = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
         gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_data)
-       
         members_count = supabase.table("users").select("id", count="exact").eq("role", "client").execute().count or 0
     except Exception as e:
         print(f"Supabase stats error: {e}")
         accounts_count = total_equity = gf_balance = members_count = 0
-  
-    # FULL-WIDTH RESPONSIVE METRICS (auto-stack on mobile, no truncation)
+
     cols = st.columns(4)
     with cols[0]:
         st.metric("Active Accounts", accounts_count)
@@ -620,7 +616,7 @@ if not st.session_state.authenticated:
     with cols[2]:
         st.metric("Growth Fund", f"${gf_balance:,.0f}")
     with cols[3]:
-        st.metric("Members", members_count)  # Shortened label to prevent cutoff on small screens
+        st.metric("Members", members_count)
 
         # Portfolio Story
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
@@ -1215,93 +1211,96 @@ for date, title, desc in timeline:
 st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
-# ====================== MEMBER LOGIN CTA ======================
-st.markdown(
-    "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
-    unsafe_allow_html=True,
-)
-st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
-st.markdown(
-    "<p style='font-size:1.4rem; opacity:0.9;'>"
-    "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
-    "</p>",
-    unsafe_allow_html=True,
-)
-
-col1, col2, col3 = st.columns([1, 4, 1])
-with col2:
-    st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
-
+# ====================== PUBLIC CONTENT & LOGIN CTA (ONLY IF NOT AUTHENTICATED) ======================
+if not st.session_state.get("authenticated", False):
+    # === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE, NO TOGGLE) ===
     st.markdown(
-        "<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>",
+        "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='font-size:1.4rem; opacity:0.9;'>"
+        "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
+        "</p>",
         unsafe_allow_html=True,
     )
 
-    tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
+    # Centered login form with tabs
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col2:
+        st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
 
-    with tab_owner:
-        with st.form("login_form_owner", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="e.g. kingminted",
-                key="owner_user",
-                label_visibility="collapsed",
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="owner_pwd",
-                label_visibility="collapsed",
-            )
-            if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="owner")
+        st.markdown(
+            "<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>",
+            unsafe_allow_html=True,
+        )
 
-    with tab_admin:
-        with st.form("login_form_admin", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="Your admin username",
-                key="admin_user",
-                label_visibility="collapsed",
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="admin_pwd",
-                label_visibility="collapsed",
-            )
-            if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="admin")
+        tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
 
-    with tab_client:
-        with st.form("login_form_client", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="Your username",
-                key="client_user",
-                label_visibility="collapsed",
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="client_pwd",
-                label_visibility="collapsed",
-            )
-            if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="client")
+        with tab_owner:
+            with st.form("login_form_owner", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="e.g. kingminted",
+                    key="owner_user",
+                    label_visibility="collapsed",
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="owner_pwd",
+                    label_visibility="collapsed",
+                )
+                if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="owner")
 
-    st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
-    st.markdown("</div>", unsafe_allow_html=True)
+        with tab_admin:
+            with st.form("login_form_admin", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="Your admin username",
+                    key="admin_user",
+                    label_visibility="collapsed",
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="admin_pwd",
+                    label_visibility="collapsed",
+                )
+                if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="admin")
 
-st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
+        with tab_client:
+            with st.form("login_form_client", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="Your username",
+                    key="client_user",
+                    label_visibility="collapsed",
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="client_pwd",
+                    label_visibility="collapsed",
+                )
+                if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="client")
 
-# FINAL STOP - PINAKADULO NG PUBLIC BLOCK
-st.stop()
+        st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER + PAGES) ======================
+    st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
+
+    # AUTH PROTECTION - stop rendering for public users (ONLY ONE st.stop() HERE)
+    st.stop()
+
+# ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER) ======================
 # Sidebar (only renders if authenticated)
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
@@ -1337,6 +1336,7 @@ with st.sidebar:
     else:
         pages = ["🏠 Dashboard"]
 
+    # Safe default page
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
 
@@ -1350,10 +1350,12 @@ with st.sidebar:
 
     st.divider()
 
+    # Theme toggle
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
 
+    # Logout
     if st.button("🚪 Logout", use_container_width=True, type="secondary"):
         log_action("Logout", f"User: {st.session_state.username}")
         st.session_state.clear()
