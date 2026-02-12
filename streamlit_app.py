@@ -1159,7 +1159,7 @@ st.markdown("</div>", unsafe_allow_html=True)  # Close CTA glass-card
 
 st.stop()  # Stop rendering for public users — authenticated content comes after this
 
-    st.stop()
+st.stop()
 
 # ====================== AUTHENTICATED APP (WIDE + SIDEBAR) ======================
 with st.sidebar:
