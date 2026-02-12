@@ -1220,7 +1220,9 @@ for date, title, desc in timeline:
 st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
-# === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE) ===
+# ====================== PUBLIC CONTENT & LOGIN CTA (ONLY IF NOT AUTHENTICATED) ======================
+if not st.session_state.get("authenticated", False):
+    # === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE, NO TOGGLE) ===
     st.markdown(
         "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
         unsafe_allow_html=True,
@@ -1233,6 +1235,7 @@ st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
         unsafe_allow_html=True,
     )
 
+    # Centered login form with tabs
     col1, col2, col3 = st.columns([1, 4, 1])
     with col2:
         st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
@@ -1302,26 +1305,13 @@ st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
         
         st.markdown("</div>", unsafe_allow_html=True)
     
-    st.markdown("</div>", unsafe_allow_html=True)  # Close CTA card
+    st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
     
-    # Stop rendering authenticated content
+    # AUTH PROTECTION - stop rendering for public users
     st.stop()
 
-# ====================== AUTHENTICATED APP STARTS HERE ======================
-# MINIMAL TOP PADDING FOR DASHBOARD (dashboard na agad nasa top)
-st.markdown(
-    """
-    <style>
-    .block-container {
-        padding-top: 1rem !important;
-        margin-top: 0rem !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Sidebar
+# ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER) ======================
+# Sidebar (only renders if authenticated)
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
     st.markdown(
@@ -1356,6 +1346,7 @@ with st.sidebar:
     else:
         pages = ["🏠 Dashboard"]
     
+    # Safe default page
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
     
@@ -1369,17 +1360,18 @@ with st.sidebar:
     
     st.divider()
     
+    # Theme toggle
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
     
+    # Logout
     if st.button("🚪 Logout", use_container_width=True, type="secondary"):
         log_action("Logout", f"User: {st.session_state.username}")
         st.session_state.clear()
         st.rerun()
 
-# ====================== DASHBOARD STARTS AT THE TOP ======================
-# Common Header (page title + Growth Fund metric)
+# ====================== COMMON HEADER ======================
 try:
     gf_resp = supabase.table("mv_growth_fund_balance").select("balance").execute()
     gf_balance = gf_resp.data[0]["balance"] if gf_resp.data else 0.0
