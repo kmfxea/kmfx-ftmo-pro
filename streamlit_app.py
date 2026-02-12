@@ -1297,8 +1297,7 @@ if not st.session_state.get("authenticated", False):
 
     st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
 
-    # AUTH PROTECTION - stop rendering for public users (ONLY ONE st.stop() HERE)
-    st.stop()
+    
 
 # ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER) ======================
 # Sidebar (only renders if authenticated)
