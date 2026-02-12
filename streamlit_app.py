@@ -1290,7 +1290,7 @@ if not st.session_state.get("authenticated", False):
                 if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
                     login_user(username.strip().lower(), password, expected_role="client")
 
-        st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
+        
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
