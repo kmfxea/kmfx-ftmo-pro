@@ -210,22 +210,31 @@ def create_default_users():
 
 create_default_users()
 
-# ====================== AUTH & THEME SETUP - EARLY & CLEAN (PLACE THIS RIGHT AFTER SESSION_STATE INIT & SUPABASE) ======================
+# ====================== AUTH & THEME SETUP - EARLY & CLEAN ======================
+# (Place this right after session_state init & supabase setup)
+
+# Initialize authenticated if missing
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
+# Initialize theme - default DARK for public landing
 if "theme" not in st.session_state:
-    st.session_state.theme = "light"  # Default fresh open
+    st.session_state.theme = "dark"
 
-# AUTO THEME BASED ON LOGIN - NO RERUN, NO CONFLICT
+# AUTO THEME BASED ON AUTH - WITH RERUN FOR INSTANT APPLY
 if st.session_state.authenticated:
-    st.session_state.theme = "light"   # Inside dashboard = light mode
+    if st.session_state.theme != "light":
+        st.session_state.theme = "light"
+        st.rerun()  # Force rerun to apply light mode instantly
 else:
-    st.session_state.theme = "dark"    # Public landing = dark mode
+    if st.session_state.theme != "dark":
+        st.session_state.theme = "dark"
+        st.rerun()  # Force rerun to apply dark mode instantly (one-time for public)
 
+# Final theme value
 theme = st.session_state.theme
 
-# Your colors (keep exactly as is)
+# Your colors (adaptive to final theme)
 accent_primary = "#00ffaa"
 accent_gold = "#ffd700"
 accent_glow = "#00ffaa40"
@@ -472,32 +481,47 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# QR Auto-Login
+# QR Auto-Login (FULLY FIXED & BULLETPROOF VERSION)
 params = st.query_params
 qr_token = params.get("qr")
+
+# Early check: Only process QR if not already authenticated
 if qr_token and not st.session_state.get("authenticated", False):
     try:
         resp = supabase.table("users").select("*").eq("qr_token", qr_token).execute()
         if resp.data:
             user = resp.data[0]
-            # SUCCESS - Consistent with manual login
+            
+            # SUCCESS - 100% consistent with manual login
             st.session_state.authenticated = True
             st.session_state.username = user["username"].lower()
             st.session_state.full_name = user["full_name"] or user["username"]
             st.session_state.role = user["role"]
             
-            # FORCE LIGHT MODE + DASHBOARD (same as manual login)
+            # FORCE LIGHT MODE + DASHBOARD (critical for instant switch)
             st.session_state.theme = "light"
-            st.session_state.selected_page = "🏠 Dashboard"
+            if "selected_page" not in st.session_state:
+                st.session_state.selected_page = "🏠 Dashboard"
+            else:
+                st.session_state.selected_page = "🏠 Dashboard"  # Override safety
             
-            log_action("QR Login Success", f"User: {user['full_name']}")
-            st.success(f"QR Login Successful! Welcome back, {user['full_name']}! 👑")
+            log_action("QR Login Success", f"User: {user['full_name']} | Role: {user['role']}")
+            
+            # Success message (will show briefly before rerun)
+            st.success(f"QR Login Successful! Welcome back, {user['full_name']}! 👑 Role: {user['role'].title()}")
+            
+            # Clear QR param to prevent re-processing
             st.query_params.clear()
+            
+            # Immediate rerun to apply authenticated flow
             st.rerun()
         else:
+            # Invalid token - show error but don't block app
             st.error("Invalid or revoked QR code")
+            st.query_params.clear()  # Clear anyway to clean URL
     except Exception as e:
         st.error(f"QR login failed: {str(e)}")
+        st.query_params.clear()
 
 # Login helper (unchanged - already perfect with role validation)
 def login_user(username, password, expected_role=None):
@@ -539,11 +563,12 @@ def login_user(username, password, expected_role=None):
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
+# ====================== MAIN AUTH GATE ======================
 if not st.session_state.authenticated:
-    # FORCE DARK MODE FOR PUBLIC LANDING PAGE ONLY
-    if st.session_state.get("theme") != "dark":
+    # PUBLIC ONLY: Force dark mode once
+    if st.session_state.theme != "dark":
         st.session_state.theme = "dark"
-        st.rerun()  # One-time reload to apply dark theme
+        st.rerun()
 
     # ====================== PUBLIC LANDING PAGE (DARK MODE + LOGO AT TOP, ZERO SPACE) ======================
    
@@ -1195,100 +1220,93 @@ for date, title, desc in timeline:
 st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
-# ====================== MEMBER LOGIN CTA (IMPROVED & FIXED VERSION) ======================
-# Changes made:
-# 1. Removed the "show_login" toggle button — login form is now ALWAYS visible in the CTA (mas direct, walang extra click)
-# 2. Kept the clean centered layout with tabs (Owner/Admin/Client) for role security
-# 3. Added clear success/error feedback
-# 4. Ensured st.stop() remains to protect authenticated content
-# 5. Minor UX polish: larger inputs, better placeholders, auto-focus hints
-# 6. No more unnecessary rerun on button click — direct na
+# === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE, NO TOGGLE) ===
+    st.markdown(
+        "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='font-size:1.4rem; opacity:0.9;'>"
+        "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
+        "</p>",
+        unsafe_allow_html=True,
+    )
 
-st.markdown(
-    "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
-    unsafe_allow_html=True,
-)
-st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
-st.markdown(
-    "<p style='font-size:1.4rem; opacity:0.9;'>"
-    "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
-    "</p>",
-    unsafe_allow_html=True,
-)
+    # Centered login form with tabs
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col2:
+        st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
+        
+        st.markdown("<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>", unsafe_allow_html=True)
+        
+        tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
+        
+        with tab_owner:
+            with st.form("login_form_owner", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="e.g. kingminted",
+                    key="owner_user",
+                    label_visibility="collapsed"
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="owner_pwd",
+                    label_visibility="collapsed"
+                )
+                if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="owner")
+        
+        with tab_admin:
+            with st.form("login_form_admin", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="Your admin username",
+                    key="admin_user",
+                    label_visibility="collapsed"
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="admin_pwd",
+                    label_visibility="collapsed"
+                )
+                if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="admin")
+        
+        with tab_client:
+            with st.form("login_form_client", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="Your username",
+                    key="client_user",
+                    label_visibility="collapsed"
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="client_pwd",
+                    label_visibility="collapsed"
+                )
+                if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="client")
+        
+        st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
+    
+    # AUTH PROTECTION - stop everything below for public users
+    st.stop()
 
-# Always show the login form (no toggle needed — mas smooth ang flow)
-col1, col2, col3 = st.columns([1, 4, 1])
-with col2:
-    st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
-    
-    st.markdown("<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>", unsafe_allow_html=True)
-    
-    tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
-    
-    with tab_owner:
-        with st.form("login_form_owner", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="e.g. kingminted",
-                key="owner_user",
-                label_visibility="collapsed"
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="owner_pwd",
-                label_visibility="collapsed"
-            )
-            if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="owner")
-    
-    with tab_admin:
-        with st.form("login_form_admin", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="Your admin username",
-                key="admin_user",
-                label_visibility="collapsed"
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="admin_pwd",
-                label_visibility="collapsed"
-            )
-            if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="admin")
-    
-    with tab_client:
-        with st.form("login_form_client", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="Your username",
-                key="client_user",
-                label_visibility="collapsed"
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="client_pwd",
-                label_visibility="collapsed"
-            )
-            if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="client")
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
-
-# ====================== AUTH PROTECTION ======================
-# This stops all rendering below for non-authenticated users
-# Pag successful login → authenticated = True → rerun → lalaktawan na ang st.stop() at diretso sa sidebar
-st.stop()
-
-# ====================== AUTHENTICATED APP STARTS HERE ======================
+# ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER) ======================
+# Sidebar (only renders if authenticated)
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
@@ -1320,6 +1338,7 @@ with st.sidebar:
     else:
         pages = ["🏠 Dashboard"]
     
+    # Safe default page
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
     
@@ -1333,16 +1352,18 @@ with st.sidebar:
     
     st.divider()
     
+    # Theme toggle
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
     
+    # Logout
     if st.button("🚪 Logout", use_container_width=True, type="secondary"):
         log_action("Logout", f"User: {st.session_state.username}")
         st.session_state.clear()
         st.rerun()
-# ====================== COMMON HEADER (APPLY THIS FIRST - BEFORE PAGES) ======================
-# FIXED: Growth Fund now uses materialized view (instant, consistent everywhere)
+
+# ====================== COMMON HEADER ======================
 try:
     gf_resp = supabase.table("mv_growth_fund_balance").select("balance").execute()
     gf_balance = gf_resp.data[0]["balance"] if gf_resp.data else 0.0
@@ -1353,9 +1374,9 @@ col1, col2 = st.columns([3, 1])
 with col1:
     st.markdown(f"<h1>{selected}</h1>", unsafe_allow_html=True)
 with col2:
-    st.metric("Growth Fund", f"${gf_balance:,.0f}")
+    st.metric("Growth Fund", gf"${gf_balance:,.0f}")
 
-# Announcement Banner (unchanged - already good)
+# Announcement Banner
 try:
     ann = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute().data[0]
     st.markdown(f"""
