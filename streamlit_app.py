@@ -210,18 +210,22 @@ def create_default_users():
 
 create_default_users()
 
-# ====================== THEME SETUP - DEFAULT LIGHT MODE FOR LOGGED IN, FORCE DARK FOR PUBLIC LANDING ======================
-if "theme" not in st.session_state:
-    st.session_state.theme = "light"  # Default on fresh open
+# ====================== AUTH & THEME SETUP - EARLY & CLEAN (PLACE THIS RIGHT AFTER SESSION_STATE INIT & SUPABASE) ======================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-# AUTO SET THEME BASED ON LOGIN STATUS (NO RERUN - CLEAN & STABLE)
-if st.session_state.get("authenticated", False):
-    st.session_state.theme = "light"   # Logged in = light mode (dashboard)
+if "theme" not in st.session_state:
+    st.session_state.theme = "light"  # Default fresh open
+
+# AUTO THEME BASED ON LOGIN - NO RERUN, NO CONFLICT
+if st.session_state.authenticated:
+    st.session_state.theme = "light"   # Inside dashboard = light mode
 else:
     st.session_state.theme = "dark"    # Public landing = dark mode
 
 theme = st.session_state.theme
 
+# Your colors (keep exactly as is)
 accent_primary = "#00ffaa"
 accent_gold = "#ffd700"
 accent_glow = "#00ffaa40"
