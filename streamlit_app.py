@@ -1210,7 +1210,7 @@ for date, title, desc in timeline:
 
 st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 # AUTH PROTECTION - stop rendering for public users (ONLY ONE st.stop() HERE)
-    st.stop()
+st.stop()
 
 # ====================== PUBLIC CONTENT & LOGIN CTA (ONLY IF NOT AUTHENTICATED) ======================
 if not st.session_state.get("authenticated", False):
