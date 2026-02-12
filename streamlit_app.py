@@ -491,27 +491,25 @@ if qr_token and not st.session_state.get("authenticated", False):
         resp = supabase.table("users").select("*").eq("qr_token", qr_token).execute()
         if resp.data:
             user = resp.data[0]
-           
+          
             # SUCCESS - 100% consistent with manual login
             st.session_state.authenticated = True
             st.session_state.username = user["username"].lower()
             st.session_state.full_name = user["full_name"] or user["username"]
             st.session_state.role = user["role"]
-           
+          
             # FORCE LIGHT MODE + DASHBOARD
             st.session_state.theme = "light"
             st.session_state.selected_page = "🏠 Dashboard"  # Force dashboard
-           
-            # Optional: flag for welcome message on dashboard only
+          
+            # Flag for welcome message + scroll-to-top
             st.session_state.just_logged_in = True
-           
+          
             log_action("QR Login Success", f"User: {user['full_name']} | Role: {user['role']}")
-           
-            # REMOVED st.success() → no message on public landing page
-           
+          
             # Clear QR param to prevent re-processing
             st.query_params.clear()
-           
+          
             # Immediate rerun → jumps straight to dashboard
             st.rerun()
         else:
@@ -527,31 +525,31 @@ def login_user(username, password, expected_role=None):
         response = supabase.table("users").select("password, full_name, role").eq("username", username.lower()).execute()
         if response.data:
             user = response.data[0]
-          
+         
             # Check password
             if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
                 actual_role = user["role"]
-              
+             
                 # Role validation per tab
                 if expected_role and actual_role != expected_role:
                     st.error(f"This login tab is for {expected_role.title()} accounts only. Please use the correct tab.")
                     return
-              
+             
                 # Success - set session
                 st.session_state.authenticated = True
                 st.session_state.username = username.lower()
                 st.session_state.full_name = user["full_name"] or username
                 st.session_state.role = actual_role
-            
+           
                 # AUTO LIGHT MODE + FORCE DASHBOARD
                 st.session_state.theme = "light"
                 st.session_state.selected_page = "🏠 Dashboard"
-                
-                # Optional: flag for welcome message on dashboard only
+               
+                # Flag for welcome message + scroll-to-top
                 st.session_state.just_logged_in = True
-            
+           
                 log_action("Login Successful", f"User: {username} | Role: {actual_role}")
-                
+               
                 # REMOVED st.success() here → no flash on landing page
                 st.rerun()  # Immediate jump to dashboard
             else:
@@ -1371,6 +1369,38 @@ with col1:
     st.markdown(f"<h1>{selected}</h1>", unsafe_allow_html=True)
 with col2:
     st.metric("Growth Fund", f"${gf_balance:,.0f}")
+    # ====================== FRESH LOGIN HANDLER: Welcome + Scroll to Top ======================
+if st.session_state.get("just_logged_in", False):
+    # Welcome message (premium feel)
+    st.markdown(
+        f"""
+        <div class='glass-card' style='text-align:center; padding:2rem;'>
+            <h3 style='margin:0; color:{accent_primary};'>Welcome back, {st.session_state.full_name}! 🚀</h3>
+            <p style='margin:1rem 0 0; opacity:0.8;'>Scale smarter. Trade bolder. Win bigger.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    # Clean separator (yung hiniling mo)
+    st.divider()
+    
+    # Optional celebration
+    st.balloons()
+    
+    # Force scroll to top (works perfectly in Streamlit)
+    st.markdown("""
+    <script>
+        // Force scroll to very top (Streamlit iframe safe)
+        window.parent.document.querySelector(".main").scrollTop = 0;
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        window.scrollTo(0, 0);
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Reset flag so it only runs once per login
+    st.session_state.just_logged_in = False
 
 # Announcement Banner
 try:
