@@ -570,9 +570,9 @@ if not st.session_state.authenticated:
         st.session_state.theme = "dark"
         st.rerun()
 
-    # ====================== PUBLIC LANDING PAGE (DARK MODE + LOGO AT TOP, ZERO SPACE) ======================
-   
-    # GLOBAL FIX: Zero top space + hide Streamlit bar
+    # ====================== PUBLIC LANDING + LOGIN CTA (ONLY IF NOT AUTHENTICATED) ======================
+if not st.session_state.get("authenticated", False):
+    # GLOBAL FIX: Zero top space + hide Streamlit bar (public landing only)
     st.markdown("""
     <style>
     /* Remove all top space */
