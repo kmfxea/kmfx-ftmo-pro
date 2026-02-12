@@ -1221,91 +1221,91 @@ st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
 # === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE) ===
-st.markdown(
-    "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
-    unsafe_allow_html=True,
-)
-st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
-st.markdown(
-    "<p style='font-size:1.4rem; opacity:0.9;'>"
-    "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
-    "</p>",
-    unsafe_allow_html=True,
-)
-
-col1, col2, col3 = st.columns([1, 4, 1])
-with col2:
-    st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
-    
     st.markdown(
-        "<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>",
+        "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
         unsafe_allow_html=True,
     )
-    
-    tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
-    
-    with tab_owner:
-        with st.form("login_form_owner", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="e.g. kingminted",
-                key="owner_user",
-                label_visibility="collapsed",
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="owner_pwd",
-                label_visibility="collapsed",
-            )
-            if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="owner")
-    
-    with tab_admin:
-        with st.form("login_form_admin", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="Your admin username",
-                key="admin_user",
-                label_visibility="collapsed",
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="admin_pwd",
-                label_visibility="collapsed",
-            )
-            if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="admin")
-    
-    with tab_client:
-        with st.form("login_form_form_client", clear_on_submit=False):
-            st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
-            username = st.text_input(
-                "Username",
-                placeholder="Your username",
-                key="client_user",
-                label_visibility="collapsed",
-            )
-            password = st.text_input(
-                "Password",
-                type="password",
-                key="client_pwd",
-                label_visibility="collapsed",
-            )
-            if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
-                login_user(username.strip().lower(), password, expected_role="client")
-    
-    
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("<h2 class='gold-text'>Already a Pioneer or Member?</h2>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='font-size:1.4rem; opacity:0.9;'>"
+        "Access your elite dashboard, realtime balance, profit shares, EA versions, and empire tools"
+        "</p>",
+        unsafe_allow_html=True,
+    )
 
-st.markdown("</div>", unsafe_allow_html=True)  # Close CTA card
-
-# Stop rendering authenticated content
-st.stop()
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col2:
+        st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
+        
+        st.markdown(
+            "<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>",
+            unsafe_allow_html=True,
+        )
+        
+        tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
+        
+        with tab_owner:
+            with st.form("login_form_owner", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="e.g. kingminted",
+                    key="owner_user",
+                    label_visibility="collapsed",
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="owner_pwd",
+                    label_visibility="collapsed",
+                )
+                if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="owner")
+        
+        with tab_admin:
+            with st.form("login_form_admin", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="Your admin username",
+                    key="admin_user",
+                    label_visibility="collapsed",
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="admin_pwd",
+                    label_visibility="collapsed",
+                )
+                if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="admin")
+        
+        with tab_client:
+            with st.form("login_form_client", clear_on_submit=False):
+                st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
+                username = st.text_input(
+                    "Username",
+                    placeholder="Your username",
+                    key="client_user",
+                    label_visibility="collapsed",
+                )
+                password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="client_pwd",
+                    label_visibility="collapsed",
+                )
+                if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
+                    login_user(username.strip().lower(), password, expected_role="client")
+        
+        st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)  # Close CTA card
+    
+    # Stop rendering authenticated content
+    st.stop()
 
 # ====================== AUTHENTICATED APP STARTS HERE ======================
 # MINIMAL TOP PADDING FOR DASHBOARD (dashboard na agad nasa top)
