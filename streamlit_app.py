@@ -212,7 +212,13 @@ create_default_users()
 
 # ====================== THEME SETUP - DEFAULT LIGHT MODE FOR LOGGED IN, FORCE DARK FOR PUBLIC LANDING ======================
 if "theme" not in st.session_state:
-    st.session_state.theme = "light"  # Default light mode pag fresh open / login
+    st.session_state.theme = "light"  # Default on fresh open
+
+# AUTO SET THEME BASED ON LOGIN STATUS (NO RERUN - CLEAN & STABLE)
+if st.session_state.get("authenticated", False):
+    st.session_state.theme = "light"   # Logged in = light mode (dashboard)
+else:
+    st.session_state.theme = "dark"    # Public landing = dark mode
 
 theme = st.session_state.theme
 
@@ -220,13 +226,11 @@ accent_primary = "#00ffaa"
 accent_gold = "#ffd700"
 accent_glow = "#00ffaa40"
 accent_hover = "#00ffcc" if theme == "dark" else "#00cc99"
-
 bg_color = "#f8fbff" if theme == "light" else "#0a0d14"
 card_bg = "rgba(255, 255, 255, 0.75)" if theme == "light" else "rgba(15, 20, 30, 0.70)"
 border_color = "rgba(0, 0, 0, 0.08)" if theme == "light" else "rgba(100, 100, 100, 0.15)"
 text_primary = "#0f172a" if theme == "light" else "#ffffff"
 text_muted = "#64748b" if theme == "light" else "#aaaaaa"
-
 card_shadow = "0 8px 25px rgba(0,0,0,0.12)" if theme == "light" else "0 10px 30px rgba(0,0,0,0.5)"
 card_shadow_hover = "0 15px 40px rgba(0,0,0,0.2)" if theme == "light" else "0 20px 50px rgba(0,255,170,0.45)"
 sidebar_bg = "rgba(248, 251, 255, 0.95)" if theme == "light" else "rgba(10, 13, 20, 0.95)"
