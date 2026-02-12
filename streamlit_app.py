@@ -481,7 +481,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# QR Auto-Login (FULLY FIXED & BULLETPROOF VERSION)
+# QR Auto-Login (FIXED: No flash of landing page or success message)
 params = st.query_params
 qr_token = params.get("qr")
 
@@ -491,77 +491,75 @@ if qr_token and not st.session_state.get("authenticated", False):
         resp = supabase.table("users").select("*").eq("qr_token", qr_token).execute()
         if resp.data:
             user = resp.data[0]
-            
+           
             # SUCCESS - 100% consistent with manual login
             st.session_state.authenticated = True
             st.session_state.username = user["username"].lower()
             st.session_state.full_name = user["full_name"] or user["username"]
             st.session_state.role = user["role"]
-            
-            # FORCE LIGHT MODE + DASHBOARD (critical for instant switch)
+           
+            # FORCE LIGHT MODE + DASHBOARD
             st.session_state.theme = "light"
-            if "selected_page" not in st.session_state:
-                st.session_state.selected_page = "🏠 Dashboard"
-            else:
-                st.session_state.selected_page = "🏠 Dashboard"  # Override safety
-            
+            st.session_state.selected_page = "🏠 Dashboard"  # Force dashboard
+           
+            # Optional: flag for welcome message on dashboard only
+            st.session_state.just_logged_in = True
+           
             log_action("QR Login Success", f"User: {user['full_name']} | Role: {user['role']}")
-            
-            # Success message (will show briefly before rerun)
-            st.success(f"QR Login Successful! Welcome back, {user['full_name']}! 👑 Role: {user['role'].title()}")
-            
+           
+            # REMOVED st.success() → no message on public landing page
+           
             # Clear QR param to prevent re-processing
             st.query_params.clear()
-            
-            # Immediate rerun to apply authenticated flow
+           
+            # Immediate rerun → jumps straight to dashboard
             st.rerun()
         else:
-            # Invalid token - show error but don't block app
             st.error("Invalid or revoked QR code")
-            st.query_params.clear()  # Clear anyway to clean URL
+            st.query_params.clear()
     except Exception as e:
         st.error(f"QR login failed: {str(e)}")
         st.query_params.clear()
 
-# Login helper (unchanged - already perfect with role validation)
+# Login helper - FIXED: No success message on public landing page
 def login_user(username, password, expected_role=None):
     try:
         response = supabase.table("users").select("password, full_name, role").eq("username", username.lower()).execute()
         if response.data:
             user = response.data[0]
-           
+          
             # Check password
             if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
                 actual_role = user["role"]
-               
+              
                 # Role validation per tab
                 if expected_role and actual_role != expected_role:
                     st.error(f"This login tab is for {expected_role.title()} accounts only. Please use the correct tab.")
                     return
-               
+              
                 # Success - set session
                 st.session_state.authenticated = True
                 st.session_state.username = username.lower()
                 st.session_state.full_name = user["full_name"] or username
                 st.session_state.role = actual_role
-             
+            
                 # AUTO LIGHT MODE + FORCE DASHBOARD
                 st.session_state.theme = "light"
                 st.session_state.selected_page = "🏠 Dashboard"
-             
+                
+                # Optional: flag for welcome message on dashboard only
+                st.session_state.just_logged_in = True
+            
                 log_action("Login Successful", f"User: {username} | Role: {actual_role}")
-                st.success(f"Welcome back, {st.session_state.full_name}! 👑 Role: {st.session_state.role.title()}")
-                st.rerun()
+                
+                # REMOVED st.success() here → no flash on landing page
+                st.rerun()  # Immediate jump to dashboard
             else:
                 st.error("Invalid password")
         else:
             st.error("Username not found")
     except Exception as e:
         st.error(f"Login error: {e}")
-
-# Auth check (place this EARLY - after session init & supabase)
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
 
 # ====================== MAIN AUTH GATE - SINGLE BLOCK FOR ALL PUBLIC CONTENT ======================
 if not st.session_state.authenticated:
