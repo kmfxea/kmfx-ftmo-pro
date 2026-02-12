@@ -1215,9 +1215,7 @@ for date, title, desc in timeline:
 st.markdown("</div>", unsafe_allow_html=True)  # Close timeline glass-card
 
 
-# ====================== PUBLIC CONTENT & LOGIN CTA (ONLY IF NOT AUTHENTICATED) ======================
-if not st.session_state.get("authenticated", False):
-    # === MEMBER LOGIN CTA (IMPROVED - ALWAYS VISIBLE, NO TOGGLE) ===
+# ====================== MEMBER LOGIN CTA ======================
     st.markdown(
         "<div class='glass-card' style='text-align:center; margin:5rem 0; padding:4rem;'>",
         unsafe_allow_html=True,
@@ -1229,19 +1227,17 @@ if not st.session_state.get("authenticated", False):
         "</p>",
         unsafe_allow_html=True,
     )
-
-    # Centered login form with tabs
     col1, col2, col3 = st.columns([1, 4, 1])
     with col2:
         st.markdown("<div class='glass-card' style='padding:3rem;'>", unsafe_allow_html=True)
-        
+       
         st.markdown(
             "<h3 style='text-align:center; margin-bottom:2rem; color:#ffd700;'>🔐 Secure Member Login</h3>",
             unsafe_allow_html=True,
         )
-        
+       
         tab_owner, tab_admin, tab_client = st.tabs(["👑 Owner Login", "🛠️ Admin Login", "👥 Client Login"])
-        
+       
         with tab_owner:
             with st.form("login_form_owner", clear_on_submit=False):
                 st.markdown("<p style='text-align:center; opacity:0.8;'>Owner-only access</p>", unsafe_allow_html=True)
@@ -1259,7 +1255,7 @@ if not st.session_state.get("authenticated", False):
                 )
                 if st.form_submit_button("Login as Owner →", type="primary", use_container_width=True):
                     login_user(username.strip().lower(), password, expected_role="owner")
-        
+       
         with tab_admin:
             with st.form("login_form_admin", clear_on_submit=False):
                 st.markdown("<p style='text-align:center; opacity:0.8;'>Admin access</p>", unsafe_allow_html=True)
@@ -1277,7 +1273,7 @@ if not st.session_state.get("authenticated", False):
                 )
                 if st.form_submit_button("Login as Admin →", type="primary", use_container_width=True):
                     login_user(username.strip().lower(), password, expected_role="admin")
-        
+       
         with tab_client:
             with st.form("login_form_client", clear_on_submit=False):
                 st.markdown("<p style='text-align:center; opacity:0.8;'>Client / Pioneer access</p>", unsafe_allow_html=True)
@@ -1295,17 +1291,17 @@ if not st.session_state.get("authenticated", False):
                 )
                 if st.form_submit_button("Login as Client →", type="primary", use_container_width=True):
                     login_user(username.strip().lower(), password, expected_role="client")
-        
+       
         st.caption("💡 First time? Use your registered username. Default owner: kingminted / ChangeMeNow123!")
-        
+       
         st.markdown("</div>", unsafe_allow_html=True)
-    
+   
     st.markdown("</div>", unsafe_allow_html=True)  # Close main CTA glass-card
-    
-    # AUTH PROTECTION - stop rendering for public users
+
+    # FINAL STOP - PINAKADULO NG PUBLIC BLOCK
     st.stop()
 
-# ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER) ======================
+# ====================== AUTHENTICATED APP STARTS HERE (SIDEBAR + HEADER + PAGES) ======================
 # Sidebar (only renders if authenticated)
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
@@ -1314,9 +1310,9 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.divider()
-    
+   
     current_role = st.session_state.role
-    
+   
     if current_role == "client":
         pages = [
             "🏠 Dashboard", "👤 My Profile", "📊 FTMO Accounts", "💰 Profit Sharing",
@@ -1340,11 +1336,10 @@ with st.sidebar:
         ]
     else:
         pages = ["🏠 Dashboard"]
-    
-    # Safe default page
+   
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
-    
+   
     selected = st.radio(
         "Navigation",
         pages,
@@ -1352,15 +1347,13 @@ with st.sidebar:
         label_visibility="collapsed",
     )
     st.session_state.selected_page = selected
-    
+   
     st.divider()
-    
-    # Theme toggle
+   
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
-    
-    # Logout
+   
     if st.button("🚪 Logout", use_container_width=True, type="secondary"):
         log_action("Logout", f"User: {st.session_state.username}")
         st.session_state.clear()
@@ -1402,8 +1395,6 @@ except Exception:
         """,
         unsafe_allow_html=True,
     )
-    # AUTH PROTECTION - stop rendering for public users
-st.stop()
 if selected == "🏠 Dashboard":
     st.header("Elite Empire Command Center 🚀")
     st.markdown("**Realtime, fully automatic empire overview**")
