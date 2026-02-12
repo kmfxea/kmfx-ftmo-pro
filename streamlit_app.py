@@ -570,8 +570,6 @@ if not st.session_state.authenticated:
         st.session_state.theme = "dark"
         st.rerun()
 
-    # ====================== PUBLIC LANDING + LOGIN CTA (ONLY IF NOT AUTHENTICATED) ======================
-if not st.session_state.get("authenticated", False):
     # GLOBAL FIX: Zero top space + hide Streamlit bar (public landing only)
     st.markdown("""
     <style>
@@ -586,34 +584,33 @@ if not st.session_state.get("authenticated", False):
     header { visibility: hidden !important; }
     </style>
     """, unsafe_allow_html=True)
-    
-   
+
     # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
-    logo_col = st.columns([1, 6, 1])[1] # Slightly wider middle column for better logo size
+    logo_col = st.columns([1, 6, 1])[1]  # Slightly wider middle column for better logo size
     with logo_col:
-        st.image("assets/logo.png") # No use_column_width → no warning, still large & responsive
-   
+        st.image("assets/logo.png")  # No use_column_width → no warning, still large & responsive
+
     # Original content (centered)
     st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center; color:{text_primary};'>Automated Gold Trading for Financial Freedom</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-size:1.4rem; color:{text_muted};'>Passed FTMO Phase 1 • +3,071% 5-Year Backtest • Building Legacies of Generosity</p>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; font-size:1.2rem;'>Mark Jeff Blando – Founder & Developer • 2026</p>", unsafe_allow_html=True)
-   
+
     # Realtime Stats - FIXED QUERY + RESPONSIVE (NO TRUNCATION)
     try:
         accounts_count = supabase.table("ftmo_accounts").select("id", count="exact").execute().count or 0
         equity_data = supabase.table("ftmo_accounts").select("current_equity").execute().data or []
         total_equity = sum(acc.get("current_equity", 0) for acc in equity_data)
-        
+       
         # FIXED: Correct "type, amount" format
         gf_data = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
         gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_data)
-        
+       
         members_count = supabase.table("users").select("id", count="exact").eq("role", "client").execute().count or 0
     except Exception as e:
         print(f"Supabase stats error: {e}")
         accounts_count = total_equity = gf_balance = members_count = 0
-   
+  
     # FULL-WIDTH RESPONSIVE METRICS (auto-stack on mobile, no truncation)
     cols = st.columns(4)
     with cols[0]:
@@ -623,9 +620,7 @@ if not st.session_state.get("authenticated", False):
     with cols[2]:
         st.metric("Growth Fund", f"${gf_balance:,.0f}")
     with cols[3]:
-        st.metric("Members", members_count) # Shortened label to prevent cutoff on small screens
-   
-    # =====================================================================================================
+        st.metric("Members", members_count)  # Shortened label to prevent cutoff on small screens
 
         # Portfolio Story
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
