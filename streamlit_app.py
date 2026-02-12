@@ -492,28 +492,20 @@ if qr_token and not st.session_state.get("authenticated", False):
         if resp.data:
             user = resp.data[0]
            
-            # SUCCESS - 100% consistent with manual login
             st.session_state.authenticated = True
             st.session_state.username = user["username"].lower()
             st.session_state.full_name = user["full_name"] or user["username"]
             st.session_state.role = user["role"]
-           
-            # FORCE LIGHT MODE + DASHBOARD
             st.session_state.theme = "light"
-            st.session_state.selected_page = "🏠 Dashboard"  # Force dashboard
-           
-            # Optional: flag for welcome message on dashboard only
-            st.session_state.just_logged_in = True
-           
+            st.session_state.selected_page = "🏠 Dashboard"
+            
+            st.session_state.just_logged_in = True  # Flag para welcome sa dashboard
+            
             log_action("QR Login Success", f"User: {user['full_name']} | Role: {user['role']}")
-           
-            # REMOVED st.success() → no message on public landing page
-           
-            # Clear QR param to prevent re-processing
+            
+            # WALANG st.success() → no message sa landing
             st.query_params.clear()
-           
-            # Immediate rerun → jumps straight to dashboard
-            st.rerun()
+            st.rerun()  # Immediate → landing fully hidden
         else:
             st.error("Invalid or revoked QR code")
             st.query_params.clear()
@@ -528,32 +520,28 @@ def login_user(username, password, expected_role=None):
         if response.data:
             user = response.data[0]
           
-            # Check password
             if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
                 actual_role = user["role"]
               
-                # Role validation per tab
                 if expected_role and actual_role != expected_role:
                     st.error(f"This login tab is for {expected_role.title()} accounts only. Please use the correct tab.")
                     return
               
-                # Success - set session
+                # SUCCESS: Set session + force dashboard
                 st.session_state.authenticated = True
                 st.session_state.username = username.lower()
                 st.session_state.full_name = user["full_name"] or username
                 st.session_state.role = actual_role
-            
-                # AUTO LIGHT MODE + FORCE DASHBOARD
                 st.session_state.theme = "light"
                 st.session_state.selected_page = "🏠 Dashboard"
                 
-                # Optional: flag for welcome message on dashboard only
+                # Flag para welcome message sa dashboard lang
                 st.session_state.just_logged_in = True
-            
-                log_action("Login Successful", f"User: {username} | Role: {actual_role}")
                 
-                # REMOVED st.success() here → no flash on landing page
-                st.rerun()  # Immediate jump to dashboard
+                log_action("Login Successful", f unbale: {username} | Role: {actual_role}")
+                
+                # WALANG st.success() dito → no flash sa landing page
+                st.rerun()  # Immediate jump → landing page fully skipped
             else:
                 st.error("Invalid password")
         else:
