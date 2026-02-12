@@ -15,33 +15,28 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import uuid
 from PIL import Image
+
 # === TEMPORARY GLOBAL TIME FIX - PHILIPPINE TIME ===
 st.markdown("""
 <style>
-    /* Optional: gawing mas malinaw ang timestamp para madaling makita kung na-update */
     .timestamp-fix { color: #00ffaa; font-weight: bold; }
 </style>
-
 <script>
 function fixTimestamps() {
-    // Hanapin lahat ng text nodes na may possible ISO timestamp
     const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
         null,
         false
     );
-
     let node;
     while (node = walker.nextNode()) {
         let text = node.nodeValue.trim();
         if (text.match(/\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}(:\\d{2})?(Z)?/)) {
             try {
-                // Subukan i-parse bilang date
-                let iso = text.replace(" ", "T"); // kung may space sa halip na T
+                let iso = text.replace(" ", "T");
                 let date = new Date(iso);
                 if (!isNaN(date.getTime())) {
-                    // Convert to PHT
                     let pht = date.toLocaleString('en-PH', {
                         timeZone: 'Asia/Manila',
                         year: 'numeric',
@@ -51,24 +46,20 @@ function fixTimestamps() {
                         minute: '2-digit',
                         hour12: true
                     });
-                    // Palitan ang text
                     node.nodeValue = node.nodeValue.replace(text, pht);
                 }
             } catch(e) {}
         }
     }
 }
-
-// I-run pagkatapos mag-load + may delay para siguradong na-render na lahat
 window.addEventListener('load', function() {
     setTimeout(fixTimestamps, 800);
-    // I-run ulit after 2 seconds para sa dynamic content
     setTimeout(fixTimestamps, 2000);
 });
 </script>
 """, unsafe_allow_html=True)
-load_dotenv()
 
+load_dotenv()
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 if not supabase_url or not supabase_key:
@@ -76,56 +67,40 @@ if not supabase_url or not supabase_key:
     st.stop()
 
 supabase: Client = create_client(supabase_url, supabase_key)
+
 def upload_to_supabase(file, bucket: str, folder: str = "", use_signed_url: bool = False, signed_expiry: int = 3600) -> tuple[str, str]:
-    """
-    Upload file to Supabase Storage - FIXED for memoryview + upsert header issues
-    Returns (url, storage_path)
-    """
     try:
-        # Unique filename to prevent overwrites
         safe_name = f"{uuid.uuid4()}_{file.name}"
         file_path = f"{folder}/{safe_name}" if folder else safe_name
-
-        # Convert memoryview → bytes (fixes previous error)
         content = file.getbuffer()
         if isinstance(content, memoryview):
             content = content.tobytes()
         elif not isinstance(content, bytes):
             content = bytes(content)
-
         with st.spinner(f"Uploading {file.name}..."):
             supabase.storage.from_(bucket).upload(
                 path=file_path,
                 file=content,
                 file_options={
                     "content-type": file.type or "application/octet-stream",
-                    "upsert": "true"          # ← fixed: string instead of bool
+                    "upsert": "true"
                 }
             )
-
-        # Get URL
         if use_signed_url:
             signed = supabase.storage.from_(bucket).create_signed_url(file_path, signed_expiry)
             url = signed["signedURL"]
         else:
             url = supabase.storage.from_(bucket).get_public_url(file_path)
-
         st.success(f"✅ {file.name} uploaded successfully!")
         return url, file_path
-
     except Exception as e:
         st.error(f"Upload failed for {file.name}: {str(e)}")
         raise
-        # === IMAGE RESIZE HELPER (for timeline photos, testimonials, etc.) ===
+
 def make_same_size(image_path, target_width=800, target_height=500):
-    """
-    Center-crops and resizes image to exact same dimensions (no distortion).
-    Adjust target_width/height as needed (e.g., 700, 450 or 600, 400).
-    """
     img = Image.open(image_path)
     target_ratio = target_width / target_height
     img_ratio = img.width / img.height
-    
     if img_ratio > target_ratio:  # too wide → crop sides
         new_width = int(img.height * target_ratio)
         left = (img.width - new_width) // 2
@@ -134,18 +109,8 @@ def make_same_size(image_path, target_width=800, target_height=500):
         new_height = int(img.width / target_ratio)
         top = (img.height - new_height) // 2
         img = img.crop((0, top, img.width, top + new_height))
-    
     img = img.resize((target_width, target_height), Image.LANCZOS)
     return img
-
-# Theme & Colors (ilagay dito sa top, after supabase)
-accent_primary = "#00ffaa"
-        # Theme & Colors (ilagay dito sa top, after supabase)
-accent_primary = "#00ffaa"
-accent_gold = "#ffd700"
-accent_glow = "#00ffaa40"
-accent_color = accent_primary  # <-- IMPORTANT: Define accent_color here
-accent_hover = "#00ffcc"
 
 # Keep-alive for Streamlit Cloud
 def keep_alive():
@@ -162,10 +127,11 @@ if os.getenv("STREAMLIT_SHARING") or os.getenv("STREAMLIT_CLOUD"):
         thread.start()
         st._keep_alive_thread_started = True
 
+# WIDE LAYOUT + SIDEBAR AUTO
 st.set_page_config(
     page_title="KMFX EA - Elite Empire",
     page_icon="👑",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="auto"
 )
 
@@ -207,25 +173,22 @@ def create_default_users():
             st.success("Default owner created. CHANGE PASSWORD ASAP!")
     except Exception as e:
         st.error(f"Error creating defaults: {e}")
-
 create_default_users()
 
-# ====================== AUTH & THEME SETUP - EARLY & CLEAN (PLACE THIS RIGHT AFTER SESSION_STATE INIT & SUPABASE) ======================
+# ====================== AUTH & THEME SETUP ======================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
-
 if "theme" not in st.session_state:
-    st.session_state.theme = "light"  # Default fresh open
+    st.session_state.theme = "light"
 
-# AUTO THEME BASED ON LOGIN - NO RERUN, NO CONFLICT
 if st.session_state.authenticated:
-    st.session_state.theme = "light"   # Inside dashboard = light mode
+    st.session_state.theme = "light"
 else:
-    st.session_state.theme = "dark"    # Public landing = dark mode
+    st.session_state.theme = "dark"
 
 theme = st.session_state.theme
 
-# Your colors (keep exactly as is)
+# Colors (clean - no duplicates)
 accent_primary = "#00ffaa"
 accent_gold = "#ffd700"
 accent_glow = "#00ffaa40"
@@ -239,33 +202,31 @@ card_shadow = "0 8px 25px rgba(0,0,0,0.12)" if theme == "light" else "0 10px 30p
 card_shadow_hover = "0 15px 40px rgba(0,0,0,0.2)" if theme == "light" else "0 20px 50px rgba(0,255,170,0.45)"
 sidebar_bg = "rgba(248, 251, 255, 0.95)" if theme == "light" else "rgba(10, 13, 20, 0.95)"
 
+# Full CSS
 st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
-    /* Global - Slightly larger base font */
     html, body, [class*="css-"] {{
         font-family: 'Poppins', sans-serif !important;
-        font-size: 15px !important; /* Increased overall */
+        font-size: 15px !important;
     }}
     .stApp {{
         background: {bg_color};
         color: {text_primary};
     }}
-    /* Adaptive text */
     h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
         color: {text_primary} !important;
     }}
     small, caption, .caption {{
         color: {text_muted} !important;
     }}
-    /* Medium glass cards - reduced padding for medium size */
     .glass-card {{
         background: {card_bg};
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-radius: 20px;
         border: 1px solid {border_color};
-        padding: 2.2rem !important; /* Slightly more spacious for public */
+        padding: 2.2rem !important;
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
         margin: 2rem 0;
@@ -275,7 +236,6 @@ st.markdown(f"""
         transform: translateY(-6px);
         border-color: {accent_primary};
     }}
-    /* Font inside cards - balanced for public readability */
     .glass-card h1, .glass-card h2, .glass-card h3,
     .glass-card h4, .glass-card p, .glass-card div,
     .glass-card span, .glass-card label {{
@@ -285,13 +245,11 @@ st.markdown(f"""
     .glass-card h1 {{ font-size: 2.2rem !important; }}
     .glass-card h2 {{ font-size: 1.8rem !important; }}
     .glass-card h3 {{ font-size: 1.5rem !important; }}
-    /* GOLD TEXT CLASS - for premium headings */
     .gold-text {{
         color: {accent_gold} !important;
         font-weight: 600;
         letter-spacing: 0.5px;
     }}
-    /* PUBLIC HERO SECTION */
     .public-hero {{
         text-align: center;
         padding: 6rem 2rem 4rem;
@@ -311,7 +269,6 @@ st.markdown(f"""
         font-size: clamp(1.8rem, 5vw, 3rem);
         margin: 1.5rem 0;
     }}
-    /* TIMELINE CARD - for progress section */
     .timeline-card {{
         background: rgba(30, 35, 45, 0.6);
         border-left: 6px solid {accent_gold};
@@ -328,13 +285,11 @@ st.markdown(f"""
         color: {accent_gold};
         margin-bottom: 1rem;
     }}
-    /* BIG STATS in hero */
     .big-stat {{
         font-size: 3rem !important;
         font-weight: 700;
         color: {accent_primary};
     }}
-    /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
     .stSelectbox > div > div > div,
@@ -347,7 +302,6 @@ st.markdown(f"""
         border: 1px solid {border_color} !important;
         border-radius: 16px !important;
     }}
-    /* Selectbox fixes */
     .stSelectbox > div > div > div > div[role="button"] > div,
     .stSelectbox > div > div > div > div > div:first-child {{
         color: #000000 !important;
@@ -370,7 +324,6 @@ st.markdown(f"""
         color: #666666 !important;
         opacity: 1 !important;
     }}
-    /* Buttons */
     button[kind="primary"] {{
         background: {accent_primary} !important;
         color: #000000 !important;
@@ -384,12 +337,10 @@ st.markdown(f"""
         box-shadow: 0 12px 35px {accent_glow} !important;
         transform: translateY(-3px);
     }}
-    /* TOP HEADER BLEND */
     header[data-testid="stHeader"] {{
         background-color: {bg_color} !important;
         backdrop-filter: blur(20px);
     }}
-    /* SIDEBAR - ONLY BACKGROUND & BLUR (NO FIXED WIDTH - LET STREAMLIT HANDLE RESPONSIVE) */
     section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: blur(20px);
@@ -397,7 +348,6 @@ st.markdown(f"""
         border-right: 1px solid {border_color};
         box-shadow: none !important;
     }}
-    /* RED arrow/hamburger */
     [data-testid="collapsedControl"] {{
         color: #ff4757 !important;
     }}
@@ -405,21 +355,18 @@ st.markdown(f"""
         fill: #ff4757 !important;
         stroke: #ff4757 !important;
     }}
-    /* Desktop padding */
     @media (min-width: 769px) {{
         .main .block-container {{
             padding-left: 3rem !important;
             padding-top: 2rem !important;
         }}
     }}
-    /* Mobile adjustments */
     @media (max-width: 768px) {{
         .public-hero {{ padding: 4rem 1rem 3rem; min-height: 70vh; }}
         .glass-card {{ padding: 2rem !important; }}
         .timeline-card {{ border-left: none; border-top: 6px solid {accent_gold}; border-radius: 20px; }}
         .big-stat {{ font-size: 2.2rem !important; }}
     }}
-    /* Premium Menu (sidebar radio buttons - beautiful glass style) */
     div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
@@ -444,7 +391,6 @@ st.markdown(f"""
         box-shadow: 0 10px 30px rgba(0,255,170,0.4);
         font-weight: 600;
     }}
-    /* Force black text for metrics */
     .stMetric label, .stMetric value {{
         color: black !important;
     }}
@@ -452,7 +398,6 @@ st.markdown(f"""
         fill: black !important;
         color: black !important;
     }}
-    /* Nice red collapse arrow on mobile */
     [data-testid="collapsedControl"] {{
         position: fixed !important;
         left: 0 !important;
@@ -498,26 +443,17 @@ def login_user(username, password, expected_role=None):
         response = supabase.table("users").select("password, full_name, role").eq("username", username.lower()).execute()
         if response.data:
             user = response.data[0]
-            
-            # Check password
             if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
                 actual_role = user["role"]
-                
-                # NEW: Role validation per tab
                 if expected_role and actual_role != expected_role:
                     st.error(f"This login tab is for {expected_role.title()} accounts only. Please use the correct tab.")
                     return
-                
-                # Success - set session
                 st.session_state.authenticated = True
                 st.session_state.username = username.lower()
                 st.session_state.full_name = user["full_name"] or username
                 st.session_state.role = actual_role
-              
-                # AUTO LIGHT MODE + FORCE DASHBOARD
                 st.session_state.theme = "light"
                 st.session_state.selected_page = "🏠 Dashboard"
-              
                 log_action("Login Successful", f"User: {username} | Role: {actual_role}")
                 st.success(f"Welcome back, {st.session_state.full_name}! 👑 Role: {st.session_state.role.title()}")
                 st.rerun()
@@ -533,67 +469,52 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    # FORCE DARK MODE FOR PUBLIC LANDING PAGE ONLY
     if st.session_state.get("theme") != "dark":
         st.session_state.theme = "dark"
-        st.rerun()  # Reload once to apply dark theme immediately
+        st.rerun()
 
-    # ====================== PUBLIC LANDING PAGE (DARK MODE + LOGO AT TOP, ZERO SPACE) ======================
-   
-    # GLOBAL FIX: Zero top space + hide Streamlit bar
+    # Zero top space + hide header
     st.markdown("""
     <style>
-    /* Remove all top space */
-    .block-container {
-        padding-top: 0rem !important;
-        margin-top: 0rem !important;
-    }
-    .main > div {
-        padding-top: 0rem !important;
-    }
-    header { visibility: hidden !important; }
+        .block-container { padding-top: 0rem !important; margin-top: 0rem !important; }
+        .main > div { padding-top: 0rem !important; }
+        header { visibility: hidden !important; }
     </style>
     """, unsafe_allow_html=True)
-    
-   
-    # === LOGO AT VERY TOP (centered, large, responsive - NO DEPRECATION WARNING) ===
-    logo_col = st.columns([1, 6, 1])[1] # Slightly wider middle column for better logo size
-    with logo_col:
-        st.image("assets/logo.png") # No use_column_width → no warning, still large & responsive
-   
-    # Original content (centered)
-    st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align: center; color:{text_primary};'>Automated Gold Trading for Financial Freedom</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size:1.4rem; color:{text_muted};'>Passed FTMO Phase 1 • +3,071% 5-Year Backtest • Building Legacies of Generosity</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size:1.2rem;'>Mark Jeff Blando – Founder & Developer • 2026</p>", unsafe_allow_html=True)
-   
-    # Realtime Stats - FIXED QUERY + RESPONSIVE (NO TRUNCATION)
-    try:
-        accounts_count = supabase.table("ftmo_accounts").select("id", count="exact").execute().count or 0
-        equity_data = supabase.table("ftmo_accounts").select("current_equity").execute().data or []
-        total_equity = sum(acc.get("current_equity", 0) for acc in equity_data)
-        
-        # FIXED: Correct "type, amount" format
-        gf_data = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
-        gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_data)
-        
-        members_count = supabase.table("users").select("id", count="exact").eq("role", "client").execute().count or 0
-    except Exception as e:
-        print(f"Supabase stats error: {e}")
-        accounts_count = total_equity = gf_balance = members_count = 0
-   
-    # FULL-WIDTH RESPONSIVE METRICS (auto-stack on mobile, no truncation)
-    cols = st.columns(4)
-    with cols[0]:
-        st.metric("Active Accounts", accounts_count)
-    with cols[1]:
-        st.metric("Total Equity", f"${total_equity:,.0f}")
-    with cols[2]:
-        st.metric("Growth Fund", f"${gf_balance:,.0f}")
-    with cols[3]:
-        st.metric("Members", members_count) # Shortened label to prevent cutoff on small screens
-   
-    # =====================================================================================================
+
+    # CENTERED PUBLIC PAGE IN WIDE LAYOUT
+    _, center_col, _ = st.columns([1, 4, 1])
+    with center_col:
+        st.image("assets/logo.png")
+
+        st.markdown(f"<h1 class='gold-text' style='text-align: center;'>KMFX EA</h1>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; color:{text_primary};'>Automated Gold Trading for Financial Freedom</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size:1.4rem; color:{text_muted};'>Passed FTMO Phase 1 • +3,071% 5-Year Backtest • Building Legacies of Generosity</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size:1.2rem;'>Mark Jeff Blando – Founder & Developer • 2026</p>", unsafe_allow_html=True)
+
+        # Realtime Stats
+        try:
+            accounts_count = supabase.table("ftmo_accounts").select("id", count="exact").execute().count or 0
+            equity_data = supabase.table("ftmo_accounts").select("current_equity").execute().data or []
+            total_equity = sum(acc.get("current_equity", 0) for acc in equity_data)
+            gf_data = supabase.table("growth_fund_transactions").select("type, amount").execute().data or []
+            gf_balance = sum(t["amount"] if t["type"] == "In" else -t["amount"] for t in gf_data)
+            members_count = supabase.table("users").select("id", count="exact").eq("role", "client").execute().count or 0
+        except Exception as e:
+            print(f"Supabase stats error: {e}")
+            accounts_count = total_equity = gf_balance = members_count = 0
+
+        cols = st.columns(4)
+        with cols[0]:
+            st.metric("Active Accounts", accounts_count)
+        with cols[1]:
+            st.metric("Total Equity", f"${total_equity:,.0f}")
+        with cols[2]:
+            st.metric("Growth Fund", f"${gf_balance:,.0f}")
+        with cols[3]:
+            st.metric("Members", members_count)
+
+        # =====================================================================================================
 
         # Portfolio Story
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
@@ -1237,6 +1158,99 @@ if st.session_state.show_login:
 st.markdown("</div>", unsafe_allow_html=True)  # Close CTA glass-card
 
 st.stop()  # Stop rendering for public users — authenticated content comes after this
+
+        st.stop()
+
+# ====================== AUTHENTICATED APP (WIDE + SIDEBAR) ======================
+with st.sidebar:
+    st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align:center; color:{accent_primary};'><strong>{st.session_state.role.title()}</strong></p>", unsafe_allow_html=True)
+    st.divider()
+
+    current_role = st.session_state.role
+
+    if current_role == "client":
+        pages = [
+            "🏠 Dashboard", "👤 My Profile", "📊 FTMO Accounts", "💰 Profit Sharing",
+            "🌱 Growth Fund", "📁 File Vault", "📢 Announcements", "💬 Messages",
+            "🔔 Notifications", "💳 Withdrawals", "🤖 EA Versions", "📸 Testimonials",
+            "🔮 Simulator"
+        ]
+    elif current_role == "admin":
+        pages = [
+            "🏠 Dashboard", "📊 FTMO Accounts", "💰 Profit Sharing", "🌱 Growth Fund",
+            "📁 File Vault", "📢 Announcements", "💬 Messages", "🔔 Notifications",
+            "💳 Withdrawals", "🤖 EA Versions", "📸 Testimonials", "📈 Reports & Export",
+            "🔮 Simulator"
+        ]
+    elif current_role == "owner":
+        pages = [
+            "🏠 Dashboard", "📊 FTMO Accounts", "💰 Profit Sharing", "🌱 Growth Fund",
+            "🔑 License Generator", "📁 File Vault", "📢 Announcements", "💬 Messages",
+            "🔔 Notifications", "💳 Withdrawals", "🤖 EA Versions", "📸 Testimonials",
+            "📈 Reports & Export", "🔮 Simulator", "📜 Audit Logs", "👤 Admin Management"
+        ]
+    else:
+        pages = ["🏠 Dashboard"]
+
+    if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
+        st.session_state.selected_page = pages[0]
+
+    selected = st.radio(
+        "Navigation",
+        pages,
+        index=pages.index(st.session_state.selected_page),
+        label_visibility="collapsed"
+    )
+    st.session_state.selected_page = selected
+
+    st.divider()
+
+    if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
+        st.session_state.theme = "light" if theme == "dark" else "dark"
+        st.rerun()
+
+    if st.button("🚪 Logout", use_container_width=True, type="secondary"):
+        log_action("Logout", f"User: {st.session_state.username}")
+        st.session_state.clear()
+        st.rerun()
+
+# Common Header & Announcement
+try:
+    gf_resp = supabase.table("mv_growth_fund_balance").select("balance").execute()
+    gf_balance = gf_resp.data[0]["balance"] if gf_resp.data else 0.0
+except:
+    gf_balance = 0.0
+
+col1, col2 = st.columns([3, 1])
+with col1:
+    st.markdown(f"<h1>{selected}</h1>", unsafe_allow_html=True)
+with col2:
+    st.metric("Growth Fund", f"${gf_balance:,.0f}")
+
+try:
+    ann = supabase.table("announcements").select("title, message, date").order("date", desc=True).limit(1).execute().data[0]
+    st.markdown(f"""
+    <div class='glass-card' style='border-left: 5px solid {accent_primary}; padding:1.5rem;'>
+        <h4 style='margin:0; color:{accent_primary};'>📢 {ann['title']}</h4>
+        <p style='margin:0.8rem 0 0; opacity:0.9;'>{ann['message']}</p>
+        <small style='opacity:0.7;'>Posted: {ann['date']}</small>
+    </div>
+    """, unsafe_allow_html=True)
+except:
+    st.markdown(f"""
+    <div class='glass-card' style='text-align:center; padding:2rem;'>
+        <h3 style='margin:0; color:{accent_primary};'>Welcome back, {st.session_state.full_name}! 🚀</h3>
+        <p style='margin:1rem 0 0; opacity:0.8;'>Scale smarter. Trade bolder. Win bigger.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ALL YOUR PAGE CONTENT (Dashboard, FTMO Accounts, Profit Sharing, My Profile, Growth Fund, etc.)
+# ... (exact same as your original authenticated pages - unchanged) ...
+
+# Final footer
+st.markdown("---")
+st.caption("© 2025 KMFX FTMO Pro • Cloud Edition • Built by Faith, Shared for Generations 👑")
 # ====================== AUTHENTICATED APP STARTS HERE (bago mag dashboard) ======================
 with st.sidebar:
     st.markdown(f"<h3 style='text-align:center;'>👤 {st.session_state.full_name}</h3>", unsafe_allow_html=True)
