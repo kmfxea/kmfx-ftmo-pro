@@ -235,23 +235,23 @@ st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
     /* Global - Slightly larger base font */
-    html, body, [class*="css-"] {
+    html, body, [class*="css-"] {{
         font-family: 'Poppins', sans-serif !important;
         font-size: 15px !important; /* Increased overall */
-    }
-    .stApp {
+    }}
+    .stApp {{
         background: {bg_color};
         color: {text_primary};
-    }
+    }}
     /* Adaptive text */
-    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {
+    h1, h2, h3, h4, h5, h6, p, div, span, label, .stMarkdown {{
         color: {text_primary} !important;
-    }
-    small, caption, .caption {
+    }}
+    small, caption, .caption {{
         color: {text_muted} !important;
-    }
+    }}
     /* Medium glass cards - reduced padding for medium size */
-    .glass-card {
+    .glass-card {{
         background: {card_bg};
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -261,71 +261,71 @@ st.markdown(f"""
         box-shadow: {card_shadow};
         transition: all 0.3s ease;
         margin: 2rem 0;
-    }
-    .glass-card:hover {
+    }}
+    .glass-card:hover {{
         box-shadow: {card_shadow_hover};
         transform: translateY(-6px);
         border-color: {accent_primary};
-    }
+    }}
     /* Font inside cards - balanced for public readability */
     .glass-card h1, .glass-card h2, .glass-card h3,
     .glass-card h4, .glass-card p, .glass-card div,
-    .glass-card span, .glass-card label {
+    .glass-card span, .glass-card label {{
         font-size: 15px !important;
         line-height: 1.6 !important;
-    }
-    .glass-card h1 { font-size: 2.2rem !important; }
-    .glass-card h2 { font-size: 1.8rem !important; }
-    .glass-card h3 { font-size: 1.5rem !important; }
+    }}
+    .glass-card h1 {{ font-size: 2.2rem !important; }}
+    .glass-card h2 {{ font-size: 1.8rem !important; }}
+    .glass-card h3 {{ font-size: 1.5rem !important; }}
     /* GOLD TEXT CLASS - for premium headings */
-    .gold-text {
+    .gold-text {{
         color: {accent_gold} !important;
         font-weight: 600;
         letter-spacing: 0.5px;
-    }
+    }}
     /* PUBLIC HERO SECTION */
-    .public-hero {
+    .public-hero {{
         text-align: center;
         padding: 6rem 2rem 4rem;
         min-height: 80vh;
         display: flex;
         flex-direction: column;
         justify-content: center;
-    }
-    .public-hero h1 {
+    }}
+    .public-hero h1 {{
         font-size: clamp(3rem, 8vw, 5rem);
         background: linear-gradient(90deg, {accent_gold}, {accent_primary});
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 1rem;
-    }
-    .public-hero h2 {
+    }}
+    .public-hero h2 {{
         font-size: clamp(1.8rem, 5vw, 3rem);
         margin: 1.5rem 0;
-    }
+    }}
     /* TIMELINE CARD - for progress section */
-    .timeline-card {
+    .timeline-card {{
         background: rgba(30, 35, 45, 0.6);
         border-left: 6px solid {accent_gold};
         border-radius: 0 20px 20px 0;
         padding: 2rem;
         margin: 2.5rem 0;
         transition: all 0.3s ease;
-    }
-    .timeline-card:hover {
+    }}
+    .timeline-card:hover {{
         transform: translateX(10px);
         box-shadow: 0 10px 30px {accent_glow};
-    }
-    .timeline-card h3 {
+    }}
+    .timeline-card h3 {{
         color: {accent_gold};
         margin-bottom: 1rem;
-    }
+    }}
     /* BIG STATS in hero */
-    .big-stat {
+    .big-stat {{
         font-size: 3rem !important;
         font-weight: 700;
         color: {accent_primary};
-    }
+    }}
     /* Inputs - PURE WHITE BACKGROUND + BLACK TEXT */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea,
@@ -333,86 +333,86 @@ st.markdown(f"""
     .stSelectbox > div > div > div > div,
     .stSelectbox > div > div input,
     .stTextInput > div > div,
-    .stTextArea > div > div {
+    .stTextArea > div > div {{
         background: #ffffff !important;
         color: #000000 !important;
         border: 1px solid {border_color} !important;
         border-radius: 16px !important;
-    }
+    }}
     /* Selectbox fixes */
     .stSelectbox > div > div > div > div[role="button"] > div,
-    .stSelectbox > div > div > div > div > div:first-child {
+    .stSelectbox > div > div > div > div > div:first-child {{
         color: #000000 !important;
         background: #ffffff !important;
-    }
+    }}
     [data-baseweb="select"] > div[role="listbox"] > div,
-    [data-baseweb="select"] div[role="option"] {
+    [data-baseweb="select"] div[role="option"] {{
         background: #ffffff !important;
         color: #000000 !important;
-    }
+    }}
     [data-baseweb="select"] div[role="option"]:hover,
-    [data-baseweb="select"] div[role="option"][aria-selected="true"] {
+    [data-baseweb="select"] div[role="option"][aria-selected="true"] {{
         background: #e0e0e0 !important;
         color: #000000 !important;
-    }
-    .stSelectbox [data-baseweb="select"] svg {
+    }}
+    .stSelectbox [data-baseweb="select"] svg {{
         fill: #000000 !important;
-    }
-    ::placeholder {
+    }}
+    ::placeholder {{
         color: #666666 !important;
         opacity: 1 !important;
-    }
+    }}
     /* Buttons */
-    button[kind="primary"] {
+    button[kind="primary"] {{
         background: {accent_primary} !important;
         color: #000000 !important;
         border-radius: 16px !important;
         box-shadow: 0 6px 20px {accent_glow} !important;
         padding: 1rem 2rem !important;
         font-size: 1.2rem !important;
-    }
-    button[kind="primary"]:hover {
+    }}
+    button[kind="primary"]:hover {{
         background: {accent_hover} !important;
         box-shadow: 0 12px 35px {accent_glow} !important;
         transform: translateY(-3px);
-    }
+    }}
     /* TOP HEADER BLEND */
-    header[data-testid="stHeader"] {
+    header[data-testid="stHeader"] {{
         background-color: {bg_color} !important;
         backdrop-filter: blur(20px);
-    }
+    }}
     /* SIDEBAR - ONLY BACKGROUND & BLUR (NO FIXED WIDTH - LET STREAMLIT HANDLE RESPONSIVE) */
-    section[data-testid="stSidebar"] {
+    section[data-testid="stSidebar"] {{
         background: {sidebar_bg} !important;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-right: 1px solid {border_color};
         box-shadow: none !important;
-    }
+    }}
     /* RED arrow/hamburger */
-    [data-testid="collapsedControl"] {
+    [data-testid="collapsedControl"] {{
         color: #ff4757 !important;
-    }
-    [data-testid="collapsedControl"] svg {
+    }}
+    [data-testid="collapsedControl"] svg {{
         fill: #ff4757 !important;
         stroke: #ff4757 !important;
-    }
+    }}
     /* Desktop padding */
-    @media (min-width: 769px) {
-        .main .block-container {
+    @media (min-width: 769px) {{
+        .main .block-container {{
             padding-left: 3rem !important;
             padding-top: 2rem !important;
-        }
-    }
+        }}
+    }}
     /* Mobile adjustments */
-    @media (max-width: 768px) {
-        .public-hero { padding: 4rem 1rem 3rem; min-height: 70vh; }
-        .glass-card { padding: 2rem !important; }
-        .timeline-card { border-left: none; border-top: 6px solid {accent_gold}; border-radius: 20px; }
-        .big-stat { font-size: 2.2rem !important; }
-    }
+    @media (max-width: 768px) {{
+        .public-hero {{ padding: 4rem 1rem 3rem; min-height: 70vh; }}
+        .glass-card {{ padding: 2rem !important; }}
+        .timeline-card {{ border-left: none; border-top: 6px solid {accent_gold}; border-radius: 20px; }}
+        .big-stat {{ font-size: 2.2rem !important; }}
+    }}
     /* Premium Menu (sidebar radio buttons - beautiful glass style) */
-    div[data-testid="stSidebar"] div.stRadio > div > label {
+    div[data-testid="stSidebar"] div.stRadio > div > label {{
         background: rgba(255,255,255,0.08);
         border-radius: 18px;
         padding: 18px 24px;
@@ -422,30 +422,30 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         font-weight: 500;
         color: {text_primary} !important;
-    }
-    div[data-testid="stSidebar"] div.stRadio > div > label:hover {
+    }}
+    div[data-testid="stSidebar"] div.stRadio > div > label:hover {{
         background: rgba(0,255,170,0.18);
         border-color: {accent_primary};
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(0,255,170,0.25);
-    }
-    div[data-testid="stSidebar"] div.stRadio > div > label[data-checked="true"] {
+    }}
+    div[data-testid="stSidebar"] div.stRadio > div > label[data-checked="true"] {{
         background: {accent_primary} !important;
         color: #000000 !important;
         border-color: {accent_primary};
         box-shadow: 0 10px 30px rgba(0,255,170,0.4);
         font-weight: 600;
-    }
+    }}
     /* Force black text for metrics */
-    .stMetric label, .stMetric value {
+    .stMetric label, .stMetric value {{
         color: black !important;
-    }
-    svg text {
+    }}
+    svg text {{
         fill: black !important;
         color: black !important;
-    }
+    }}
     /* Nice red collapse arrow on mobile */
-    [data-testid="collapsedControl"] {
+    [data-testid="collapsedControl"] {{
         position: fixed !important;
         left: 0 !important;
         top: 50% !important;
@@ -455,12 +455,12 @@ st.markdown(f"""
         border-radius: 0 12px 12px 0 !important;
         padding: 20px 8px !important;
         box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
-    }
-    @media (max-width: 768px) {
-        [data-testid="collapsedControl"] {
+    }}
+    @media (max-width: 768px) {{
+        [data-testid="collapsedControl"] {{
             padding: 24px 10px !important;
-        }
-    }
+        }}
+    }}
 </style>
 """, unsafe_allow_html=True)
 
