@@ -1496,8 +1496,8 @@ except Exception:
 if selected == "🏠 Dashboard":
     st.header("Elite Empire Command Center 🚀")
     st.markdown("**Realtime, fully automatic empire overview**")
-    # ====================== DASHBOARD-SPECIFIC ULTIMATE SCROLL TO TOP FIX ======================
-    # Aggressive retries + multiple selectors (para sa initial login load + balloons + long content)
+    # ====================== ULTIMATE DASHBOARD SCROLL FIX (MUTATIONOBSERVER - FINAL SOLUTION) ======================
+    # Waits for DOM stability (no more changes = all charts/trees rendered) then forces top
     st.markdown("""
     <script>
     function forceScrollToTop() {
@@ -1511,21 +1511,38 @@ if selected == "🏠 Dashboard":
         
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        window.scrollTo(0, 0);
         window.parent.scrollTo(0, 0);
     }
     
-    // Initial strong attempt
-    setTimeout(forceScrollToTop, 800);
+    // MutationObserver: Watches for DOM changes (charts loading, height changes)
+    const observer = new MutationObserver(function(mutations) {
+        let stable = true;
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                stable = false;  // Still changing
+            }
+        });
+        
+        if (stable) {
+            forceScrollToTop();
+            observer.disconnect();  // Stop observing once stable
+        }
+    });
     
-    // Aggressive retries every 400ms for up to 6 seconds (covers balloons + charts + trees rendering)
-    let retryCount = 0;
-    const maxRetries = 15;  // ~6 seconds
-    const retryInterval = setInterval(function() {
-        forceScrollToTop();
-        retryCount++;
-        if (retryCount >= maxRetries) clearInterval(retryInterval);
-    }, 400);
+    // Start observing the main container
+    const targetNode = parent.document.querySelector(".main") || document.body;
+    observer.observe(targetNode, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']  // Watch height/style changes
+    });
+    
+    // Fallback initial attempts (in case observer misses)
+    setTimeout(forceScrollToTop, 1000);
+    setTimeout(forceScrollToTop, 3000);
+    setTimeout(forceScrollToTop, 6000);  // Up to 6 seconds coverage
     </script>
     """, unsafe_allow_html=True)
     current_role = st.session_state.get("role", "guest")
