@@ -1396,13 +1396,13 @@ setTimeout(function() {
 }, 500);  // 500ms delay = safe para ma-render muna yung content
 </script>
 """, unsafe_allow_html=True)
-# ====================== GLOBAL FLOATING BACK-TO-TOP BUTTON (LATEST & ELITE) ======================
+# ====================== GLOBAL FLOATING BACK-TO-TOP BUTTON (FIXED WITH F-STRING) ======================
 # Floating button na lalabas kapag nag-scroll down > 300px
 # Works sa ALL pages, smooth scroll, accent color match
-st.markdown("""
+st.markdown(f"""
 <style>
     /* Back to Top Button Styles */
-    #backToTop {
+    #backToTop {{
         display: none; /* Hidden by default */
         position: fixed;
         bottom: 40px;
@@ -1419,56 +1419,61 @@ st.markdown("""
         cursor: pointer;
         transition: all 0.3s ease;
         outline: none;
-    }
-    #backToTop:hover {
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }}
+    #backToTop:hover {{
         background: {accent_hover};
         transform: translateY(-5px);
         box-shadow: 0 15px 35px {accent_glow};
-    }
+    }}
     /* Mobile adjustment */
-    @media (max-width: 768px) {
-        #backToTop {
+    @media (max-width: 768px) {{
+        #backToTop {{
             bottom: 20px;
             right: 20px;
             width: 50px;
             height: 50px;
             font-size: 24px;
-        }
-    }
+        }}
+    }}
 </style>
 
 <button id="backToTop" onclick="scrollToTop()" title="Back to Top">↑</button>
 
 <script>
     // Show button kapag nag-scroll down > 300px
-    window.onscroll = function() {
-        const button = document.getElementById("backToTop");
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            button.style.display = "block";
-        } else {
+    window.onscroll = function() {{
+        const button = document.getElementById("backToTop") || parent.document.getElementById("backToTop");
+        if (!button) return;
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300 ||
+            (parent.document.body.scrollTop > 300 || parent.document.documentElement.scrollTop > 300)) {{
+            button.style.display = "flex";
+        }} else {{
             button.style.display = "none";
-        }
-    };
+        }}
+    }};
 
-    // Smooth scroll to top function
-    function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Extra for Streamlit containers
+    // Smooth scroll to top function (with Streamlit containers)
+    function scrollToTop() {{
+        window.scrollTo({{ top: 0, behavior: 'smooth' }});
+        window.parent.scrollTo({{ top: 0, behavior: 'smooth' }});
+        
         const main = parent.document.querySelector(".main");
-        if (main) {
-            main.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if (main) main.scrollTo({{ top: 0, behavior: 'smooth' }});
+        
         const block = parent.document.querySelector(".block-container");
-        if (block) {
-            block.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
+        if (block) block.scrollTo({{ top: 0, behavior: 'smooth' }});
+        
+        const app = parent.document.querySelector(".stApp");
+        if (app) app.scrollTo({{ top: 0, behavior: 'smooth' }});
+    }}
+    
+    // Initial check on load
+    scrollToTop();
 </script>
-""".format(
-    accent_primary=accent_primary,
-    accent_hover=accent_hover,
-    accent_glow=accent_glow
-), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ====================== COMMON HEADER ======================
 try:
