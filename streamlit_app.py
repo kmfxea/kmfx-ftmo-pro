@@ -1400,31 +1400,46 @@ if st.session_state.get("just_logged_in", False):
         """,
         unsafe_allow_html=True,
     )
-    
+   
     # Clean separator
     st.divider()
-    
-    # Optional celebration (keep mo if gusto mo, pero pwede rin tanggalin kung nagrereset siya ng scroll)
+   
+    # Optional celebration
     st.balloons()
-    
-    # Force scroll to top WITH DELAY (proven fix sa Streamlit)
+   
+    # ====================== ENHANCED SCROLL TO TOP FOR LOGIN (LATEST FIX) ======================
     st.markdown("""
     <script>
-        // Delay para siguradong tapos na mag-render yung page + balloons
-        setTimeout(function() {
-            // Main Streamlit container
-            const mainContainer = window.parent.document.querySelector(".main");
-            if (mainContainer) {
-                mainContainer.scrollTop = 0;
-            }
-            // Fallbacks
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-            window.scrollTo(0, 0);
-        }, 800);  // 800ms delay = sapat after balloons render
+    // Longer delay + multiple attempts para 100% sure (balloons + long content)
+    function scrollToTop() {
+        const main = parent.document.querySelector(".main");
+        if (main) {
+            main.scrollTop = 0;
+        }
+        // Strong fallbacks
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        window.scrollTo(0, 0);
+        // Streamlit block container fallback
+        const block = parent.document.querySelector(".block-container");
+        if (block) {
+            block.scrollTop = 0;
+        }
+    }
+    // Initial attempt after 800ms
+    setTimeout(scrollToTop, 800);
+    // Retry every 500ms up to 3 seconds (para sure kahit matagal mag-render yung balloons/content)
+    let attempts = 0;
+    const retry = setInterval(function() {
+        scrollToTop();
+        attempts++;
+        if (attempts >= 6) {  // Stop after ~3 seconds
+            clearInterval(retry);
+        }
+    }, 500);
     </script>
     """, unsafe_allow_html=True)
-    
+   
     # Reset flag so it only runs once
     st.session_state.just_logged_in = False
 
