@@ -1375,6 +1375,27 @@ with st.sidebar:
         log_action("Logout", f"User: {st.session_state.username}")
         st.session_state.clear()
         st.rerun()
+        # ====================== GLOBAL SCROLL SAFEGUARD (LATEST) ======================
+# Runs on EVERY authenticated page/rerun — forces scroll to top
+st.markdown("""
+<script>
+setTimeout(function() {
+    // Multiple Streamlit selectors para 100% sure
+    const main = parent.document.querySelector(".main");
+    const block = parent.document.querySelector(".block-container");
+    const app = parent.document.querySelector(".stApp");
+    
+    if (main) main.scrollTop = 0;
+    if (block) block.scrollTop = 0;
+    if (app) app.scrollTop = 0;
+    
+    // Standard fallbacks
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    window.scrollTo(0, 0);
+}, 500);  // 500ms delay = safe para ma-render muna yung content
+</script>
+""", unsafe_allow_html=True)
 
 # ====================== COMMON HEADER ======================
 try:
