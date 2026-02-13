@@ -1404,39 +1404,45 @@ if st.session_state.get("just_logged_in", False):
     # Clean separator
     st.divider()
    
-    # Optional celebration
+    # Optional celebration (keep mo kung gusto mo yung hype)
     st.balloons()
    
-    # ====================== ENHANCED SCROLL TO TOP FOR LOGIN (LATEST FIX) ======================
+    # ====================== ULTIMATE SCROLL TO TOP FIX FOR LOGIN (WITH AGGRESSIVE RETRIES) ======================
     st.markdown("""
     <script>
-    // Longer delay + multiple attempts para 100% sure (balloons + long content)
-    function scrollToTop() {
+    // Super robust function
+    function forceScrollToTop() {
+        // Streamlit main containers (multiple selectors para sure)
         const main = parent.document.querySelector(".main");
-        if (main) {
-            main.scrollTop = 0;
-        }
-        // Strong fallbacks
+        const block = parent.document.querySelector(".block-container");
+        const app = parent.document.querySelector(".stApp");
+        
+        if (main) main.scrollTop = 0;
+        if (block) block.scrollTop = 0;
+        if (app) app.scrollTop = 0;
+        
+        // Standard fallbacks
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
-        window.scrollTo(0, 0);
-        // Streamlit block container fallback
-        const block = parent.document.querySelector(".block-container");
-        if (block) {
-            block.scrollTop = 0;
-        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Extra: force viewport to top
+        window.parent.scrollTo(0, 0);
     }
-    // Initial attempt after 800ms
-    setTimeout(scrollToTop, 800);
-    // Retry every 500ms up to 3 seconds (para sure kahit matagal mag-render yung balloons/content)
-    let attempts = 0;
-    const retry = setInterval(function() {
-        scrollToTop();
-        attempts++;
-        if (attempts >= 6) {  // Stop after ~3 seconds
-            clearInterval(retry);
+    
+    // Initial attempt after balloons/render
+    setTimeout(forceScrollToTop, 1000);  // 1 second initial delay
+    
+    // Aggressive retries every 400ms for 5 seconds (para kahit matagal mag-load yung metrics/charts/balloons)
+    let retryCount = 0;
+    const maxRetries = 12;  // ~5 seconds total
+    const retryInterval = setInterval(function() {
+        forceScrollToTop();
+        retryCount++;
+        if (retryCount >= maxRetries) {
+            clearInterval(retryInterval);
         }
-    }, 500);
+    }, 400);
     </script>
     """, unsafe_allow_html=True)
    
