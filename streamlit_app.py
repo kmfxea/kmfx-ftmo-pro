@@ -1305,9 +1305,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.divider()
-
     current_role = st.session_state.role
-
     if current_role == "client":
         pages = [
             "🏠 Dashboard", "👤 My Profile", "📊 FTMO Accounts", "💰 Profit Sharing",
@@ -1331,7 +1329,6 @@ with st.sidebar:
         ]
     else:
         pages = ["🏠 Dashboard"]
-
     # Safe default page
     if "selected_page" not in st.session_state or st.session_state.selected_page not in pages:
         st.session_state.selected_page = pages[0]
@@ -1344,13 +1341,35 @@ with st.sidebar:
     )
     st.session_state.selected_page = selected
 
-    st.divider()
+    # ====================== SCROLL TO TOP FIX (LATEST & ROBUST) ======================
+    # Flag para i-track kung nagbago yung page
+    if "last_page" not in st.session_state:
+        st.session_state.last_page = None
 
+    if st.session_state.selected_page != st.session_state.last_page:
+        st.session_state.last_page = st.session_state.selected_page
+        # Force scroll to top with delay (para ma-render muna yung content)
+        st.markdown("""
+        <script>
+        setTimeout(function() {
+            // Primary: Streamlit main container
+            const main = parent.document.querySelector(".main");
+            if (main) {
+                main.scrollTop = 0;
+            }
+            // Fallbacks para 100% sure
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            window.scrollTo(0, 0);
+        }, 150);  // 150ms delay = optimal (pwede mo i-adjust sa 100-300 kung may balloons)
+        </script>
+        """, unsafe_allow_html=True)
+
+    st.divider()
     # Theme toggle
     if st.button("☀️ Light Mode" if theme == "dark" else "🌙 Dark Mode", use_container_width=True):
         st.session_state.theme = "light" if theme == "dark" else "dark"
         st.rerun()
-
     # Logout
     if st.button("🚪 Logout", use_container_width=True, type="secondary"):
         log_action("Logout", f"User: {st.session_state.username}")
