@@ -1396,6 +1396,79 @@ setTimeout(function() {
 }, 500);  // 500ms delay = safe para ma-render muna yung content
 </script>
 """, unsafe_allow_html=True)
+# ====================== GLOBAL FLOATING BACK-TO-TOP BUTTON (LATEST & ELITE) ======================
+# Floating button na lalabas kapag nag-scroll down > 300px
+# Works sa ALL pages, smooth scroll, accent color match
+st.markdown("""
+<style>
+    /* Back to Top Button Styles */
+    #backToTop {
+        display: none; /* Hidden by default */
+        position: fixed;
+        bottom: 40px;
+        right: 40px;
+        z-index: 9999;
+        background: {accent_primary};
+        color: #000000;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+        box-shadow: 0 8px 25px {accent_glow};
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+    #backToTop:hover {
+        background: {accent_hover};
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px {accent_glow};
+    }
+    /* Mobile adjustment */
+    @media (max-width: 768px) {
+        #backToTop {
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+        }
+    }
+</style>
+
+<button id="backToTop" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+<script>
+    // Show button kapag nag-scroll down > 300px
+    window.onscroll = function() {
+        const button = document.getElementById("backToTop");
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            button.style.display = "block";
+        } else {
+            button.style.display = "none";
+        }
+    };
+
+    // Smooth scroll to top function
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Extra for Streamlit containers
+        const main = parent.document.querySelector(".main");
+        if (main) {
+            main.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        const block = parent.document.querySelector(".block-container");
+        if (block) {
+            block.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+</script>
+""".format(
+    accent_primary=accent_primary,
+    accent_hover=accent_hover,
+    accent_glow=accent_glow
+), unsafe_allow_html=True)
 
 # ====================== COMMON HEADER ======================
 try:
