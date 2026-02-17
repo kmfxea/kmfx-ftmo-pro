@@ -2166,7 +2166,7 @@ elif selected == "📊 FTMO Accounts":
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
 
-            elif selected == "📊 FTMO Accounts":
+elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
     st.markdown("**Empire core: Launch/edit accounts with unified trees • Contributor Pool enforced • Exact 100% validation • Auto v2 migration • Realtime previews • Bulletproof UUID sync • Optional Automatic Growth Fund %**")
     current_role = st.session_state.get("role", "guest")
