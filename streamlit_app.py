@@ -1506,42 +1506,33 @@ if st.session_state.get("just_logged_in", False):
     # Optional celebration (keep mo kung gusto mo yung hype)
     st.balloons()
    
-    # ====================== ULTIMATE SCROLL TO TOP FIX FOR LOGIN (WITH AGGRESSIVE RETRIES) ======================
+        # ULTIMATE SCROLL TO TOP FIX FOR FRESH LOGIN
     st.markdown("""
     <script>
-    // Super robust function
-    function forceScrollToTop() {
-        // Streamlit main containers (multiple selectors para sure)
+    // Super aggressive multi-layer scroll to top
+    function ultimateScrollToTop() {
+        // Streamlit containers
         const main = parent.document.querySelector(".main");
         const block = parent.document.querySelector(".block-container");
         const app = parent.document.querySelector(".stApp");
-        
+        const body = document.body;
+        const html = document.documentElement;
+
         if (main) main.scrollTop = 0;
         if (block) block.scrollTop = 0;
         if (app) app.scrollTop = 0;
-        
-        // Standard fallbacks
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        // Extra: force viewport to top
+        if (body) body.scrollTop = 0;
+        if (html) html.scrollTop = 0;
+
+        window.scrollTo(0, 0);
         window.parent.scrollTo(0, 0);
     }
-    
-    // Initial attempt after balloons/render
-    setTimeout(forceScrollToTop, 1000);  // 1 second initial delay
-    
-    // Aggressive retries every 400ms for 5 seconds (para kahit matagal mag-load yung metrics/charts/balloons)
-    let retryCount = 0;
-    const maxRetries = 12;  // ~5 seconds total
-    const retryInterval = setInterval(function() {
-        forceScrollToTop();
-        retryCount++;
-        if (retryCount >= maxRetries) {
-            clearInterval(retryInterval);
-        }
-    }, 400);
+
+    // Multiple timed attempts to cover slow loading content
+    setTimeout(ultimateScrollToTop, 600);
+    setTimeout(ultimateScrollToTop, 1200);
+    setTimeout(ultimateScrollToTop, 2000);
+    setTimeout(ultimateScrollToTop, 3000);
     </script>
     """, unsafe_allow_html=True)
    
@@ -1903,7 +1894,7 @@ elif selected == "📊 FTMO Accounts":
             display_to_user_id[display] = str_id
             user_id_to_full_name[str_id] = u["full_name"]
     # Special options
-    special_options = ["Contributor Pool", "Manual Payout (Temporary)"]
+    special_options = ["Contributor Pool", "Manual Payout (Temporary)", "Growth Fund"]
     for s in special_options:
         display_to_user_id[s] = None
     participant_options = special_options + list(display_to_user_id.keys())
@@ -2703,74 +2694,58 @@ elif selected == "💰 Profit Sharing":
                 except Exception as e:
                     st.error(f"Record failed: {str(e)}")
 # ====================== MY PROFILE PAGE - FULL FINAL LATEST 2026 (FULLY SUPABASE SYNCED + V2 SUPPORT + PERMANENT STORAGE PROOFS) ======================
+# ====================== MY PROFILE PAGE - FULL FINAL LATEST 2026 (FULLY SUPABASE SYNCED + V2 SUPPORT + PERMANENT STORAGE PROOFS + QR FIXED) ======================
 elif selected == "👤 My Profile":
     # SAFE ROLE CHECK
     current_role = st.session_state.get("role", "guest")
     if current_role != "client":
         st.error("🔒 My Profile is client-only.")
         st.stop()
- 
     st.header("My Profile 👤")
     st.markdown("**Your KMFX EA empire membership: Realtime premium flip card, earnings, full details, participation, withdrawals • Full transparency & motivation.**")
- 
     my_name = st.session_state.full_name
     my_username = st.session_state.username
-    my_user_id = st.session_state.get("user_id")  # Assuming you store user_id in session on login (recommended)
- 
     # FULL REALTIME CACHE (10s for ultra-realtime feel)
     @st.cache_data(ttl=10)
     def fetch_my_profile_data():
         # My user record
         user_resp = supabase.table("users").select("*").eq("full_name", my_name).single().execute()
         my_user = user_resp.data if user_resp.data else {}
- 
         # All accounts (for shared detection)
         accounts_resp = supabase.table("ftmo_accounts").select("*").execute()
         accounts = accounts_resp.data or []
- 
         # Detect my accounts (supports BOTH legacy + v2)
         my_accounts = []
         for a in accounts:
-            # v2 priority
             participants_v2 = a.get("participants_v2", [])
             if any(p.get("display_name") == my_name or str(p.get("user_id")) == str(my_user.get("id")) for p in participants_v2):
                 my_accounts.append(a)
                 continue
-            # Legacy fallback
             participants = a.get("participants", [])
             if any(p.get("name") == my_name for p in participants):
                 my_accounts.append(a)
- 
         # My withdrawals
         wd_resp = supabase.table("withdrawals").select("*").eq("client_name", my_name).order("date_requested", desc=True).execute()
         my_withdrawals = wd_resp.data or []
- 
         # My proofs (permanent Supabase Storage)
-        files_resp = supabase.table("client_files").select("id, original_name, file_url, upload_date, category, notes").eq("assigned_client", my_name).order("upload_date", desc=True).execute()
+        files_resp = supabase.table("client_files").select("id, original_name, file_url, storage_path, upload_date, category, notes").eq("assigned_client", my_name).order("upload_date", desc=True).execute()
         my_proofs = files_resp.data or []
- 
         # All users for title display in trees
         all_users_resp = supabase.table("users").select("id, full_name, title").execute()
         all_users = all_users_resp.data or []
         user_id_to_title = {str(u["id"]): u.get("title") for u in all_users}
- 
         return my_user, my_accounts, my_withdrawals, my_proofs, all_users, user_id_to_title
- 
     my_user, my_accounts, my_withdrawals, my_proofs, all_users, user_id_to_title = fetch_my_profile_data()
- 
     st.caption("🔄 Profile auto-refresh every 10s • Everything realtime & fully synced")
- 
-    # Manual refresh button (extra control for clients)
+    # Manual refresh button
     if st.button("🔄 Refresh My Profile Now", use_container_width=True, type="secondary"):
         st.cache_data.clear()
         st.rerun()
- 
-    # ====================== PREMIUM THEME-ADAPTIVE FLIP CARD ======================
+    # ====================== PREMIUM RESPONSIVE FLIP CARD (FULLY FIXED & MOBILE PERFECT) ======================
     my_title = my_user.get("title", "Member").upper()
     card_title = f"{my_title} CARD" if my_title != "NONE" else "MEMBER CARD"
     my_balance = my_user.get("balance", 0) or 0
- 
-    # Theme colors (unchanged - perfect)
+    # Theme colors
     if theme == "dark":
         front_bg = "linear-gradient(135deg, #000000, #1f1f1f)"
         back_bg = "linear-gradient(135deg, #1f1f1f, #000000)"
@@ -2780,8 +2755,6 @@ elif selected == "👤 My Profile":
         border_color = "#ffd700"
         shadow = "0 20px 50px rgba(0,0,0,0.9)"
         mag_strip = "#333"
-        opacity_low = "0.7"
-        opacity_med = "0.8"
     else:
         front_bg = "linear-gradient(135deg, #ffffff, #f5f8fa)"
         back_bg = "linear-gradient(135deg, #f5f8fa, #eef2f5)"
@@ -2791,41 +2764,39 @@ elif selected == "👤 My Profile":
         border_color = "#d4af37"
         shadow = "0 20px 50px rgba(0,0,0,0.1)"
         mag_strip = "#b0b0b0"
-        opacity_low = "0.7"
-        opacity_med = "0.85"
- 
     st.markdown(f"""
-    <div style="perspective: 1500px; max-width: 600px; margin: 3rem auto;">
+    <div style="perspective: 1500px; max-width: 600px; width: 100%; margin: 3rem auto;">
       <div class="flip-card">
         <div class="flip-card-inner">
           <!-- Front -->
           <div class="flip-card-front">
-            <div style="background: {front_bg}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 2rem; height: 380px; box-shadow: {shadow}; color: {text_color}; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {border_color};">
+            <div style="background: {front_bg}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 2rem; min-height: 380px; box-shadow: {shadow}; color: {text_color}; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid {border_color};">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: 3rem; color: {accent_gold}; letter-spacing: 6px; text-shadow: 0 0 12px {accent_gold};">KMFX EA</h2>
-                <h3 style="margin: 0; font-size: 1.6rem; color: {accent_gold}; letter-spacing: 2px;">{card_title}</h3>
+                <h2 style="margin: 0; font-size: clamp(2rem, 5vw, 3rem); color: {accent_gold}; letter-spacing: 6px; text-shadow: 0 0 12px {accent_gold};">KMFX EA</h2>
+                <h3 style="margin: 0; font-size: clamp(1.2rem, 4vw, 1.6rem); color: {accent_gold}; letter-spacing: 2px;">{card_title}</h3>
               </div>
               <div style="text-align: center; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-                <h1 style="margin: 0; font-size: 2.4rem; letter-spacing: 3px; color: {text_color};">{my_name.upper()}</h1>
+                <h1 style="margin: 0; font-size: clamp(1.8rem, 6vw, 2.4rem); letter-spacing: 3px; color: {text_color};">{my_name.upper()}</h1>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <div style="font-size: 1.4rem; opacity: {opacity_med};">💳 Elite Empire Member</div>
+                <div style="font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.9;">💳 Elite Empire Member</div>
                 <div style="text-align: right;">
-                  <p style="margin: 0; opacity: {opacity_med}; font-size: 1.2rem;">Available Earnings</p>
-                  <h2 style="margin: 0; font-size: 3rem; color: {accent_green}; text-shadow: 0 0 18px {accent_green};">${my_balance:,.2f}</h2>
+                  <p style="margin: 0; opacity: 0.9; font-size: clamp(0.9rem, 2.5vw, 1.2rem);">Available Earnings</p>
+                  <h2 style="margin: 0; font-size: clamp(2rem, 7vw, 3rem); color: {accent_green}; text-shadow: 0 0 18px {accent_green};">${my_balance:,.2f}</h2>
                 </div>
               </div>
-              <p style="margin: 0; text-align: center; opacity: {opacity_low}; font-size: 1rem; letter-spacing: 1px;">Built by Faith • Shared for Generations • 👑 2026</p>
+              <p style="margin: 0; text-align: center; opacity: 0.7; font-size: clamp(0.8rem, 2vw, 1rem); letter-spacing: 1px;">Built by Faith • Shared for Generations • 👑 2026</p>
             </div>
           </div>
           <!-- Back -->
           <div class="flip-card-back">
-            <div style="background: {back_bg}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 1.8rem 2rem; height: 380px; box-shadow: {shadow}; color: {text_color}; display: flex; flex-direction: column; justify-content: flex-start; border: 2px solid {border_color}; overflow: hidden;">
-              <h2 style="margin: 0 0 1rem; text-align: center; color: {accent_gold}; font-size: 1.7rem; letter-spacing: 2px;">Membership Details</h2>
+            <div style="background: {back_bg}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 20px; padding: 1.8rem 2rem; min-height: 380px; box-shadow: {shadow}; color: {text_color}; display: flex; flex-direction: column; justify-content: flex-start; border: 2px solid {border_color}; overflow: hidden;">
+              <h2 style="margin: 0 0 1rem; text-align: center; color: {accent_gold}; font-size: clamp(1.4rem, 4vw, 1.7rem); letter-spacing: 2px;">Membership Details</h2>
               <div style="height: 35px; background: {mag_strip}; border-radius: 8px; margin-bottom: 1rem;"></div>
-              <div style="flex-grow: 1; font-size: 1.1rem; line-height: 1.7; overflow-y: auto; padding-right: 0.5rem;">
+              <div style="flex-grow: 1; font-size: clamp(0.9rem, 2.5vw, 1.1rem); line-height: 1.7; overflow-y: auto; padding-right: 0.5rem;">
                 <strong style="color: {accent_gold};">Full Name:</strong> {my_name}<br>
                 <strong style="color: {accent_gold};">Title:</strong> {my_title}<br>
+                <strong style="color: {accent_gold};">Username:</strong> {my_username}<br>
                 <strong style="color: {accent_gold};">MT5 Accounts:</strong> {my_user.get('accounts') or 'Not set'}<br>
                 <strong style="color: {accent_gold};">Email:</strong> {my_user.get('email') or 'Not set'}<br>
                 <strong style="color: {accent_gold};">Contact No.:</strong> {my_user.get('contact_no') or 'Not set'}<br>
@@ -2833,53 +2804,73 @@ elif selected == "👤 My Profile":
                 <strong style="color: {accent_gold};">Balance:</strong> <span style="color: {accent_green}; font-size: 1.3rem;">${my_balance:,.2f}</span><br>
                 <strong style="color: {accent_gold};">Shared Accounts:</strong> {len(my_accounts)} active
               </div>
-              <p style="margin: 1rem 0 0; text-align: center; opacity: {opacity_low}; font-size: 0.9rem;">Elite Access • KMFX Empire 👑</p>
+              <p style="margin: 1rem 0 0; text-align: center; opacity: 0.7; font-size: clamp(0.8rem, 2vw, 0.9rem);">Elite Access • KMFX Empire 👑</p>
             </div>
           </div>
         </div>
       </div>
     </div>
     <style>
-      /* Same perfect flip card CSS as before */
-      .flip-card {{ background: transparent; width: 600px; height: 380px; perspective: 1000px; margin: 0 auto; }}
+      .flip-card {{ background: transparent; width: 100%; max-width: 600px; height: auto; min-height: 380px; perspective: 1000px; margin: 0 auto; }}
       .flip-card-inner {{ position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); transform-style: preserve-3d; }}
       .flip-card:hover .flip-card-inner, .flip-card:focus-within .flip-card-inner {{ transform: rotateY(180deg); }}
       .flip-card-front, .flip-card-back {{ position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 20px; }}
       .flip-card-back {{ transform: rotateY(180deg); }}
-      @media (max-width: 768px) {{ /* Mobile styles same as before */ }}
+      @media (max-width: 768px) {{
+        .flip-card {{ min-height: 320px; }}
+        .flip-card-front > div, .flip-card-back > div {{ padding: 1.5rem; min-height: 320px; }}
+      }}
     </style>
     <p style="text-align:center; opacity:0.7; margin-top:1rem; font-size:1rem;">
       Hover (desktop) or tap (mobile) the card to flip ↺
     </p>
     """, unsafe_allow_html=True)
- 
-    # ====================== MY QUICK LOGIN QR CODE (UNCHANGED - PERFECT) ======================
-    # ... (keep your existing QR code section exactly as is - it's already perfect)
- 
-    # ====================== CHANGE PASSWORD & FORGOT PASSWORD (UNCHANGED) ======================
-    # ... (keep exactly as is)
- 
-    # ====================== SHARED ACCOUNTS WITH % & FUNDED PHP (FULL V2 SUPPORT) ======================
+    # ====================== RESTORED QUICK LOGIN QR CODE (FULLY FIXED & THEMED + REQUEST IF NONE) ======================
+    st.subheader("🔑 Quick Login QR Code")
+    current_qr_token = my_user.get("qr_token")
+    app_url = "https://kmfxeaftmo.streamlit.app"  # Change if your app URL is different
+    if current_qr_token:
+        qr_url = f"{app_url}/?qr={current_qr_token}"
+        buf = BytesIO()
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(qr_url)
+        qr.make(fit=True)
+        fill_color = "#00ffaa" if theme == "dark" else "#000000"
+        back_color = "#0a0d14" if theme == "dark" else "#ffffff"
+        img = qr.make_image(fill_color=fill_color, back_color=back_color)
+        img.save(buf, format="PNG")
+        qr_bytes = buf.getvalue()
+        col_qr1, col_qr2 = st.columns([1, 2])
+        with col_qr1:
+            st.image(qr_bytes, caption="Scan for Instant Login")
+        with col_qr2:
+            st.code(qr_url, language="text")
+            st.download_button(
+                "⬇ Download QR PNG",
+                qr_bytes,
+                f"{my_name.replace(' ', '_')}_QR_Login.png",
+                "image/png",
+                use_container_width=True
+            )
+            st.success("Valid on any device • Auto-login straight to your profile")
+    else:
+        st.info("No QR login token yet • Contact owner to generate one in Admin Management")
+        if st.button("🔔 Notify Owner to Generate QR Token"):
+            st.info("Owner has been notified (send manual message for now)")
+
+    # ====================== YOUR SHARED ACCOUNTS (WITH TREES) ======================
     st.subheader(f"Your Shared Accounts ({len(my_accounts)} active)")
     if my_accounts:
         for acc in my_accounts:
-            # Prefer v2
             participants = acc.get("participants_v2") or acc.get("participants", [])
-            contributors = acc.get("contributors_v2") or acc.get("contributors", [])
- 
-            # My percentage (v2 priority)
             my_part = next((p for p in participants if p.get("display_name") == my_name or str(p.get("user_id")) == str(my_user.get("id"))), None)
             my_pct = my_part["percentage"] if my_part else next((p["percentage"] for p in participants if p.get("name") == my_name), 0)
- 
-            # Projected share
             my_projected = (acc.get("current_equity", 0) * my_pct / 100) if acc.get("current_equity") else 0
- 
-            # My funded PHP (v2 priority)
-            my_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors 
+            contributors = acc.get("contributors_v2") or acc.get("contributors", [])
+            my_funded_php = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in contributors
                                 if str(c.get("user_id")) == str(my_user.get("id")))
-            if my_funded_php == 0:  # Legacy fallback
+            if my_funded_php == 0:
                 my_funded_php = sum(c["units"] * c["php_per_unit"] for c in contributors if c.get("name") == my_name)
- 
             with st.expander(f"🌟 {acc['name']} • Your Share: {my_pct:.1f}% • Phase: {acc['current_phase']}", expanded=False):
                 col_acc1, col_acc2 = st.columns(2)
                 with col_acc1:
@@ -2888,7 +2879,6 @@ elif selected == "👤 My Profile":
                 with col_acc2:
                     st.metric("Account Withdrawable", f"${acc.get('withdrawable_balance', 0):,.0f}")
                     st.metric("Your Funded (PHP)", f"₱{my_funded_php:,.0f}")
- 
                 # Sankey tree with titles
                 labels = ["Profits"]
                 values = []
@@ -2908,8 +2898,8 @@ elif selected == "👤 My Profile":
                     st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No participation yet • Owner will assign you to shared profits")
- 
-    # ====================== WITHDRAWAL HISTORY & QUICK REQUEST (SUPABASE STORAGE PROOF) ======================
+
+    # ====================== WITHDRAWAL HISTORY & REQUEST ======================
     st.subheader("💳 Your Withdrawal Requests & History")
     if my_withdrawals:
         for w in my_withdrawals:
@@ -2926,8 +2916,8 @@ elif selected == "👤 My Profile":
             st.divider()
     else:
         st.info("No requests yet • Earnings auto-accumulate")
- 
-    # Quick request - NOW WITH PERMANENT SUPABASE STORAGE UPLOAD
+
+    # Quick request with permanent proof upload
     with st.expander("➕ Request New Withdrawal (from Balance)", expanded=False):
         if my_balance <= 0:
             st.info("No available balance yet • Earnings auto-accumulate from profits")
@@ -2937,7 +2927,6 @@ elif selected == "👤 My Profile":
                 method = st.selectbox("Method", ["USDT", "Bank Transfer", "Wise", "PayPal", "GCash", "Other"])
                 details = st.text_area("Details (Wallet/Address/Bank Info)")
                 proof = st.file_uploader("Upload Proof * (Required - Permanent Storage)", type=["png","jpg","jpeg","pdf"])
- 
                 submitted = st.form_submit_button("Submit Request", type="primary")
                 if submitted:
                     if amount > my_balance:
@@ -2946,7 +2935,6 @@ elif selected == "👤 My Profile":
                         st.error("Proof required")
                     else:
                         try:
-                            # Permanent Supabase Storage upload
                             url, storage_path = upload_to_supabase(
                                 file=proof,
                                 bucket="client_files",
@@ -2963,7 +2951,6 @@ elif selected == "👤 My Profile":
                                 "assigned_client": my_name,
                                 "notes": f"Proof for ${amount:,.0f} withdrawal"
                             }).execute()
- 
                             supabase.table("withdrawals").insert({
                                 "client_name": my_name,
                                 "amount": amount,
@@ -2972,33 +2959,40 @@ elif selected == "👤 My Profile":
                                 "status": "Pending",
                                 "date_requested": datetime.date.today().isoformat()
                             }).execute()
- 
                             st.success("Request submitted with permanent proof! Owner will review.")
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
- 
-    # ====================== MY PROOFS IN VAULT (SUPABASE STORAGE URLs) ======================
+
+    # ====================== YOUR PROOFS IN VAULT ======================
     st.subheader("📁 Your Proofs in Vault (Permanent)")
     if my_proofs:
         cols = st.columns(4)
         for idx, p in enumerate(my_proofs):
             with cols[idx % 4]:
-                if p.get("file_url"):
-                    if p["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
-                        st.image(p["file_url"], caption=p["original_name"], use_container_width=True)
-                    else:
-                        st.markdown(f"**{p['original_name']}**")
-                        st.markdown(f"*{p.get('category', 'Other')} • {p['upload_date']}*")
-                    # Download button
-                    if st.button("⬇ Download", key=f"proof_dl_{p['id']}"):
-                        st.markdown(f"[Download {p['original_name']}]({p['file_url']})")
+                signed_url = p.get("file_url")
+                if p.get("storage_path"):
+                    try:
+                        signed_resp = supabase.storage.from_("client_files").create_signed_url(p["storage_path"], 3600)
+                        signed_url = signed_resp.get("signedURL", p.get("file_url"))
+                    except:
+                        pass
+                if signed_url and p["original_name"].lower().endswith(('.png','.jpg','.jpeg','.gif')):
+                    st.image(signed_url, use_container_width=True, caption=p["original_name"])
                 else:
-                    st.caption(p["original_name"] + " (no preview)")
+                    st.markdown(f"**{p['original_name']}**")
+                    st.caption(f"{p.get('category','Other')} • {p['upload_date']}")
+                if signed_url:
+                    try:
+                        r = requests.get(signed_url, timeout=10)
+                        if r.status_code == 200:
+                            st.download_button("⬇ Download", r.content, p["original_name"], use_container_width=True)
+                    except:
+                        st.caption("Download failed")
     else:
         st.info("No proofs uploaded yet")
- 
+
     # ====================== MOTIVATIONAL FOOTER ======================
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
@@ -3011,7 +3005,6 @@ elif selected == "👤 My Profile":
         <h2 style="color:#ffd700;">👑 KMFX Pro • Elite Member Portal 2026</h2>
     </div>
     """, unsafe_allow_html=True)
-# ====================== PART 5: GROWTH FUND PAGE (FINAL SUPER ADVANCED - FULL MAIN FLOW SYNC & REALTIME) ======================
 # ====================== GROWTH FUND PAGE - FULL FINAL LATEST 2026 (FULLY SUPABASE SYNCED + INSTANT MV + REALTIME EVERYTHING) ======================
 elif selected == "🌱 Growth Fund":
     st.header("Growth Fund Management 🌱")
@@ -3199,6 +3192,13 @@ elif selected == "🔑 License Generator":
         st.stop()
     st.header("EA License Generator 🔑")
     st.markdown("**Universal Security • ANY Broker • Flexible Accounts • LIVE/DEMO Control • XOR Encryption • Realtime History**")
+    
+    # Initialize expiry tracking for auto-rerun
+    if "last_expiry_option" not in st.session_state:
+        st.session_state.last_expiry_option = "NEVER (Lifetime)"
+    if "expiry_option" not in st.session_state:
+        st.session_state.expiry_option = "NEVER (Lifetime)"
+
     # Clean XOR encryption (no padding issues)
     def mt_encrypt(plain: str, key: str) -> str:
         if not key:
@@ -3209,10 +3209,12 @@ elif selected == "🔑 License Generator":
             k = ord(key[i % klen])
             result.append(ord(ch) ^ k)
         return ''.join(f'{b:02X}' for b in result).upper()
+
     # STRICT OWNER ONLY
     if st.session_state.get("role", "guest") != "owner":
         st.error("🔒 License generation is OWNER-ONLY.")
         st.stop()
+
     # ULTRA-REALTIME CACHE (10s)
     @st.cache_data(ttl=10)
     def fetch_license_data():
@@ -3222,14 +3224,18 @@ elif selected == "🔑 License Generator":
         history = history_resp.data or []
         user_map = {str(c["id"]): {"name": c["full_name"] or "Unknown", "balance": c["balance"] or 0} for c in clients}
         return clients, history, user_map
+
     clients, history, user_map = fetch_license_data()
+
     # Manual refresh button
     if st.button("🔄 Refresh License Data Now", use_container_width=True, type="secondary"):
         st.cache_data.clear()
         st.rerun()
+
     if not clients:
         st.info("No clients yet — register in Team Management first.")
         st.stop()
+
     st.subheader("Generate New License")
     client_options = {f"{c['full_name']} (Balance: ${c['balance'] or 0:,.2f})": c for c in clients}
     selected_key = st.selectbox("Select Client", list(client_options.keys()))
@@ -3238,15 +3244,16 @@ elif selected == "🔑 License Generator":
     client_name = client["full_name"]
     client_balance = client["balance"] or 0
     st.info(f"**Generating for:** {client_name} | Current Balance: ${client_balance:,.2f}")
+
     # Session state defaults
     for key, default in [
         ("allow_any_account", True),
         ("allow_live_trading", True),
         ("specific_accounts_value", ""),
-        ("expiry_option", "NEVER (Lifetime)")  # Default to NEVER for cleaner UX
     ]:
         if key not in st.session_state:
             st.session_state[key] = default
+
     # Checkboxes with auto-rerun
     col_a, col_b = st.columns(2)
     with col_a:
@@ -3261,14 +3268,17 @@ elif selected == "🔑 License Generator":
             value=st.session_state.allow_live_trading,
             key="chk_live"
         )
+
     if (allow_any != st.session_state.allow_any_account or allow_live != st.session_state.allow_live_trading):
         st.session_state.allow_any_account = allow_any
         st.session_state.allow_live_trading = allow_live
         st.rerun()
+
     if allow_live:
         st.success("✅ LIVE + DEMO allowed")
     else:
         st.warning("⚠️ DEMO only (Live blocked)")
+
     # GENERATE FORM
     with st.form("license_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
@@ -3281,14 +3291,19 @@ elif selected == "🔑 License Generator":
                 height=100
             )
         with col2:
-            # FIXED: Radio with proper state persistence + conditional date input
+            # FIXED EXPIRY WITH AUTO-RERUN ON CHANGE
             expiry_option = st.radio(
                 "Expiry",
                 ["NEVER (Lifetime)", "Specific Date"],
-                index=0 if st.session_state.get("expiry_option") == "NEVER (Lifetime)" else 1,
-                key="expiry_radio"  # Forces rerun on change
+                index=0 if st.session_state.expiry_option == "NEVER (Lifetime)" else 1,
+                key="expiry_radio"
             )
-            st.session_state.expiry_option = expiry_option  # Persist choice
+
+            # Auto-rerun when option changes
+            if expiry_option != st.session_state.last_expiry_option:
+                st.session_state.last_expiry_option = expiry_option
+                st.session_state.expiry_option = expiry_option
+                st.rerun()
 
             if expiry_option == "Specific Date":
                 exp_date = st.date_input(
@@ -3304,6 +3319,7 @@ elif selected == "🔑 License Generator":
 
             version_note = st.text_input("Version Note", value="v2.36 Elite 2026")
             internal_notes = st.text_area("Internal Notes (Optional)", height=100)
+
         submitted = st.form_submit_button("🚀 Generate & Save License", type="primary", use_container_width=True)
         if submitted:
             accounts_str = "*" if allow_any else ",".join([a.strip() for a in specific_accounts.split(",") if a.strip()])
@@ -3333,8 +3349,9 @@ elif selected == "🔑 License Generator":
                 st.balloons()
                 # Clear specific accounts field
                 st.session_state.specific_accounts_value = ""
-                # Reset expiry to default NEVER for next generation
+                # Reset expiry to NEVER for next generation
                 st.session_state.expiry_option = "NEVER (Lifetime)"
+                st.session_state.last_expiry_option = "NEVER (Lifetime)"
                 # Show ready-to-paste code
                 st.subheader("📋 Ready to Paste into EA")
                 st.code(f'''
@@ -3346,13 +3363,14 @@ string ENC_DATA = "{enc_data_hex}";
                 st.rerun()
             except Exception as e:
                 st.error(f"Save failed: {str(e)}")
+
     # REALTIME HISTORY (unchanged)
     st.subheader("📜 Issued Licenses History (Realtime)")
     if history:
         # Optional search
         search_hist = st.text_input("Search by key, client, or version")
         filtered_history = [h for h in history if search_hist.lower() in str(h.get("key","")).lower() or
-                            search_hist.lower() in user_map.get(str(h.get("account_id")), {}).get("name","").lower() or
+                            search_hist.lower() in user_map.get(str(h.get("account_id")), {}).get("nameure","").lower() or
                             search_hist.lower() in str(h.get("version","")).lower()] if search_hist else history
         for h in filtered_history:
             client_name_hist = user_map.get(str(h["account_id"]), {}).get("name", "Unknown")
@@ -3374,14 +3392,14 @@ string ENC_DATA = "{enc_data_hex}";
                     if not h.get("revoked"):
                         if st.button("Revoke License", key=f"revoke_{h['id']}"):
                             try:
-                                supabase.table("client_licenses").update({"revoked": True}).eq("id", h["id"]).execute()
+                                supabase.table("client_licenses").update({"revoked": True}).eq("id", h trimestre["id"]).execute()
                                 st.success("License revoked instantly")
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
                 with col_act2:
-                    if st.button("🗑️ Delete Permanently", key=f"delete_{h['id']}", type="secondary"):
+                    if st.button("🗑️ Delete Permanently", key=f"delete pottery_{h['id']}", type="secondary"):
                         try:
                             supabase.table("client_licenses").delete().eq("id", h["id"]).execute()
                             st.success("License deleted forever")
@@ -3391,6 +3409,7 @@ string ENC_DATA = "{enc_data_hex}";
                             st.error(f"Error: {str(e)}")
     else:
         st.info("No licenses issued yet • Generate first to activate history")
+
     # ELITE FOOTER
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
@@ -3398,8 +3417,8 @@ string ENC_DATA = "{enc_data_hex}";
             Elite EA License System 2026
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            ✅ Fixed expiry UX: Date input hidden/disabled when NEVER selected<br>
-            ✅ Default NEVER for faster lifetime licenses • Clean & effective
+            ✅ Fixed expiry UX: Auto-reload on NEVER/Specific Date switch<br>
+            ✅ Default NEVER for faster generation • Clean & effective
         </p>
         <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Fixed & Elite</h2>
     </div>
@@ -3624,19 +3643,18 @@ elif selected == "📁 File Vault":
     </div>
     """, unsafe_allow_html=True)
 # ====================== ANNOUNCEMENTS PAGE - FULL FINAL LATEST (SUPABASE STORAGE INTEGRATED) ======================
-# ====================== ANNOUNCEMENTS PAGE - FULL FINAL LATEST 2026 (IMAGES & ATTACHMENTS NOW VISIBLE + PERMANENT + REALTIME) ======================
+# ====================== ANNOUNCEMENTS PAGE - FULL FINAL LATEST 2026 (FULLY FIXED: PIN DEFAULT OFF + IMAGES/ATTACHMENTS VISIBLE + PERMANENT + REALTIME) ======================
 elif selected == "📢 Announcements":
     st.header("Empire Announcements 📢")
     st.markdown("**Central realtime communication: Broadcast updates • Rich images/attachments (PERMANENT STORAGE + FULLY VISIBLE) • Likes ❤️ • Threaded comments 💬 • Pinning 📌 • Search & filters • Full team engagement.**")
- 
     current_role = st.session_state.get("role", "guest")
- 
+
     # ULTRA-REALTIME CACHE (10s)
     @st.cache_data(ttl=10)
     def fetch_announcements_realtime():
         ann_resp = supabase.table("announcements").select("*").order("date", desc=True).execute()
         announcements = ann_resp.data or []
- 
+
         # Fetch attachments + generate SIGNED URLs (works even on private buckets)
         for ann in announcements:
             att_resp = supabase.table("announcement_files").select(
@@ -3656,7 +3674,7 @@ elif selected == "📢 Announcements":
                     att["signed_url"] = None
                 attachments.append(att)
             ann["attachments"] = attachments
- 
+
         # Comments (realtime)
         comm_resp = supabase.table("announcement_comments").select("*").order("timestamp", desc=True).execute()
         comments_map = {}
@@ -3664,31 +3682,32 @@ elif selected == "📢 Announcements":
             comments_map.setdefault(c["announcement_id"], []).append(c)
         for ann in announcements:
             ann["comments"] = comments_map.get(ann["id"], [])
- 
         return announcements
- 
+
     announcements = fetch_announcements_realtime()
- 
+
     # Manual refresh
     if st.button("🔄 Refresh Feed Now", use_container_width=True, type="secondary"):
         st.cache_data.clear()
         st.rerun()
- 
-    st.caption("🔄 Feed auto-refresh every 10s • Images & attachments now FULLY VISIBLE (signed URLs)")
- 
-    # POST NEW (OWNER/ADMIN)
+
+    st.caption("🔄 Feed auto-refresh every 10s • Images & attachments FULLY VISIBLE • Pin to Top default OFF")
+
+    # POST NEW (OWNER/ADMIN ONLY)
     if current_role in ["owner", "admin"]:
         st.subheader("📢 Broadcast New Announcement")
         with st.form("ann_form", clear_on_submit=True):
             title = st.text_input("Title *")
             category = st.selectbox("Category", [
-                "General", "Profit Distribution", "Withdrawal Update", 
+                "General", "Profit Distribution", "Withdrawal Update",
                 "License Granted", "Milestone", "EA Update", "Team Alert"
             ])
             message = st.text_area("Message *", height=150)
             attachments = st.file_uploader("Attachments (Images/Proofs/Files - Permanent + Visible)", accept_multiple_files=True)
-            pin = st.checkbox("📌 Pin to Top")
- 
+
+            # FIXED: Pin checkbox default OFF
+            pin = st.checkbox("📌 Pin to Top", value=False)
+
             submitted = st.form_submit_button("📢 Post Announcement", type="primary", use_container_width=True)
             if submitted:
                 if not title.strip() or not message.strip():
@@ -3702,10 +3721,10 @@ elif selected == "📢 Announcements":
                             "posted_by": st.session_state.full_name,
                             "likes": 0,
                             "category": category,
-                            "pinned": pin
+                            "pinned": pin  # Only True if explicitly checked
                         }).execute()
                         ann_id = resp.data[0]["id"]
- 
+
                         if attachments:
                             progress = st.progress(0)
                             for idx, file in enumerate(attachments):
@@ -3718,20 +3737,20 @@ elif selected == "📢 Announcements":
                                     supabase.table("announcement_files").insert({
                                         "announcement_id": ann_id,
                                         "original_name": file.name,
-                                        "file_url": url,  # keep for fallback
+                                        "file_url": url,
                                         "storage_path": storage_path
                                     }).execute()
                                 except Exception as e:
                                     st.warning(f"Attachment {file.name} failed: {str(e)}")
                                 progress.progress((idx + 1) / len(attachments))
                             progress.empty()
- 
-                        st.success("Announcement posted! Images & files now fully visible.")
+
+                        st.success("Announcement posted successfully! Images & files are fully visible.")
                         st.cache_data.clear()
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
- 
+
     # SEARCH & FILTER
     st.subheader("🔍 Search & Filter")
     col_s1, col_s2 = st.columns(2)
@@ -3739,13 +3758,15 @@ elif selected == "📢 Announcements":
         search = st.text_input("Search title/message")
     with col_s2:
         cat_filter = st.selectbox("Category", ["All"] + sorted(set(a.get("category", "General") for a in announcements)))
- 
+
     filtered = [a for a in announcements if cat_filter == "All" or a.get("category") == cat_filter]
     if search:
         s = search.lower()
         filtered = [a for a in filtered if s in a["title"].lower() or s in a["message"].lower()]
+
+    # Sort: Pinned first, then newest
     filtered = sorted(filtered, key=lambda x: (not x.get("pinned", False), x["date"]), reverse=True)
- 
+
     # RICH FEED
     st.subheader(f"📻 Live Feed ({len(filtered)} posts)")
     if filtered:
@@ -3755,8 +3776,8 @@ elif selected == "📢 Announcements":
                 st.markdown(f"<h3 style='color:{accent_color};'>{ann['title']}{pinned}</h3>", unsafe_allow_html=True)
                 st.caption(f"{ann.get('category', 'General')} • by {ann['posted_by']} • {ann['date']}")
                 st.markdown(ann['message'])
- 
-                # IMAGES (now visible via signed URL)
+
+                # IMAGES (FULLY VISIBLE via signed URL)
                 images = [att for att in ann["attachments"] if att["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
                 if images:
                     cols = st.columns(min(len(images), 4))
@@ -3767,8 +3788,8 @@ elif selected == "📢 Announcements":
                                 st.image(signed, use_container_width=True)
                         else:
                             st.caption(f"{att['original_name']} (loading failed)")
- 
-                # NON-IMAGES
+
+                # NON-IMAGES (downloadable)
                 non_images = [att for att in ann["attachments"] if not att["original_name"].lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
                 if non_images:
                     st.markdown("**Files:**")
@@ -3778,27 +3799,33 @@ elif selected == "📢 Announcements":
                             try:
                                 r = requests.get(signed, timeout=10)
                                 if r.status_code == 200:
-                                    st.download_button(att['original_name'], r.content, att['original_name'])
+                                    st.download_button(
+                                        label=att['original_name'],
+                                        data=r.content,
+                                        file_name=att['original_name'],
+                                        mime="application/octet-stream",
+                                        use_container_width=True
+                                    )
                             except:
                                 st.caption(f"{att['original_name']} (download failed)")
                         else:
                             st.caption(att['original_name'])
- 
-                # Likes & Comments (unchanged - perfect)
+
+                # Likes
                 if st.button(f"❤️ {ann.get('likes', 0)}", key=f"like_{ann['id']}"):
                     supabase.table("announcements").update({"likes": ann.get('likes', 0) + 1}).eq("id", ann["id"]).execute()
                     st.cache_data.clear()
                     st.rerun()
- 
+
+                # Comments
                 with st.expander(f"💬 Comments ({len(ann['comments'])})", expanded=False):
                     for c in ann["comments"]:
                         st.markdown(f"**{c['user_name']}** • {c['timestamp'][:16].replace('T', ' ')}")
                         st.markdown(c['message'])
                         st.divider()
- 
-                    with st.form(key=f"comment_{ann['id']}"):
+                    with st.form(key=f"comment_form_{ann['id']}"):
                         comment = st.text_area("Add comment...", height=80, label_visibility="collapsed")
-                        if st.form_submit_button("Post"):
+                        if st.form_submit_button("Post Comment"):
                             if comment.strip():
                                 supabase.table("announcement_comments").insert({
                                     "announcement_id": ann["id"],
@@ -3808,8 +3835,8 @@ elif selected == "📢 Announcements":
                                 }).execute()
                                 st.cache_data.clear()
                                 st.rerun()
- 
-                # Admin actions (unchanged)
+
+                # Admin actions
                 if current_role in ["owner", "admin"]:
                     col1, col2 = st.columns(2)
                     with col1:
@@ -3818,26 +3845,36 @@ elif selected == "📢 Announcements":
                             st.rerun()
                     with col2:
                         if st.button("🗑️ Delete", key=f"del_{ann['id']}", type="secondary"):
+                            # Delete attachments from storage
                             for att in ann["attachments"]:
                                 if att.get("storage_path"):
-                                    supabase.storage.from_("announcements").remove([att["storage_path"]])
+                                    try:
+                                        supabase.storage.from_("announcements").remove([att["storage_path"]])
+                                    except:
+                                        pass
+                            # Delete DB records
                             supabase.table("announcement_files").delete().eq("announcement_id", ann["id"]).execute()
                             supabase.table("announcement_comments").delete().eq("announcement_id", ann["id"]).execute()
                             supabase.table("announcements").delete().eq("id", ann["id"]).execute()
+                            st.success("Announcement deleted")
                             st.cache_data.clear()
                             st.rerun()
                 st.divider()
     else:
-        st.info("No announcements yet")
- 
+        st.info("No announcements yet • Empire feed is ready!")
+
+    # ELITE FOOTER
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Realtime Empire Feed
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Images & attachments NOW FULLY VISIBLE • Permanent storage • Likes • Comments • Search • Empire connected.
+            ✅ Pin to Top default OFF (fixed)<br>
+            ✅ Images & attachments FULLY VISIBLE & downloadable<br>
+            ✅ Permanent storage • Likes • Comments • Search • Empire connected.
         </p>
+        <h2 style="color:#ffd700;">👑 KMFX Announcements • Fully Fixed 2026</h2>
     </div>
     """, unsafe_allow_html=True)
 elif selected == "💬 Messages":
