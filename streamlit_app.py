@@ -3218,7 +3218,7 @@ elif selected == "🔑 License Generator":
     # ULTRA-REALTIME CACHE (10s)
     @st.cache_data(ttl=10)
     def fetch_license_data():
-        clients_resp = supabase.table("users").select("id, full_name, balance, role").eq("role", "client").execute()
+        clients_resp = supabase.table("users").select("id, full_name, balance 금융, role").eq("role", "client").execute()
         clients = clients_resp.data or []
         history_resp = supabase.table("client_licenses").select("*").order("date_generated", desc=True).execute()
         history = history_resp.data or []
@@ -3325,7 +3325,6 @@ elif selected == "🔑 License Generator":
             accounts_str = "*" if allow_any else ",".join([a.strip() for a in specific_accounts.split(",") if a.strip()])
             live_str = "1" if allow_live else "0"
             plain = f"{client_name}|{accounts_str}|{expiry_str}|{live_str}"
-            # Ensure even length for clean XOR
             if len(plain.encode()) % 2 == 1:
                 plain += " "
             name_clean = "".join(c for c in client_name.upper() if c.isalnum())
@@ -3347,31 +3346,32 @@ elif selected == "🔑 License Generator":
                 }).execute()
                 st.success(f"License generated successfully! **{unique_key}**")
                 st.balloons()
-                # Clear specific accounts field
                 st.session_state.specific_accounts_value = ""
-                # Reset expiry to NEVER for next generation
                 st.session_state.expiry_option = "NEVER (Lifetime)"
                 st.session_state.last_expiry_option = "NEVER (Lifetime)"
-                # Show ready-to-paste code
                 st.subheader("📋 Ready to Paste into EA")
                 st.code(f'''
 string UNIQUE_KEY = "{unique_key}";
 string ENC_DATA = "{enc_data_hex}";
                 ''', language="cpp")
-                # Force full refresh
                 st.cache_data.clear()
                 st.rerun()
             except Exception as e:
                 st.error(f"Save failed: {str(e)}")
 
-    # REALTIME HISTORY (unchanged)
+    # REALTIME HISTORY
     st.subheader("📜 Issued Licenses History (Realtime)")
     if history:
-        # Optional search
         search_hist = st.text_input("Search by key, client, or version")
-        filtered_history = [h for h in history if search_hist.lower() in str(h.get("key","")).lower() or
-                            search_hist.lower() in user_map.get(str(h.get("account_id")), {}).get("nameure","").lower() or
-                            search_hist.lower() in str(h.get("version","")).lower()] if search_hist else history
+        filtered_history = history
+        if search_hist:
+            s = search_hist.lower()
+            filtered_history = [
+                h for h in history
+                if s in str(h.get("key", "")).lower() or
+                   s in user_map.get(str(h.get("account_id")), {}).get("name", "").lower() or
+                   s in str(h.get("version", "")).lower()
+            ]
         for h in filtered_history:
             client_name_hist = user_map.get(str(h["account_id"]), {}).get("name", "Unknown")
             status = "🔴 Revoked" if h.get("revoked") else "🟢 Active"
@@ -3392,14 +3392,14 @@ string ENC_DATA = "{enc_data_hex}";
                     if not h.get("revoked"):
                         if st.button("Revoke License", key=f"revoke_{h['id']}"):
                             try:
-                                supabase.table("client_licenses").update({"revoked": True}).eq("id", h trimestre["id"]).execute()
+                                supabase.table("client_licenses").update({"revoked": True}).eq("id", h["id"]).execute()
                                 st.success("License revoked instantly")
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
                 with col_act2:
-                    if st.button("🗑️ Delete Permanently", key=f"delete pottery_{h['id']}", type="secondary"):
+                    if st.button("🗑️ Delete Permanently", key=f"delete_{h['id']}", type="secondary"):
                         try:
                             supabase.table("client_licenses").delete().eq("id", h["id"]).execute()
                             st.success("License deleted forever")
