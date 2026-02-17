@@ -2166,7 +2166,7 @@ elif selected == "📊 FTMO Accounts":
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
 
-elif selected == "📊 FTMO Accounts":
+            elif selected == "📊 FTMO Accounts":
     st.header("FTMO Accounts Management 🚀")
     st.markdown("**Empire core: Launch/edit accounts with unified trees • Contributor Pool enforced • Exact 100% validation • Auto v2 migration • Realtime previews • Bulletproof UUID sync • Optional Automatic Growth Fund %**")
     current_role = st.session_state.get("role", "guest")
@@ -2179,7 +2179,6 @@ elif selected == "📊 FTMO Accounts":
 
     accounts, all_users = fetch_all_data()
 
-    # Display maps (v2 safe)
     user_id_to_display = {}
     display_to_user_id = {}
     user_id_to_full_name = {}
@@ -2193,7 +2192,6 @@ elif selected == "📊 FTMO Accounts":
             display_to_user_id[display] = str_id
             user_id_to_full_name[str_id] = u["full_name"]
 
-    # Special options — Growth Fund added
     special_options = ["Contributor Pool", "Manual Payout (Temporary)", "Growth Fund"]
     for s in special_options:
         display_to_user_id[s] = None
@@ -2202,9 +2200,8 @@ elif selected == "📊 FTMO Accounts":
     contributor_options = list(user_id_to_display.values())
     owner_display = next((d for d, uid in display_to_user_id.items() if uid and any(uu["role"] == "owner" for uu in all_users if str(uu["id"]) == uid)), "King Minted")
 
-    # ====================== OWNER/ADMIN: CREATE + LIST + EDIT ======================
     if current_role in ["owner", "admin"]:
-        # CREATE NEW ACCOUNT — FULLY FIXED
+        # CREATE NEW ACCOUNT
         with st.expander("➕ Launch New FTMO Account", expanded=True):
             with st.form("create_account_form", clear_on_submit=True):
                 col1, col2 = st.columns(2)
@@ -2217,15 +2214,8 @@ elif selected == "📊 FTMO Accounts":
                     withdrawable = st.number_input("Current Withdrawable (USD)", min_value=0.0, value=0.0, step=500.0)
                 notes = st.text_area("Notes (Optional)")
 
-                # Growth Fund Allocation
                 st.subheader("🌱 Growth Fund Allocation (Optional per Account)")
-                gf_pct = st.number_input(
-                    "Growth Fund % from Gross Profit",
-                    min_value=0.0,
-                    max_value=50.0,
-                    value=10.0,
-                    step=0.5
-                )
+                gf_pct = st.number_input("Growth Fund % from Gross Profit", min_value=0.0, max_value=50.0, value=10.0, step=0.5)
                 if gf_pct > 0:
                     st.success(f"✅ {gf_pct:.1f}% auto-allocated to Growth Fund")
                 else:
@@ -2253,7 +2243,6 @@ elif selected == "📊 FTMO Accounts":
 
                 total_tree_sum = edited_tree["percentage"].sum() if not edited_tree.empty else 0.0
                 total_with_gf = total_tree_sum + gf_pct
-
                 progress_value = min(max(total_with_gf / 100.0, 0.0), 1.0)
                 st.progress(progress_value)
                 st.caption(f"Current Total: {total_with_gf:.2f}% (must be exactly 100.00%)")
@@ -2316,7 +2305,6 @@ elif selected == "📊 FTMO Accounts":
                     if not edited_contrib.empty:
                         labels = ["Funded (PHP)"]
                         values = (edited_contrib["units"] * edited_contrib["php_per_unit"]).tolist()
-                        # FIXED: row['display_name'] not 'display'
                         contrib_labels = [f"{row['display_name']} ({row['units']}u @ ₱{row['php_per_unit']:,.0f})" for _, row in edited_contrib.iterrows()]
                         fig = go.Figure(data=[go.Sankey(
                             node=dict(pad=15, thickness=20, label=labels + contrib_labels),
@@ -2325,6 +2313,7 @@ elif selected == "📊 FTMO Accounts":
                         fig.update_layout(height=400)
                         st.plotly_chart(fig, use_container_width=True)
 
+                # SUBMIT BUTTON — FIXED (inside form)
                 submitted = st.form_submit_button("🚀 Launch Account", type="primary", use_container_width=True)
 
                 if submitted:
@@ -2393,7 +2382,7 @@ elif selected == "📊 FTMO Accounts":
                         except Exception as e:
                             st.error(f"Launch failed: {str(e)}")
 
-        # LIVE ACCOUNTS LIST + EDIT — FULL
+        # LIVE ACCOUNTS LIST + EDIT
         st.subheader("Live Empire Accounts")
         if accounts:
             for acc in accounts:
@@ -2452,7 +2441,7 @@ elif selected == "📊 FTMO Accounts":
                             except Exception as e:
                                 st.error(f"Error: {str(e)}")
 
-            # EDIT FORM — FULLY FIXED (same as create)
+            # EDIT FORM
             if "edit_acc_id" in st.session_state:
                 eid = st.session_state.edit_acc_id
                 cur = st.session_state.edit_acc_data
@@ -2589,7 +2578,6 @@ elif selected == "📊 FTMO Accounts":
                             if not edited_contrib.empty:
                                 labels = ["Funded (PHP)"]
                                 values = (edited_contrib["units"] * edited_contrib["php_per_unit"]).tolist()
-                                # FIXED: row['display_name']
                                 contrib_labels = [f"{row['display_name']} ({row['units']}u @ ₱{row['php_per_unit']:,.0f})" for _, row in edited_contrib.iterrows()]
                                 fig = go.Figure(data=[go.Sankey(
                                     node=dict(pad=15, thickness=20, label=labels + contrib_labels),
@@ -2669,7 +2657,7 @@ elif selected == "📊 FTMO Accounts":
         else:
             st.info("No accounts yet")
 
-    # CLIENT VIEW — FULL
+    # CLIENT VIEW
     else:
         my_name = st.session_state.full_name
         my_accounts = [a for a in accounts if any(
