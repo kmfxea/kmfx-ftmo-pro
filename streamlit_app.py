@@ -2725,7 +2725,7 @@ elif selected == "📊 FTMO Accounts":
         for acc in accounts:
             total_funded = sum(c.get("units", 0) * c.get("php_per_unit", 0) for c in (acc.get("contributors_v2") or acc.get("contributors", [])))
             gf_pct_acc = sum(p.get("percentage", 0) for p in (acc.get("participants_v2") or acc.get("participants", [])) if "growth fund" in p.get("display_name", "").lower())
-            with st.expander(f"{acc['name']} • {acc['['current_phase']} • Equity ${acc.get('current_equity', 0):,.0f} • Funded ₱{total_funded:,.0f} • GF {gf_pct_acc:.1f}%"):
+            with st.expander(f"{acc['name']} • {acc['current_phase']} • Equity ${acc.get('current_equity', 0):,.0f} • Funded ₱{total_funded:,.0f} • GF {gf_pct_acc:.1f}%"):
                 participants = acc.get("participants_v2") or acc.get("participants", [])
                 contributors = acc.get("contributors_v2") or acc.get("contributors", [])
                 labels = ["Gross Profit"]
