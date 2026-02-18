@@ -3297,47 +3297,46 @@ elif selected == "🔑 License Generator":
             )
 
         with col2:
-            # ── IMPROVED EXPIRY RADIO ──
-            # We use session_state to preserve choice across reruns
-            current_expiry = st.session_state.get("expiry_choice", "NEVER (Lifetime)")
+            # IMPROVED EXPIRY RADIO - now matches checkbox behavior
+            if "expiry_choice" not in st.session_state:
+                st.session_state.expiry_choice = "NEVER (Lifetime)"
 
             expiry_option = st.radio(
-                "Expiry Type",
+                "Expiry",
                 options=["NEVER (Lifetime)", "Specific Date"],
-                index=0 if current_expiry == "NEVER (Lifetime)" else 1,
-                key="expiry_radio_key",
+                index=0 if st.session_state.expiry_choice == "NEVER (Lifetime)" else 1,
+                key="expiry_radio_final",
                 horizontal=True
             )
 
-            # Auto-rerun when selection changes → this creates the smooth show/hide behavior
-            if expiry_option != current_expiry:
+            # Force immediate refresh when selection changes → date picker appears/disappears instantly
+            if expiry_option != st.session_state.expiry_choice:
                 st.session_state.expiry_choice = expiry_option
                 st.rerun()
 
-            # Conditional date input - only shown when "Specific Date" is active
+            # Show date picker ONLY when "Specific Date" is selected
             if expiry_option == "Specific Date":
-                # Use a remembered date if previously chosen, otherwise default to +365 days
-                default_date = st.session_state.get("last_specific_expiry", 
-                                                  datetime.date.today() + datetime.timedelta(days=365))
-                
+                # Use remembered date or default +365 days
+                default_date = st.session_state.get(
+                    "last_specific_expiry",
+                    datetime.date.today() + datetime.timedelta(days=365)
+                )
                 exp_date = st.date_input(
                     "Choose Expiry Date",
                     value=default_date,
                     min_value=datetime.date.today(),
-                    key="specific_date_picker"
+                    key="specific_expiry_date_final"
                 )
-                
-                # Remember the chosen date for next time
+                # Remember chosen date for next time
                 st.session_state.last_specific_expiry = exp_date
-                
                 expiry_str = exp_date.strftime("%Y-%m-%d")
                 st.info(f"→ License expires on **{expiry_str}**")
             else:
                 expiry_str = "NEVER"
-                st.success("→ Lifetime license (no expiry date)")
-                # Optional visual placeholder when hidden
+                st.success("→ Lifetime license (no expiry)")
+                # Visual feedback when hidden
                 st.markdown(
-                    "<div style='background:#2d3748; color:#a0aec0; padding:12px; border-radius:8px; text-align:center; font-size:0.95rem; opacity:0.8;'>"
+                    "<div style='background:#2d3748; padding:1rem; border-radius:8px; color:#a0aec0; text-align:center; opacity:0.8; margin-top:0.5rem;'>"
                     "Date selection is hidden (Lifetime selected)"
                     "</div>",
                     unsafe_allow_html=True
@@ -3349,7 +3348,7 @@ elif selected == "🔑 License Generator":
         submitted = st.form_submit_button("🚀 Generate & Save License", type="primary", use_container_width=True)
 
         if submitted:
-            accounts_str = "*" if allow_any else ",".join([a.strip() for a in specific_accounts.split(",") if a.strip()])
+            accounts_str = "*" if allow_any else ",".join(a.strip() for a in specific_accounts.split(",") if a.strip())
             live_str = "1" if allow_live else "0"
             plain = f"{client_name}|{accounts_str}|{expiry_str}|{live_str}"
             if len(plain.encode()) % 2 == 1:
@@ -3378,7 +3377,7 @@ elif selected == "🔑 License Generator":
                 st.success(f"License generated successfully! **{unique_key}**")
                 st.balloons()
 
-                # Reset form-related session state
+                # Reset form states
                 st.session_state.specific_accounts_value = ""
                 st.session_state.expiry_choice = "NEVER (Lifetime)"
                 if "last_specific_expiry" in st.session_state:
@@ -3397,7 +3396,7 @@ string ENC_DATA = "{enc_data_hex}";
                 st.error(f"Save failed: {str(e)}")
 
     # ────────────────────────────────────────────────
-    # REALTIME HISTORY (unchanged)
+    # REALTIME HISTORY (unchanged from your version)
     # ────────────────────────────────────────────────
     st.subheader("📜 Issued Licenses History (Realtime)")
     if history:
@@ -3449,18 +3448,18 @@ string ENC_DATA = "{enc_data_hex}";
     else:
         st.info("No licenses issued yet • Generate first to activate history")
 
-    # Footer (unchanged)
+    # Footer
     st.markdown(f"""
     <div class='glass-card' style='padding:3rem; text-align:center; margin:3rem 0;'>
         <h1 style="background:linear-gradient(90deg,{accent_color},#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
             Elite EA License System 2026
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            ✅ Smooth expiry UX: instant show/hide date picker on radio change<br>
-            ✅ Consistent auto-refresh behavior like the checkboxes<br>
-            ✅ Clean session state management
+            ✅ Expiry radio now refreshes instantly like the checkboxes<br>
+            ✅ Date picker appears/disappears smoothly on selection change<br>
+            ✅ Remembers last chosen date when switching back
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Polished</h2>
+        <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Fixed</h2>
     </div>
     """, unsafe_allow_html=True)
 # ====================== FILE VAULT PAGE - FULL FINAL LATEST 2026 (PERMANENT SUPABASE STORAGE + REALTIME + ELITE GRID) ======================
