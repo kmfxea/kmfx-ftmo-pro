@@ -3229,7 +3229,7 @@ elif selected == "🔑 License Generator":
     # ULTRA-REALTIME CACHE (10s)
     @st.cache_data(ttl=10)
     def fetch_license_data():
-        clients_resp = supabase.table("users").select("id, full_name, balance 금융, role").eq("role", "client").execute()
+        clients_resp = supabase.table("users").select("id, full_name, balance, role").eq("role", "client").execute()
         clients = clients_resp.data or []
         history_resp = supabase.table("client_licenses").select("*").order("date_generated", desc=True).execute()
         history = history_resp.data or []
