@@ -3284,7 +3284,7 @@ elif selected == "🔑 License Generator":
         st.warning("⚠️ DEMO only (Live blocked)")
 
     # ────────────────────────────────────────────────
-    # FIXED & STABLE EXPIRY SELECTION (THIS IS THE MAIN FIX)
+    # FIXED & STABLE EXPIRY SELECTION (already perfect)
     # ────────────────────────────────────────────────
     if "expiry_choice" not in st.session_state:
         st.session_state.expiry_choice = "NEVER (Lifetime)"
@@ -3294,31 +3294,24 @@ elif selected == "🔑 License Generator":
         options=["NEVER (Lifetime)", "Specific Date"],
         index=0 if st.session_state.expiry_choice == "NEVER (Lifetime)" else 1,
         horizontal=True,
-        key="expiry_radio_stable"   # ← stable key is very important
+        key="expiry_radio_stable"
     )
 
-    # Only update session state when actually changed (prevents loops)
     if expiry_option != st.session_state.get("expiry_choice"):
         st.session_state.expiry_choice = expiry_option
 
-    # ── CONDITIONAL DATE PICKER WITH MEMORY ──
     if expiry_option == "Specific Date":
-        # Default: last chosen date or +365 days
         default_exp = st.session_state.get(
             "last_chosen_expiry_date",
             datetime.date.today() + datetime.timedelta(days=365)
         )
-
         exp_date = st.date_input(
             "Expiry Date",
             value=default_exp,
             min_value=datetime.date.today(),
-            key="specific_expiry_date_stable"   # ← stable key prevents reset
+            key="specific_expiry_date_stable"
         )
-
-        # Remember chosen date
         st.session_state.last_chosen_expiry_date = exp_date
-
         expiry_str = exp_date.strftime("%Y-%m-%d")
         st.info(f"→ License will expire on **{expiry_str}**")
     else:
@@ -3329,7 +3322,9 @@ elif selected == "🔑 License Generator":
             unsafe_allow_html=True
         )
 
-    # Rest of the form (unchanged except expiry_str usage)
+    # ────────────────────────────────────────────────
+    # LICENSE GENERATION FORM
+    # ────────────────────────────────────────────────
     with st.form("license_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
@@ -3366,7 +3361,7 @@ elif selected == "🔑 License Generator":
                     "enc_data": enc_data_hex,
                     "version": version_note,
                     "date_generated": datetime.date.today().isoformat(),
-                    "expiry": expiry_str,                    # ← now correctly "NEVER" or date
+                    "expiry": expiry_str,
                     "allow_live": allow_live,
                     "notes": internal_notes or None,
                     "allowed_accounts": accounts_str if accounts_str != "*" else None,
@@ -3395,11 +3390,12 @@ string ENC_DATA = "{enc_data_hex}";
                 st.error(f"Save failed: {str(e)}")
 
     # ────────────────────────────────────────────────
-    # HISTORY TABLE (unchanged)
+    # HISTORY TABLE – with Revoke = Force Expiry Today
     # ────────────────────────────────────────────────
     st.subheader("📜 Issued Licenses History (Realtime)")
     if history:
         search_hist = st.text_input("Search by key, client, or version")
+
         filtered_history = history
         if search_hist:
             s = search_hist.lower()
@@ -3409,32 +3405,47 @@ string ENC_DATA = "{enc_data_hex}";
                    s in user_map.get(str(h.get("account_id")), {}).get("name", "").lower() or
                    s in str(h.get("version", "")).lower()
             ]
+
         for h in filtered_history:
             client_name_hist = user_map.get(str(h["account_id"]), {}).get("name", "Unknown")
             status = "🔴 Revoked" if h.get("revoked") else "🟢 Active"
             live_status = "LIVE+DEMO" if h.get("allow_live") else "DEMO only"
             acc_txt = "ANY (*)" if h.get("allowed_accounts") is None else h.get("allowed_accounts", "Custom")
             version_display = f" • {h.get('version', 'Standard')}"
+
             with st.expander(
                 f"{h.get('key','—')} • {client_name_hist}{version_display} • {status} • {live_status} • {acc_txt} • {h.get('date_generated', '—')}",
                 expanded=False
             ):
                 st.markdown(f"**Expiry:** {h['expiry']}")
+
                 if h.get("notes"):
                     st.caption(f"Notes: {h['notes']}")
+
                 st.code(f"ENC_DATA = \"{h.get('enc_data','—')}\"", language="text")
                 st.code(f"UNIQUE_KEY = \"{h.get('key','—')}\"", language="text")
+
                 col_act1, col_act2 = st.columns(2)
+
                 with col_act1:
                     if not h.get("revoked"):
                         if st.button("Revoke License", key=f"revoke_{h['id']}"):
                             try:
-                                supabase.table("client_licenses").update({"revoked": True}).eq("id", h["id"]).execute()
-                                st.success("License revoked instantly")
+                                today = date.today().isoformat()  # e.g. "2026-02-18"
+
+                                supabase.table("client_licenses").update({
+                                    "revoked": True,
+                                    "expiry": today  # Force expiry to today → EA will see it as expired
+                                }).eq("id", h["id"]).execute()
+
+                                st.success(f"License revoked & expiry forced to today ({today})!")
                                 st.cache_data.clear()
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Error: {str(e)}")
+                                st.error(f"Error revoking: {str(e)}")
+                    else:
+                        st.caption("Already revoked")
+
                 with col_act2:
                     if st.button("🗑️ Delete Permanently", key=f"delete_{h['id']}", type="secondary"):
                         try:
@@ -3443,7 +3454,8 @@ string ENC_DATA = "{enc_data_hex}";
                             st.cache_data.clear()
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Error: {str(e)}")
+                            st.error(f"Error deleting: {str(e)}")
+
     else:
         st.info("No licenses issued yet • Generate first to activate history")
 
@@ -3454,9 +3466,10 @@ string ENC_DATA = "{enc_data_hex}";
             Elite EA License System 2026
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
-            Fixed expiry selection • Remembers last date • Instant show/hide • Stable keys • Reliable "NEVER" saving
+            Fixed expiry selection • Remembers last date • Instant show/hide • Stable keys • Reliable "NEVER" saving<br>
+            Revoke now forces expiry to today (offline EA will see it expired)
         </p>
-        <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Fixed</h2>
+        <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Fixed & Enhanced</h2>
     </div>
     """, unsafe_allow_html=True)
 # ====================== FILE VAULT PAGE - FULL FINAL LATEST 2026 (PERMANENT SUPABASE STORAGE + REALTIME + ELITE GRID) ======================
