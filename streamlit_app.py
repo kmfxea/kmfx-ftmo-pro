@@ -3241,6 +3241,7 @@ elif selected == "🔑 License Generator":
         st.stop()
 
     st.subheader("Generate New License")
+
     client_options = {f"{c['full_name']} (Balance: ${c['balance'] or 0:,.2f})": c for c in clients}
     selected_key = st.selectbox("Select Client", list(client_options.keys()))
     client = client_options[selected_key]
@@ -3284,7 +3285,7 @@ elif selected == "🔑 License Generator":
         st.warning("⚠️ DEMO only (Live blocked)")
 
     # ────────────────────────────────────────────────
-    # FIXED & STABLE EXPIRY SELECTION (already perfect)
+    # FIXED & STABLE EXPIRY SELECTION (unchanged — already good)
     # ────────────────────────────────────────────────
     if "expiry_choice" not in st.session_state:
         st.session_state.expiry_choice = "NEVER (Lifetime)"
@@ -3323,7 +3324,7 @@ elif selected == "🔑 License Generator":
         )
 
     # ────────────────────────────────────────────────
-    # LICENSE GENERATION FORM
+    # LICENSE GENERATION FORM (unchanged)
     # ────────────────────────────────────────────────
     with st.form("license_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
@@ -3347,11 +3348,9 @@ elif selected == "🔑 License Generator":
             plain = f"{client_name}|{accounts_str}|{expiry_str}|{live_str}"
             if len(plain.encode()) % 2 == 1:
                 plain += " "
-
             name_clean = "".join(c for c in client_name.upper() if c.isalnum())
             key_date = "NEVER" if expiry_str == "NEVER" else expiry_str[8:] + expiry_str[5:7] + expiry_str[2:4]
             unique_key = f"KMFX_{name_clean}_{key_date}"
-
             enc_data_hex = mt_encrypt(plain, unique_key)
 
             try:
@@ -3390,12 +3389,12 @@ string ENC_DATA = "{enc_data_hex}";
                 st.error(f"Save failed: {str(e)}")
 
     # ────────────────────────────────────────────────
-    # HISTORY TABLE – with Revoke = Force Expiry Today
+    # HISTORY TABLE – FIXED REVOKE LOGIC
     # ────────────────────────────────────────────────
     st.subheader("📜 Issued Licenses History (Realtime)")
+
     if history:
         search_hist = st.text_input("Search by key, client, or version")
-
         filtered_history = history
         if search_hist:
             s = search_hist.lower()
@@ -3418,7 +3417,6 @@ string ENC_DATA = "{enc_data_hex}";
                 expanded=False
             ):
                 st.markdown(f"**Expiry:** {h['expiry']}")
-
                 if h.get("notes"):
                     st.caption(f"Notes: {h['notes']}")
 
@@ -3426,21 +3424,52 @@ string ENC_DATA = "{enc_data_hex}";
                 st.code(f"UNIQUE_KEY = \"{h.get('key','—')}\"", language="text")
 
                 col_act1, col_act2 = st.columns(2)
-
                 with col_act1:
                     if not h.get("revoked"):
                         if st.button("Revoke License", key=f"revoke_{h['id']}"):
                             try:
-                                today = date.today().isoformat()  # e.g. "2026-02-18"
+                                from datetime import datetime, date
 
+                                # ────────────────────────────────────────────────
+                                # SAFE EXPIRY HANDLING — FIXED HERE
+                                # ────────────────────────────────────────────────
+                                expiry_raw = h.get("expiry")  # string: "2026-02-20" or "NEVER"
+
+                                if expiry_raw == "NEVER":
+                                    effective_expiry = None
+                                else:
+                                    try:
+                                        effective_expiry = datetime.strptime(expiry_raw, "%Y-%m-%d").date()
+                                    except (ValueError, TypeError):
+                                        # Invalid format → treat as already expired
+                                        effective_expiry = date(2000, 1, 1)
+
+                                today_date = date.today()
+                                today_str = today_date.isoformat()  # "2025-02-18"
+
+                                # Check if already expired (for better message)
+                                already_expired = effective_expiry is not None and effective_expiry < today_date
+
+                                # Revoke + force expiry to TODAY
                                 supabase.table("client_licenses").update({
                                     "revoked": True,
-                                    "expiry": today  # Force expiry to today → EA will see it as expired
+                                    "expiry": today_str
                                 }).eq("id", h["id"]).execute()
 
-                                st.success(f"License revoked & expiry forced to today ({today})!")
+                                msg = f"License revoked & expiry forced to today ({today_str})!"
+                                if already_expired:
+                                    msg += " (was already expired)"
+
+                                st.success(msg)
+
+                                log_action(
+                                    "License Revoked",
+                                    f"Key: {h.get('key')} • Client: {client_name_hist} • Forced expiry: {today_str} • Already expired? {already_expired}"
+                                )
+
                                 st.cache_data.clear()
                                 st.rerun()
+
                             except Exception as e:
                                 st.error(f"Error revoking: {str(e)}")
                     else:
@@ -3467,7 +3496,7 @@ string ENC_DATA = "{enc_data_hex}";
         </h1>
         <p style="font-size:1.3rem; margin:2rem 0;">
             Fixed expiry selection • Remembers last date • Instant show/hide • Stable keys • Reliable "NEVER" saving<br>
-            Revoke now forces expiry to today (offline EA will see it expired)
+            Revoke now forces expiry to today (offline EA will see it expired) — BUG FIXED!
         </p>
         <h2 style="color:#ffd700;">👑 KMFX License Generator • Fully Fixed & Enhanced</h2>
     </div>
